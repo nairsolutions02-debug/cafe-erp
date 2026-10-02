@@ -741,3 +741,17 @@ export const getDaySummary = async (date) => ok(await rpc('day_summary', { p_dat
 
 export const getMyNotifications = async (limit = 30) => ok(await rpc('my_notifications', { p_limit: limit }));
 export const ackNotification = async (id) => ok(await rpc('ack_notification', { p_id: id }));
+
+// ---------------------------------------------------------------------------
+// Kiosk and khata (Phase 3)
+// ---------------------------------------------------------------------------
+export const getKioskItems = async () => ok(await rpc('kiosk_items'));
+export const getKioskRegulars = async () => ok(await rpc('kiosk_regulars'));
+export const getKhataAccounts = async () => ok(await rpc('khata_accounts'));
+export const getKhataHistory = async (customerId) => ok(await rpc('khata_history', { p_customer: customerId }));
+export const settleKhata = async (customerId, amount, method, drawer = 'cash_counter', clientId = null) =>
+    ok(await rpc('settle_khata', { p_customer: customerId, p_amount: Number(amount), p_method: method, p_drawer: drawer, p_client_id: clientId }));
+export const setCreditLimit = async (customerId, limit) => ok(await rpc('set_credit_limit', { p_customer: customerId, p_limit: Number(limit) }));
+export const runDailyReminders = async () => ok(await rpc('daily_reminders'));
+export const setLocationMin = async (itemId, locationId, min) =>
+    ok(await rpc('set_location_min', { p_item: itemId, p_location: locationId, p_min: Number(min) }));

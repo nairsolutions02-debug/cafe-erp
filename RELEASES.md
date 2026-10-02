@@ -4,6 +4,48 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phase 3 — Kiosk and khata (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Kiosk (`/admin/kiosk`) | Fast screen for a phone or tablet: **customer tabs** across the top (Guest 1 · Raju · +) so several people can be served at once; customer by phone digits or name, regulars as one-tap chips (with khata due); big tiles, most sold at the kiosk first, with **pieces left** at the kiosk and an amber bar when low; brand/category chips. Tap = +1 piece; **hold** (long-press) for a number pad with **Piece / Pack**. One tap on **Cash · UPI · Khata** settles the tab and moves to the next waiting customer. A regular buying 2 cigarettes on khata took under 1 second of taps in testing. |
+| Kiosk stock and cash | Kiosk sales take stock from the location marked *Kiosk sells from here* (Inventory → Locations) and cash goes to the **Cash – Kiosk** drawer with its own shift. Kiosk sales never go to the kitchen screen. Works offline like the counter (code K1). |
+| Restricted items | "Customer looks under 18? Check ID" shows when a restricted item is in the cart (Settings key `restricted_id_reminder`). Restricted items still earn no points or offers. |
+| Khata | Per-customer **credit limit** (Khata page → Limit; 0 = no credit). A sale beyond the limit needs a manager's mobile + PIN (new permission *Approve khata over the limit*; Managers have it). Balances come from the money ledger (Khata account), so cancelling a khata sale takes it off automatically. |
+| Khata page (`/admin/khata`) | Who owes what, **oldest unpaid** in days (first-in-first-out), aging 0–7 / 8–15 / 16–30 / 30+, **Collect** (cash into a drawer, UPI or card), **WhatsApp** reminder with the amount pre-filled, full history. Once a day the bell shows "N khata accounts due over 7 days" (Settings key `khata_reminder_days`). |
+| Low stock per location | Inventory → Stock → Edit → *Low-stock level at one location* (e.g. Kiosk: 20 pc of Gold Flake) drives the amber bar on kiosk tiles. |
+| Plans | Kiosk devices count against the plan (Starter 0, Pro 1, Business 3, Custom 5). Set the plan in /superadmin before using the kiosk. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-phase3.sql`** → Run → *Success*.
+2. /superadmin → FiKA → make sure the plan allows at least 1 kiosk (Custom allows 5).
+3. Vercel redeploys from `main`.
+
+**Test checklist**
+
+- [ ] Inventory → Locations: *Kiosk sells from here* is ticked on **Kiosk**
+- [ ] Recipes → Gold Flake (or any resale item) → *Track it as its own stock item*; Menu → its Pack units → *Pack = 10*, sale price ₹190
+- [ ] Purchases → buy 100 pc, *Received at* **Kiosk** → kiosk tile shows "100 left"
+- [ ] Cash & Shifts → **Cash – Kiosk** → Open shift
+- [ ] Khata → search a regular's phone → **Limit** ₹500
+- [ ] Kiosk: type 4 digits of the regular's phone → pick → tap the cigarette twice → "Check ID" banner → **Khata** → green confirmation; tile drops by 2
+- [ ] Kiosk: **+** tab → hold the cigarette tile → Pack → 1 → Add; **+** another tab → Mint; go back to the pack tab → **Cash**; it jumps to the Mint tab → **UPI**
+- [ ] Kiosk: put the regular over their limit → asks for manager mobile + PIN → approved sale goes through
+- [ ] Khata page: the regular shows the due amount and *0 days* → **Collect** by UPI → due drops; **History** lists the sale and the payment; **WhatsApp** opens with the message pre-filled
+- [ ] Cash & Shifts → Kiosk drawer shows cash expected = opening + kiosk cash sales; close it
+- [ ] Orders → cancel a khata sale (reason) → the khata due goes down
+- [ ] Phone (portrait): kiosk tiles and the Cash/UPI/Khata bar fit without sideways scrolling
+
+**Known limits in this release**
+
+- The kiosk lists every available menu item (most sold at the kiosk first). Use the brand/category chips to narrow it.
+- A khata limit check for an offline sale happens when it syncs; if the limit is exceeded then, the sale shows under *failed* in the sync pill for a manager to retry with approval.
+
+---
+
 ## Phase 2 — Counter, kitchen, offline and money (2026-10-03)
 
 **What's new**

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FiPlus, FiTrash2 } from 'react-icons/fi';
 import {
-    saveStockItem, recordStockChange, transferStock, getUsage, uploadStockPhoto,
+    saveStockItem, recordStockChange, transferStock, getUsage, uploadStockPhoto, setLocationMin,
 } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import Modal from './Modal';
@@ -25,7 +25,16 @@ export const ItemForm = ({ item, locations, vendors, onClose, onSaved }) => {
     });
     const [error, setError] = useState('');
     const [saving, setSaving] = useState(false);
+    const [locMin, setLocMin] = useState({ locationId: locations.find(l => l.defaultForKiosk)?._id || locations[0]?._id || '', min: '' });
     const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+    const saveLocMin = async () => {
+        try {
+            await setLocationMin(item.id, locMin.locationId, locMin.min || 0);
+            setLocMin(m => ({ ...m, min: '', saved: true }));
+        } catch (err) {
+            setError(errorText(err, 'Could not save'));
+        }
+    };
     const costLabel = form.unit === 'g' ? '₹ per kg' : form.unit === 'ml' ? '₹ per litre' : `₹ per ${form.unit || 'unit'}`;
 
     const submit = async (e) => {
@@ -144,6 +153,19 @@ export const ItemForm = ({ item, locations, vendors, onClose, onSaved }) => {
                             <input type="checkbox" checked={form.isActive} onChange={e => set('isActive', e.target.checked)} />
                             Active (inactive items are hidden from counts and purchase lists)
                         </label>
+                    )}
+                    {!isNew && (
+                        <div className="input-group span-2">
+                            <label>Low-stock level at one location <span className="hint">e.g. Kiosk: alert under 20 pc</span></label>
+                            <div className="qty-unit">
+                                <select className="input" value={locMin.locationId} onChange={e => setLocMin({ ...locMin, locationId: e.target.value })} aria-label="Location">
+                                    {locations.map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
+                                </select>
+                                <input className="input" type="number" min="0" step="any" placeholder={form.unit} value={locMin.min}
+                                    onChange={e => setLocMin({ ...locMin, min: e.target.value, saved: false })} aria-label="Low-stock level" />
+                                <button type="button" className="btn btn-ghost btn-sm" onClick={saveLocMin}>{locMin.saved ? 'Saved' : 'Set'}</button>
+                            </div>
+                        </div>
                     )}
                     {error && <p className="error-message span-2">{error}</p>}
                 </div>

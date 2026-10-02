@@ -39,7 +39,7 @@ const LocationsTab = ({ locations, reloadLocations }) => {
             <p className="muted">Purchases arrive at the purchase location. Sales take stock from the sales location unless the item's
                 category or recipe says otherwise (e.g. the Kiosk category sells from the Kiosk).</p>
             <table className="staff-table">
-                <thead><tr><th>Location</th><th>Purchases arrive here</th><th>Sales take from here</th><th>Active</th><th aria-label="Actions" /></tr></thead>
+                <thead><tr><th>Location</th><th>Purchases arrive here</th><th>Sales take from here</th><th>Kiosk sells from here</th><th>Active</th><th aria-label="Actions" /></tr></thead>
                 <tbody>
                     {locations.map(l => (
                         <tr key={l._id} className={l.isActive ? '' : 'inactive'}>
@@ -48,6 +48,8 @@ const LocationsTab = ({ locations, reloadLocations }) => {
                                 onChange={() => run(() => setLocationDefault(l._id, 'purchases'), 'Could not change')} /></td>
                             <td><input type="radio" name="sales" aria-label={`Sales take from ${l.name}`} checked={l.defaultForSales} disabled={!canEdit}
                                 onChange={() => run(() => setLocationDefault(l._id, 'sales'), 'Could not change')} /></td>
+                            <td><input type="radio" name="kiosk" aria-label={`Kiosk sells from ${l.name}`} checked={l.defaultForKiosk} disabled={!canEdit}
+                                onChange={() => run(() => setLocationDefault(l._id, 'kiosk'), 'Could not change')} /></td>
                             <td>
                                 <button className={`status-chip ${l.isActive ? 'on' : 'off'}`} disabled={!canEdit || l.receivesPurchases || l.defaultForSales}
                                     onClick={() => run(() => saveStockLocation({ id: l._id, isActive: !l.isActive }), 'Could not change')}>

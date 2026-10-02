@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { getCurrentShifts, openShift, closeShift, cashMovement, getShifts, getExpenseCategories } from '../../utils/api';
+import { getCurrentShifts, openShift, closeShift, getShifts, getExpenseCategories } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { runOrQueue, newClientId } from '../../lib/outbox';
 import Modal from '../inventory/Modal';

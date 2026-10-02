@@ -214,7 +214,7 @@ test('customer receives live order updates', async () => {
     const got = new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('no realtime event')), 15000);
         c.channel('t').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (p) => {
-            if (p.new.id === id) { clearTimeout(timer); resolve(p.new.status); }
+            if (p.new.id === id && p.new.status !== 'pending') { clearTimeout(timer); resolve(p.new.status); }
         }).subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
                 await new Promise(r => setTimeout(r, 1000));

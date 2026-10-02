@@ -28,6 +28,7 @@ Each cafe runs on its own **Vercel** site and **Supabase** project. There is no 
 - **Counter (POS)** with offline mode, **kitchen screen**, 80 mm KOT/bill printing, split payments, manager-PIN discounts and voids
 - **Cash & shifts** with note counts, **money ledger**, expenses (recurring, spread), payables with aging, day summary
 - **Alerts**: bell + full-screen alarm when a table asks to pay by UPI
+- **Quick kiosk** (tabs, packs, one-tap Cash/UPI/Khata) and **khata** with limits, aging, collection and WhatsApp reminders
 - **Employees**, attendance and holidays
 - **Customers** and **analytics** (revenue, categories, top items, growth)
 - **Settings**: restaurant details, FSSAI and taxes printed on bills

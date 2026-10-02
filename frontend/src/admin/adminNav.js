@@ -1,12 +1,13 @@
 import {
     FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage, FiUsers, FiBarChart2, FiLayout, FiActivity,
-    FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase,
+    FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase, FiZap, FiBook,
 } from 'react-icons/fi';
 
 // Admin sections and the permission each needs (sidebar + route guards)
 export const ADMIN_NAV = [
     { path: '/admin', icon: FiHome, label: 'Dashboard', perm: 'reports.view', exact: true },
     { path: '/admin/pos', icon: FiMonitor, label: 'Counter', perm: 'orders.create' },
+    { path: '/admin/kiosk', icon: FiZap, label: 'Kiosk', perm: 'orders.create' },
     { path: '/admin/orders', icon: FiShoppingBag, label: 'Orders', perm: 'orders.view' },
     { path: '/admin/kitchen', icon: FiCoffee, label: 'Kitchen', perm: 'orders.view' },
     { path: '/admin/shifts', icon: FiBriefcase, label: 'Cash & Shifts', perm: 'orders.edit' },
@@ -22,6 +23,7 @@ export const ADMIN_NAV = [
     { path: '/admin/recipes', icon: FiBookOpen, label: 'Recipes & Costing', perm: 'inventory.view' },
     { path: '/admin/employees', icon: FiUsers, label: 'Employees', perm: 'employees.view' },
     { path: '/admin/customers', icon: FiUsers, label: 'Customers', perm: 'customers.view' },
+    { path: '/admin/khata', icon: FiBook, label: 'Khata', perm: 'customers.view' },
     { path: '/admin/finance', icon: FiDollarSign, label: 'Finance', perm: 'finance.view' },
     { path: '/admin/analytics', icon: FiBarChart2, label: 'Analytics', perm: 'reports.view' },
     { path: '/admin/staff', icon: FiShield, label: 'Staff & Roles', perm: 'staff.view' },

@@ -38,6 +38,7 @@ export const SENSITIVE = [
     { key: 'sensitive.see_customer_phone', label: 'See customer phone numbers' },
     { key: 'sensitive.give_discount', label: 'Give discounts' },
     { key: 'sensitive.void_bill', label: 'Cancel / void orders' },
+    { key: 'sensitive.approve_credit', label: 'Approve khata over the limit' },
 ];
 
 export const can = (permissions, perm) =>

@@ -677,6 +677,10 @@ begin
     if coalesce((public.get_setting('round_off', 'false', v_o.tenant_id) #>> '{}')::boolean, false) then
         v_ro := round(v_sum) - v_sum;
     end if;
+    -- Nothing to add and nothing added before: leave the order untouched (no extra live update)
+    if v_sc = 0 and v_sc_tax = 0 and v_ro = 0 and v_o.service_charge = 0 and v_o.service_charge_tax = 0 and v_o.round_off = 0 then
+        return;
+    end if;
     update public.orders
        set base_total = v_base, service_charge = v_sc, service_charge_tax = v_sc_tax, round_off = v_ro, total = v_sum + v_ro
      where id = p_order;

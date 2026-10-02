@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FiPlus, FiTrash2, FiRotateCcw, FiCreditCard } from 'react-icons/fi';
 import {
-    getDaySummary, getLedger, getExpenses, recordExpense, payExpense, voidExpense, getExpenseCategories, addExpenseCategory,
+    getDaySummary, getLedger, getExpenses, payExpense, voidExpense, getExpenseCategories, addExpenseCategory,
     getRecurringExpenses, saveRecurringExpense, deleteRecurringExpense, getPayables, payPurchase, getAccountBalances, uploadStockPhoto,
 } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
@@ -228,7 +228,7 @@ const ExpensesTab = () => {
     const { hasPerm } = useAuth();
     const [rows, setRows] = useState([]);
     const [cats, setCats] = useState([]);
-    const [from, setFrom] = useState(new Date(Date.now() - 30 * 864e5).toLocaleDateString('en-CA'));
+    const [from, setFrom] = useState(() => new Date(Date.now() - 30 * 864e5).toLocaleDateString('en-CA'));
     const [modal, setModal] = useState(false);
     const [newCat, setNewCat] = useState('');
     const load = useCallback(async () => {
