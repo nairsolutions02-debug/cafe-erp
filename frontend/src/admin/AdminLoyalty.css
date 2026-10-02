@@ -1,0 +1,513 @@
+.admin-loyalty {
+    padding: 24px;
+}
+
+.page-header {
+    margin-bottom: 24px;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    margin-bottom: 4px;
+}
+
+.page-header p {
+    color: var(--text-muted);
+}
+
+/* Tabs */
+.loyalty-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    background: white;
+    padding: 6px;
+    border-radius: var(--radius-lg);
+    width: fit-content;
+}
+
+.tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    background: transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
+}
+
+.tab-btn:hover {
+    background: var(--bg-secondary);
+}
+
+.tab-btn.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* Settings Section */
+.settings-section {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.settings-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-card h2 {
+    font-size: 1.25rem;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.setting-item label {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.setting-item input {
+    padding: 12px 16px;
+    border: 2px solid #e5e5e5;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: border-color var(--transition-fast);
+}
+
+.setting-item input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.setting-item small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.toggle-setting {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.toggle-setting input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--primary);
+}
+
+.toggle-setting span {
+    font-weight: 500;
+}
+
+.save-btn {
+    width: fit-content;
+    padding: 14px 32px;
+    font-size: 1rem;
+}
+
+/* Users Section */
+.users-section {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.users-table {
+    overflow-x: auto;
+}
+
+.users-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: 16px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.users-table th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.points-badge {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-weight: 600;
+}
+
+.no-data {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 32px !important;
+}
+
+/* Products Section */
+.products-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-info {
+    background: rgba(200, 115, 22, 0.1);
+    border-left: 4px solid var(--primary);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.product-points-card {
+    background: white;
+    padding: 16px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    box-shadow: var(--shadow-sm);
+}
+
+.product-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.product-info img {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    object-fit: cover;
+}
+
+.product-info .no-image {
+    width: 50px;
+    height: 50px;
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.product-info h4 {
+    font-size: 0.95rem;
+    margin-bottom: 2px;
+}
+
+.product-info span {
+    color: var(--primary);
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.bonus-input {
+    text-align: center;
+}
+
+.bonus-input label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+
+.points-adjuster {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.points-adjuster button {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+}
+
+.points-adjuster button:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.points-adjuster span {
+    min-width: 40px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    max-width: 400px;
+    width: 90%;
+}
+
+.modal h2 {
+    margin-bottom: 16px;
+}
+
+.adjust-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 24px 0;
+}
+
+.adjust-controls button {
+    padding: 10px 16px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+}
+
+.adjust-controls button:hover {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.adjust-controls input {
+    width: 80px;
+    text-align: center;
+    padding: 10px;
+    border: 2px solid var(--primary);
+    border-radius: var(--radius-md);
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.new-balance {
+    text-align: center;
+    font-size: 1.1rem;
+    margin-bottom: 24px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* Offers Section */
+.offers-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-header-with-action {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.offers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.offer-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    border: 2px solid transparent;
+    transition: all var(--transition-md);
+}
+
+.offer-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary);
+}
+
+.offer-card.inactive {
+    opacity: 0.7;
+    background: #f9f9f9;
+}
+
+.offer-badge {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.offer-card h3 {
+    margin-bottom: 8px;
+    padding-right: 80px;
+    color: var(--text-primary);
+}
+
+.offer-desc {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    min-height: 40px;
+}
+
+.offer-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--primary);
+    margin-bottom: 20px;
+}
+
+.offer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    border-top: 1px solid #eee;
+    padding-top: 16px;
+}
+
+.icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.icon-btn.edit {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.icon-btn.edit:hover {
+    background: #3b82f6;
+    color: white;
+}
+
+.icon-btn.delete {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.icon-btn.delete:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Offer Form */
+.offer-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.offer-form .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.offer-form label {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.offer-form .flex-row {
+    display: flex;
+    gap: 16px;
+}
+
+.offer-form .flex-row>div {
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .section-header-with-action {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .loyalty-tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .products-grid {
+        grid-template-columns: 1fr;
+    }
+}

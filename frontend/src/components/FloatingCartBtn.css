@@ -1,0 +1,45 @@
+.floating-cart-btn {
+    position: fixed;
+    bottom: 90px;
+    left: 16px;
+    right: 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(200, 115, 22, 0.4);
+    z-index: 90;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.floating-cart-count {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    .floating-cart-btn {
+        max-width: 400px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}

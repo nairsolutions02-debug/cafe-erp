@@ -1,0 +1,238 @@
+.admin-settings {
+    padding: 24px;
+}
+
+.settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.settings-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.btn-save {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+}
+
+.notice-banner {
+    padding: 12px 20px;
+    border-radius: var(--radius-md);
+    margin-bottom: 24px;
+    font-weight: 500;
+}
+
+.notice-banner.success {
+    background: #e6f7ec;
+    color: #0d9441;
+    border-left: 4px solid #0d9441;
+}
+
+.notice-banner.error {
+    background: #fdf2f2;
+    color: #e02424;
+    border-left: 4px solid #e02424;
+}
+
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+/* For mobile */
+@media (max-width: 500px) {
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.settings-card {
+    background: white;
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.settings-card h2 {
+    font-size: 1.25rem;
+    margin-bottom: 24px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.card-header-flex h2 {
+    margin: 0;
+    border: none;
+    padding: 0;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    height: 100px;
+    resize: none;
+}
+
+.form-group .hint {
+    display: block;
+    font-size: 0.8rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+.btn-add-tax {
+    background: #f0f4f8;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tax-list {
+    margin-top: 16px;
+}
+
+.tax-item-header {
+    display: grid;
+    grid-template-columns: 1fr 100px 50px;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+    padding: 0 4px;
+}
+
+.tax-item {
+    display: grid;
+    grid-template-columns: 1fr 100px 50px;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.tax-item input {
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.btn-delete {
+    background: #fff5f5;
+    color: #e02424;
+    border: 1px solid #fee2e2;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+}
+
+.info-box {
+    margin-top: 24px;
+    background: #f0f7ff;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 0.85rem;
+    color: #0056b3;
+}
+
+.info-box svg {
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+.preview-receipt {
+    background: #f9fafb;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    margin-top: 24px;
+}
+
+.preview-receipt h3 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.receipt-mock {
+    background: white;
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8rem;
+    color: #000;
+}
+
+.mock-line {
+    margin-bottom: 4px;
+}
+
+.mock-line.center {
+    text-align: center;
+}
+
+.mock-line.dashed {
+    border-top: 1px dashed #ccc;
+    margin: 8px 0;
+}
+
+.mock-line-flex {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.mock-line-flex.bold {
+    font-weight: bold;
+    margin-top: 8px;
+    border-top: 1px solid #000;
+    padding-top: 4px;
+}

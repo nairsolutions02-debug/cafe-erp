@@ -1,0 +1,59 @@
+.category-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    min-width: 85px;
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+}
+
+.category-image-wrapper {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid transparent;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-md);
+    background: white;
+    /* Ensure clean background for contained images */
+}
+
+.category-card.active .category-image-wrapper {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(200, 115, 22, 0.2);
+}
+
+.category-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--transition-normal);
+}
+
+.category-card:hover .category-image {
+    transform: scale(1.1);
+}
+
+.category-name {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: center;
+    transition: color var(--transition-fast);
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.category-card.active .category-name {
+    color: var(--primary);
+    font-weight: 600;
+}

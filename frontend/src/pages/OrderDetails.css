@@ -1,0 +1,166 @@
+.order-details-page {
+    padding-bottom: 100px;
+}
+
+.order-status-section {
+    background: white;
+    margin: 16px;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.order-items-section {
+    background: white;
+    margin: 16px;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+}
+
+.order-items-section h3 {
+    margin-bottom: 16px;
+    font-size: 1rem;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #F0F0F0;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-item-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.order-item-name {
+    font-weight: 500;
+}
+
+.order-item-qty {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+.order-item-price {
+    font-weight: 600;
+}
+
+.bill-section {
+    background: white;
+    margin: 16px;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--primary);
+}
+
+.bill-section h3 {
+    margin-bottom: 16px;
+}
+
+.bill-details {
+    margin-bottom: 20px;
+}
+
+.bill-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    color: var(--text-secondary);
+}
+
+.bill-row.discount {
+    color: var(--success);
+}
+
+.bill-row.total {
+    border-top: 2px dashed #E5E5E5;
+    margin-top: 8px;
+    padding-top: 16px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.paid-badge {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+    padding: 16px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 600;
+}
+
+.payment-instruction {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.order-actions {
+    padding: 0 16px;
+    margin-bottom: 16px;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.waiting-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    background: rgba(59, 130, 246, 0.1);
+    border-radius: var(--radius-lg);
+    color: var(--info);
+}
+
+.waiting-message .spinner {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+}
+
+.order-info-section {
+    background: white;
+    margin: 16px;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+}
+
+.order-info-section h3 {
+    margin-bottom: 16px;
+    font-size: 1rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #F0F0F0;
+    font-size: 0.9rem;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-row span:first-child {
+    color: var(--text-muted);
+}
+
+.capitalize {
+    text-transform: capitalize;
+}

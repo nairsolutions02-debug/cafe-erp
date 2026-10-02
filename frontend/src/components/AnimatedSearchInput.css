@@ -1,0 +1,20 @@
+.animated-search-form {
+    flex: 1;
+    display: flex;
+}
+
+.animated-search-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    font-size: 0.95rem;
+    color: inherit;
+    outline: none;
+    font-family: inherit;
+}
+
+.animated-search-input::placeholder {
+    color: currentColor;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}

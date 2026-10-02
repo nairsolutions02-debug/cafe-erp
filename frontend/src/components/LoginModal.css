@@ -1,0 +1,301 @@
+/* Login Modal Overlay */
+.login-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+.login-modal {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+    width: 100%;
+    max-width: 380px;
+    overflow: hidden;
+    animation: slideUp 0.4s ease;
+}
+
+.login-modal-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    padding: 24px;
+    text-align: center;
+    color: white;
+}
+
+.modal-logo {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    margin-bottom: 12px;
+}
+
+.login-modal-header h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.login-modal-content {
+    padding: 24px;
+}
+
+.modal-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.modal-subtitle {
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 0.9rem;
+}
+
+/* Phone Input */
+.login-modal .phone-input-group {
+    display: flex;
+    align-items: center;
+    border: 2px solid #E5E5E5;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: border-color var(--transition-fast);
+}
+
+.login-modal .phone-input-group:focus-within {
+    border-color: var(--primary);
+}
+
+.login-modal .country-code {
+    padding: 14px 16px;
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-right: 2px solid #E5E5E5;
+}
+
+.login-modal .phone-input {
+    flex: 1;
+    padding: 14px 16px;
+    border: none;
+    font-size: 1.1rem;
+    font-family: inherit;
+    letter-spacing: 2px;
+}
+
+.login-modal .phone-input:focus {
+    outline: none;
+}
+
+/* OTP Input */
+.login-modal .otp-input {
+    text-align: center;
+    font-size: 1.5rem;
+    letter-spacing: 8px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.login-modal .change-number {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 500;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.login-modal .dev-otp-notice {
+    background: rgba(200, 115, 22, 0.1);
+    padding: 10px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    color: var(--primary);
+}
+
+/* Resend Section */
+.login-modal .resend-section {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-modal .resend-timer {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.login-modal .resend-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.login-modal .resend-btn:hover {
+    text-decoration: underline;
+}
+
+/* Back Button */
+.login-modal .back-btn {
+    display: block;
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    margin-bottom: 16px;
+}
+
+.login-modal .back-btn:hover {
+    text-decoration: underline;
+}
+
+/* Profile Fields */
+.login-modal .profile-fields {
+    margin-bottom: 20px;
+}
+
+.login-modal .input-group {
+    margin-bottom: 16px;
+}
+
+.login-modal .input-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.login-modal .required {
+    color: var(--error);
+}
+
+.login-modal .optional {
+    color: var(--text-muted);
+    font-weight: 400;
+    font-size: 0.8rem;
+}
+
+.login-modal .input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #E5E5E5;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: border-color var(--transition-fast);
+}
+
+.login-modal .input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Button */
+.login-modal .btn-full {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+}
+
+.login-modal .btn-full:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Error */
+.login-modal .error-message {
+    color: var(--error);
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+/* Verifying Message */
+.login-modal .verifying-message {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    color: var(--primary);
+}
+
+.spinner-small {
+    width: 18px;
+    height: 18px;
+    border: 2px solid rgba(200, 115, 22, 0.2);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Footer */
+.modal-footer {
+    padding: 16px 24px;
+    background: var(--bg-secondary);
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Page Blur Effect */
+.page-blurred {
+    filter: blur(5px);
+    pointer-events: none;
+    user-select: none;
+}

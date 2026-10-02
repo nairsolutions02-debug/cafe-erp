@@ -1,0 +1,72 @@
+/* Menu Card Skeleton */
+.menu-card-skeleton {
+    background: white;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.skeleton-image {
+    width: 100%;
+    height: 120px;
+    background: #e0e0e0;
+}
+
+.skeleton-content {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.skeleton-title {
+    height: 16px;
+    width: 80%;
+    background: #e0e0e0;
+    border-radius: 4px;
+}
+
+.skeleton-price {
+    height: 14px;
+    width: 40%;
+    background: #e0e0e0;
+    border-radius: 4px;
+}
+
+.skeleton-button {
+    height: 32px;
+    width: 100%;
+    background: #e0e0e0;
+    border-radius: var(--radius-md);
+    margin-top: 8px;
+}
+
+/* Shimmer Animation */
+.shimmer {
+    position: relative;
+    overflow: hidden;
+}
+
+.shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.4),
+            transparent);
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}

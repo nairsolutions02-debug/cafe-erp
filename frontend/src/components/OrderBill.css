@@ -1,0 +1,185 @@
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .print-bill-overlay,
+    .print-bill-overlay * {
+        visibility: visible;
+    }
+
+    .print-bill-overlay {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+
+    .bill-actions {
+        display: none !important;
+    }
+
+    .bill-container {
+        border: none !important;
+        padding: 0 !important;
+        width: 80mm !important;
+        /* Standard thermal receipt width */
+        margin: 0 auto !important;
+    }
+}
+
+.bill-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.bill-container {
+    background: white;
+    width: 350px;
+    max-width: 95%;
+    max-height: 90vh;
+    padding: 24px;
+    border-radius: 4px;
+    position: relative;
+    font-family: 'Courier New', Courier, monospace;
+    color: #000;
+    overflow-y: auto;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.bill-header {
+    text-align: center;
+    margin-bottom: 20px;
+    border-bottom: 1px dashed #ccc;
+    padding-bottom: 16px;
+}
+
+.bill-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 8px;
+}
+
+.bill-header h2 {
+    margin: 4px 0;
+    font-size: 1.25rem;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.bill-header p {
+    font-size: 0.8rem;
+    margin: 2px 0;
+    color: #333;
+}
+
+.bill-info {
+    margin-bottom: 16px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.bill-info-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.bill-divider {
+    border-top: 1px dashed #000;
+    margin: 12px 0;
+}
+
+.bill-items-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr;
+    font-weight: bold;
+    font-size: 0.85rem;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #000;
+    margin-bottom: 8px;
+}
+
+.bill-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.2fr;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+}
+
+.bill-item .qty {
+    text-align: center;
+}
+
+.bill-item .total {
+    text-align: right;
+}
+
+.bill-totals {
+    margin-top: 16px;
+    font-size: 0.9rem;
+}
+
+.bill-total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.bill-total-row.grand-total {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px double #000;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.bill-footer {
+    text-align: center;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px dashed #ccc;
+}
+
+.bill-footer p {
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+.bill-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+}
+
+.bill-actions button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    font-family: inherit;
+}
+
+.btn-print {
+    background: #000;
+    color: white;
+}
+
+.btn-close {
+    background: #e0e0e0;
+    color: #333;
+}

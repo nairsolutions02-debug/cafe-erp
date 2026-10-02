@@ -1,0 +1,268 @@
+.admin-orders h1 {
+    margin-bottom: 24px;
+}
+
+.orders-board {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    min-height: 500px;
+}
+
+.no-orders {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 300px;
+    color: var(--text-muted);
+}
+
+.orders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+}
+
+.order-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    border-left: 4px solid;
+    transition: all var(--transition-fast);
+}
+
+.order-card.status-pending {
+    border-left-color: var(--warning);
+}
+
+.order-card.status-confirmed {
+    border-left-color: var(--info);
+}
+
+.order-card.status-preparing {
+    border-left-color: var(--primary);
+}
+
+.order-card.status-ready {
+    border-left-color: var(--success);
+}
+
+.order-card.status-served {
+    border-left-color: #22C55E;
+}
+
+.order-card.status-bill_requested {
+    border-left-color: var(--info);
+}
+
+.order-card.status-bill_generated {
+    border-left-color: #9333EA;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.order-num {
+    font-weight: 700;
+    font-size: 1.125rem;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+}
+
+.status-badge.confirmed {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+}
+
+.status-badge.preparing {
+    background: rgba(200, 115, 22, 0.1);
+    color: var(--primary);
+}
+
+.status-badge.ready {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+}
+
+.status-badge.served {
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--success);
+}
+
+.status-badge.bill_requested {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--info);
+}
+
+.status-badge.bill_generated {
+    background: rgba(147, 51, 234, 0.1);
+    color: #9333EA;
+}
+
+.order-customer {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #D5D5D5;
+    font-size: 0.9rem;
+}
+
+.order-customer strong {
+    color: var(--text-primary);
+}
+
+.order-customer span {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.order-items {
+    margin-bottom: 12px;
+}
+
+.order-special-instructions {
+    background: #FEF3C7;
+    color: #92400E;
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    border: 1px dashed #F59E0B;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 0.9rem;
+}
+
+.order-total {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-top: 1px dashed #D5D5D5;
+    font-weight: 700;
+}
+
+.order-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.payment-btns {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.payment-btns .btn {
+    flex: 1;
+}
+
+.order-time {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+}
+
+.btn-sm {
+    padding: 8px 12px;
+    font-size: 0.8rem;
+}
+
+.order-total {
+    flex-direction: column;
+    padding: 12px 0;
+    border-top: 1px dashed #D5D5D5;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.payment-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.payment-status {
+    height: 4px;
+    background: #E5E7EB;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.payment-fill {
+    height: 100%;
+    background: var(--success);
+    transition: width 0.3s ease;
+}
+
+.payment-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.payment-labels .paid {
+    color: var(--success);
+}
+
+.payment-labels .pending {
+    color: var(--warning);
+}
+
+.order-payment-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.order-payment-input input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+}
+
+.order-payment-input button {
+    background: var(--primary);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.order-payment-input button:hover {
+    filter: brightness(0.9);
+}
