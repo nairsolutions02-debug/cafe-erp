@@ -18,7 +18,7 @@ const LoginModal = () => {
     const [otpLength, setOtpLength] = useState(6);
     const isSubmittingRef = useRef(false);
 
-    const { sendOTP, verifyOTP } = useAuth();
+    const { sendOTP, verifyOTP, isAdmin, logout } = useAuth();
 
     // Resend timer countdown
     useEffect(() => {
@@ -120,7 +120,19 @@ const LoginModal = () => {
                 </div>
 
                 <div className="login-modal-content">
-                    {!OTP_LOGIN_ENABLED ? <QuickLoginForm /> : (<>
+                    {isAdmin ? (
+                        <div>
+                            <p className="modal-title">Signed in as admin</p>
+                            <p className="modal-subtitle">
+                                This browser is logged in to the admin panel. To order as a customer,
+                                log out of admin here or use another browser / incognito window.
+                            </p>
+                            <button type="button" className="btn btn-primary btn-full" onClick={logout}>
+                                Log out admin
+                            </button>
+                            <a href="/admin" className="btn btn-ghost btn-full">Back to admin panel</a>
+                        </div>
+                    ) : !OTP_LOGIN_ENABLED ? <QuickLoginForm /> : (<>
                     {step === 'phone' && (
                         <form onSubmit={handleSendOTP}>
                             <p className="modal-title">Welcome! 👋</p>
