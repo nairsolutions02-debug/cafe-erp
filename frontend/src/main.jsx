@@ -2,6 +2,9 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
+import { captureQrTable } from './lib/qrTable'
+
+captureQrTable()
 
 // Per-cafe primary colour (falls back to the CSS default)
 if (import.meta.env.VITE_CAFE_THEME_COLOR) {

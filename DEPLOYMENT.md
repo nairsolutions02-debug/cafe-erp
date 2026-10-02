@@ -1,45 +1,127 @@
-# Cafe ERP - Deploying a New Cafe
+# Cafe ERP - Setting Up a New Cafe
 
-Each cafe gets its **own** frontend, backend and database, all built from this one repo.
-A fix pushed to `main` redeploys every cafe.
+Each cafe gets its **own Supabase project** (database, login, images, live updates)
+and its **own Vercel project** (the website), both built from this one repo.
+There is no separate backend server, so Railway is not needed.
 
-| Part | Where | One per cafe? |
+A fix pushed to `main` redeploys every cafe's website. Database changes
+(new files in `supabase/migrations/`) are applied to each cafe with `supabase db push`.
+
+| Part | Where | One per cafe |
 |---|---|---|
-| Frontend (`frontend/`) | Vercel project | Yes |
-| Backend (`backend/`) | Railway / Render service | Yes |
-| Database | MongoDB Atlas database | Yes |
-| Images | Cloudflare R2 bucket (or a folder per cafe) | Yes |
+| Website (`frontend/`) | Vercel project | Yes |
+| Database, login, images, live updates | Supabase project | Yes |
 
-> Planned: move the backend + database to Supabase, which removes the separate backend host.
+Time per cafe: about 30 minutes once you've done it once.
 
-## 1. Database
-1. In MongoDB Atlas create a database named after the cafe, e.g. `chaipoint`.
-2. Network Access: allow the backend host's IPs (or `0.0.0.0/0`).
-3. Copy the connection string into `MONGODB_URI`.
+---
 
-## 2. Backend
-1. New service from this repo, **root directory `backend`**, start command `npm start`.
-2. Set the env vars from `backend/.env.example`. Required:
-   - `MONGODB_URI`, `JWT_SECRET` (`openssl rand -hex 32`), `ADMIN_PASSWORD`, `FRONTEND_URL`
-   - `SMS_API_KEY` for real OTP SMS, `R2_*` for image uploads
-3. Check `https://<backend>/api/health` returns `OK`.
+## 1. Create the Supabase project
 
-## 3. Frontend (Vercel)
-1. New project from this repo, **root directory `frontend`**, framework preset **Vite**.
-2. Env vars:
-   - `VITE_API_URL=https://<backend>` (no trailing `/api`)
-   - `VITE_CAFE_NAME`, `VITE_CAFE_TAGLINE`, `VITE_CAFE_THEME_COLOR`, `VITE_CAFE_LOGO_URL`, contact and hours vars (see `frontend/.env.example`)
-3. Deploy, then put the Vercel URL into the backend's `FRONTEND_URL`.
+1. supabase.com → **New project**. Name it after the cafe (e.g. `chaipoint`).
+   Region: **Mumbai (ap-south-1)**. Save the database password somewhere safe.
+2. **Authentication → Sign In / Providers**:
+   - turn **on** "Allow anonymous sign-ins" (this is how customers log in with just name + mobile)
+   - leave **Email** on (admins use it); turn **off** "Allow new users to sign up" so only you create admin accounts
+     (anonymous sign-ins keep working)
+3. **Authentication → URL Configuration**: set **Site URL** to the cafe's website URL (after step 3).
 
-Logo: upload the cafe's logo (e.g. to R2) and set `VITE_CAFE_LOGO_URL` to its URL.
+## 2. Load the database
 
-## 4. First login
-1. Open `/admin/login`, log in with `ADMIN_PHONE` / `ADMIN_PASSWORD`.
-2. Admin → Settings: restaurant name, address, phone, GSTIN, taxes.
-3. Add categories, menu items and tables.
+From your Mac, in this repo:
+
+```bash
+npx supabase login                       # once
+npx supabase link --project-ref <project-ref>   # ref is in the project URL
+npx supabase db push                     # creates all tables, functions, security rules
+```
+
+Optional demo menu: open **SQL Editor**, paste `supabase/sample-data.sql`, run.
+
+### Create the owner's admin login
+
+1. **Authentication → Users → Add user → Create new user**: owner's email + a strong password,
+   tick "Auto Confirm User".
+2. **SQL Editor**, run:
+
+```sql
+select public.make_admin('owner@cafe.com');
+```
+
+## 3. Create the Vercel project
+
+1. vercel.com → **Add New → Project** → import this repo.
+2. **Root Directory: `frontend`**. Framework preset: **Vite** (auto-detected).
+3. **Environment Variables** (see `frontend/.env.example` for the full list):
+
+| Name | Value |
+|---|---|
+| `VITE_SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API Keys → Publishable key (`sb_publishable_...`) |
+| `VITE_CAFE_NAME` | e.g. `Chai Point` |
+| `VITE_CAFE_TAGLINE` | e.g. `Bhilai's favourite chai` |
+| `VITE_CAFE_THEME_COLOR` | e.g. `#2E7D32` |
+| `VITE_CAFE_LOGO_URL` | URL of the logo (upload it to Supabase Storage → `images` bucket → copy URL) |
+| `VITE_CAFE_ADDRESS`, `VITE_CAFE_PHONE`, `VITE_CAFE_HOURS_TIME` | contact details for the footer |
+
+Never put the secret key (`sb_secret_...`) in Vercel. The site only needs the publishable key.
+
+4. **Deploy**. Then put the Vercel URL into Supabase's Site URL (step 1.3).
+5. Custom domain (optional): Vercel → Settings → Domains.
+
+## 4. First login and setup
+
+1. Open `https://<site>/admin/login`, sign in with the owner's email and password.
+2. **Settings**: restaurant name, address, phone, GSTIN, taxes (these print on bills).
+3. **Categories → Menu**: add items with photos (images are resized automatically).
+4. **Tables → Add Multiple**, then **QR Codes → Print**. Stick one QR on each table.
+
+## How customers use it
+
+1. Scan the table QR → the menu opens with their table remembered.
+2. First time: enter **name + mobile number** → straight in, no OTP.
+   The same mobile number on another phone opens the same account (order history and points).
+3. Order → follow status live → **Request Bill** → pay at the counter.
+
+## Keeping cafes up to date
+
+- **Website changes**: push to `main`. Every Vercel project rebuilds automatically.
+- **Database changes**: for each cafe, `npx supabase link --project-ref <ref> && npx supabase db push`.
+
+## Switching on OTP login later (dormant for now)
+
+The SMS OTP code is kept but switched off. To turn it on for a cafe:
+
+1. `npx supabase secrets set TWOFACTOR_API_KEY=<2factor.in key>`
+2. `npx supabase functions deploy phone-otp`
+3. SQL: `update public.settings set value = 'true' where key = 'otp_login_enabled';`
+4. Vercel: set `VITE_OTP_LOGIN=true` and redeploy.
+
+## Good to know
+
+- **Free plan pauses** a Supabase project after 7 days with no activity. A cafe that is open daily
+  won't hit this; for a cafe closing for a long holiday, open the site once a week or use the Pro plan.
+- **Vercel's free (Hobby) plan is for non-commercial use.** Paid cafes should be on Vercel Pro
+  (one Pro account can hold many cafe projects).
+- **Backups**: Supabase Pro has daily backups. On the free plan, export from Database → Backups
+  or run `npx supabase db dump` regularly.
 
 ## Troubleshooting
-- **Login fails / CORS errors**: `FRONTEND_URL` must exactly match the Vercel URL.
-- **"Admin login is not configured"**: `ADMIN_PASSWORD` is not set on the backend.
-- **Backend crashes on start**: usually `MONGODB_URI` wrong or Atlas IP not allowed.
-- **No OTP SMS**: `SMS_API_KEY` missing; the OTP is printed in the backend logs instead.
+
+| Problem | Fix |
+|---|---|
+| Customer login says "Anonymous sign-ins are disabled" | Turn on anonymous sign-ins (step 1.2) |
+| Admin login says "This account is not an admin" | Run `select public.make_admin('email')` |
+| Site loads but menu is empty / errors | Check `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`, then redeploy |
+| Orders don't appear live on the admin screen | Run `npx supabase db push` (enables live updates on orders and tables) |
+| Image upload fails | Must be logged in as admin; images up to 5 MB (jpg, png, webp, gif) |
+
+## Local development
+
+```bash
+npx supabase start            # local Supabase in Docker
+npx supabase db reset         # apply migrations
+cd frontend && cp .env.example .env.local   # use the local URL + publishable key printed by `supabase start`
+npm install && npm run dev
+npm run test:db               # end-to-end database checks
+```

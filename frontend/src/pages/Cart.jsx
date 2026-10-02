@@ -17,6 +17,7 @@ import {
     calculateRedemption,
     getLoyaltyOffers,
 } from '../utils/api';
+import { getQrTable } from '../lib/qrTable';
 import { getImageUrl } from '../utils/config';
 import './Cart.css';
 
@@ -95,6 +96,10 @@ const Cart = () => {
         try {
             const res = await getTables();
             setTables(res.data);
+            // Preselect the table from the scanned QR code
+            const qrTable = getQrTable();
+            const match = qrTable && res.data.find(t => t.tableNumber === qrTable);
+            if (match) setSelectedTable(prev => prev || match._id);
         } catch (error) {
             console.error('Error fetching tables:', error);
         }
@@ -339,16 +344,20 @@ const Cart = () => {
                         className="table-select"
                     >
                         <option value="">-- Select a Table --</option>
-                        {[...tables].sort((a, b) => a.tableNumber - b.tableNumber).map(table => (
-                            <option
-                                key={table._id}
-                                value={table._id}
-                                disabled={table.status !== 'available'}
-                            >
-                                Table {table.tableNumber} ({table.capacity} seats)
-                                {table.status !== 'available' ? ' - Occupied' : ' - Available'}
-                            </option>
-                        ))}
+                        {tables.map(table => {
+                            // The QR table stays selectable: the customer may already be seated there
+                            const isQrTable = table.tableNumber === getQrTable();
+                            return (
+                                <option
+                                    key={table._id}
+                                    value={table._id}
+                                    disabled={table.status !== 'available' && !isQrTable}
+                                >
+                                    Table {table.tableNumber} ({table.capacity} seats)
+                                    {isQrTable ? ' - Your table' : table.status !== 'available' ? ' - Occupied' : ' - Available'}
+                                </option>
+                            );
+                        })}
                     </select>
                 </div>
 

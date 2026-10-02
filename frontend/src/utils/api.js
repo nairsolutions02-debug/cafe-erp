@@ -1,124 +1,525 @@
-import axios from 'axios';
+// Data layer backed by Supabase. Every function keeps the name and response
+// shape of the old Express API ({ data }, `_id`, camelCase fields, populated
+// relations), so the pages did not need to change.
+import { supabase } from '../lib/supabase';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-const API_URL = `${BASE_URL}/api`;
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+const apiError = (message, status = 400) => {
+    const err = new Error(message);
+    err.response = { status, data: { message } };
+    return err;
+};
 
-// Add auth token to all requests
-axios.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => Promise.reject(error)
-);
+const DUPLICATE_MESSAGES = {
+    categories: 'Category already exists',
+    coupons: 'Coupon code already exists',
+    dining_tables: 'Table number already exists',
+    holidays: 'Holiday exists',
+};
 
+const unwrap = ({ data, error }, table) => {
+    if (error) {
+        if (error.code === '23505') throw apiError(DUPLICATE_MESSAGES[table] || 'Already exists');
+        if (error.code === 'PGRST116') throw apiError('Not found', 404);
+        throw apiError(error.message);
+    }
+    return data;
+};
+
+const ok = (data) => ({ data });
+
+const rpc = async (fn, args = {}) => unwrap(await supabase.rpc(fn, args));
+
+const camel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+
+// Database row -> client object (camelCase + `_id`)
+const RENAMES = { sort_order: 'order', category_id: 'category', employee_id: 'employee', current_order_id: 'currentOrder' };
+const toClient = (row) => {
+    if (!row || typeof row !== 'object') return row;
+    const out = {};
+    for (const [key, value] of Object.entries(row)) {
+        out[RENAMES[key] || camel(key)] = value;
+    }
+    if (row.id !== undefined) out._id = row.id;
+    return out;
+};
+const listToClient = (rows) => (rows || []).map(toClient);
+
+// Field specs for writes: client name -> [column, type]
+const conv = {
+    text: (v) => (v == null ? undefined : String(v)),
+    num: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Number(v)),
+    numOrNull: (v) => (v === '' || v == null ? null : Number(v)),
+    int: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Math.trunc(Number(v))),
+    bool: (v) => (v === undefined || v === '' ? undefined : v === true || v === 'true'),
+    uuid: (v) => (v === '' || v == null ? null : v),
+    list: (v) => (typeof v === 'string' ? (v ? JSON.parse(v) : []) : v || []),
+    date: (v) => (v === '' || v == null ? undefined : v),
+};
+
+const toDb = (input, spec) => {
+    const source = input instanceof FormData ? Object.fromEntries(input.entries()) : input || {};
+    const out = {};
+    for (const [field, [column, type]] of Object.entries(spec)) {
+        if (!(field in source)) continue;
+        const value = conv[type](source[field]);
+        if (value !== undefined) out[column] = value;
+    }
+    return out;
+};
+
+const imageFrom = (input) => (input instanceof FormData ? input.get('image') : null);
+
+// Resize to max 1200px WebP before upload to keep storage small
+const shrinkImage = (file) => new Promise((resolve) => {
+    if (!file.type.startsWith('image/') || file.type === 'image/gif') return resolve(file);
+    const img = new Image();
+    img.onload = () => {
+        const scale = Math.min(1, 1200 / Math.max(img.width, img.height));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => resolve(blob || file), 'image/webp', 0.82);
+        URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => resolve(file);
+    img.src = URL.createObjectURL(file);
+});
+
+const uploadImage = async (file, folder) => {
+    if (!file || !(file instanceof Blob) || file.size === 0) return undefined;
+    const body = await shrinkImage(file);
+    const ext = body.type === 'image/webp' ? 'webp' : (file.name?.split('.').pop() || 'jpg');
+    const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    unwrap(await supabase.storage.from('images').upload(path, body, { contentType: body.type, upsert: false }));
+    return supabase.storage.from('images').getPublicUrl(path).data.publicUrl;
+};
+
+// Strip characters that would break PostgREST's or() filter syntax
+const searchTerm = (s) => String(s || '').replace(/[,()*%\\]/g, ' ').trim();
+
+// ---------------------------------------------------------------------------
 // Categories
-export const getCategories = () => axios.get(`${API_URL}/categories`);
-export const getAllCategories = () => axios.get(`${API_URL}/categories/all`);
-export const createCategory = (data) => axios.post(`${API_URL}/categories`, data);
-export const updateCategory = (id, data) => axios.put(`${API_URL}/categories/${id}`, data);
-export const deleteCategory = (id) => axios.delete(`${API_URL}/categories/${id}`);
+// ---------------------------------------------------------------------------
+const CATEGORY = { name: ['name', 'text'], description: ['description', 'text'], order: ['sort_order', 'int'], isActive: ['is_active', 'bool'] };
 
-// Menu Items
-export const getMenuItems = (params) => axios.get(`${API_URL}/menu`, { params });
-export const getAllMenuItems = () => axios.get(`${API_URL}/menu/all`);
-export const getBestsellers = () => axios.get(`${API_URL}/menu/bestsellers`);
-export const getNewItems = () => axios.get(`${API_URL}/menu/new`);
-export const getRecommended = () => axios.get(`${API_URL}/menu/recommended`);
-export const createMenuItem = (data) => axios.post(`${API_URL}/menu`, data);
-export const updateMenuItem = (id, data) => axios.put(`${API_URL}/menu/${id}`, data);
-export const updateStock = (id, data) => axios.put(`${API_URL}/menu/${id}/stock`, data);
-export const deleteMenuItem = (id) => axios.delete(`${API_URL}/menu/${id}`);
+export const getCategories = async () =>
+    ok(listToClient(unwrap(await supabase.from('categories').select().eq('is_active', true).order('sort_order'))));
+export const getAllCategories = async () =>
+    ok(listToClient(unwrap(await supabase.from('categories').select().order('sort_order'))));
+export const createCategory = async (data) => {
+    const row = toDb(data, CATEGORY);
+    const image = await uploadImage(imageFrom(data), 'categories');
+    if (image) row.image = image;
+    return ok(toClient(unwrap(await supabase.from('categories').insert(row).select().single(), 'categories')));
+};
+export const updateCategory = async (id, data) => {
+    const row = toDb(data, CATEGORY);
+    const image = await uploadImage(imageFrom(data), 'categories');
+    if (image) row.image = image;
+    return ok(toClient(unwrap(await supabase.from('categories').update(row).eq('id', id).select().single(), 'categories')));
+};
+export const deleteCategory = async (id) => {
+    unwrap(await supabase.from('categories').delete().eq('id', id));
+    return ok({ message: 'Category deleted' });
+};
 
-// Orders
-export const getMyOrders = () => axios.get(`${API_URL}/orders`);
-export const getCurrentOrder = () => axios.get(`${API_URL}/orders/current`);
-export const getAllOrders = (params) => axios.get(`${API_URL}/orders/all`, { params });
-export const getActiveOrders = () => axios.get(`${API_URL}/orders/active`);
-export const getOrder = (id) => axios.get(`${API_URL}/orders/${id}`);
-export const createOrder = (data) => axios.post(`${API_URL}/orders`, data);
-export const updateOrderStatus = (id, status) => axios.put(`${API_URL}/orders/${id}/status`, { status });
-export const requestBill = (id) => axios.put(`${API_URL}/orders/${id}/request-bill`);
-export const updatePayment = (id, paymentMethod, amountPaid) => axios.put(`${API_URL}/orders/${id}/payment`, { paymentMethod, amountPaid });
+// ---------------------------------------------------------------------------
+// Menu items
+// ---------------------------------------------------------------------------
+const MENU_SELECT = '*, category:categories(id, name)';
+const MENU = {
+    name: ['name', 'text'], description: ['description', 'text'], price: ['price', 'num'],
+    category: ['category_id', 'uuid'], isVeg: ['is_veg', 'bool'], isAvailable: ['is_available', 'bool'],
+    isBestSeller: ['is_best_seller', 'bool'], isNewItem: ['is_new_item', 'bool'],
+    isRecommended: ['is_recommended', 'bool'], isUpsell: ['is_upsell', 'bool'], tags: ['tags', 'list'],
+    preparationTime: ['preparation_time', 'int'], stockQuantity: ['stock_quantity', 'int'],
+    bonusLoyaltyPoints: ['bonus_loyalty_points', 'int'], initialStock: ['initial_stock', 'int'],
+    lowStockThreshold: ['low_stock_threshold', 'int'], costPrice: ['cost_price', 'num'],
+};
 
+const menuToClient = (row) => {
+    const item = toClient(row);
+    if (row.category && typeof row.category === 'object') item.category = { _id: row.category.id, name: row.category.name };
+    else item.category = row.category_id;
+    return item;
+};
+const menuList = (rows) => (rows || []).map(menuToClient);
+
+export const getMenuItems = async (params = {}) => {
+    let q = supabase.from('menu_items').select(MENU_SELECT).eq('is_available', true).order('name');
+    if (params.category) q = q.eq('category_id', params.category);
+    if (params.bestseller === 'true') q = q.eq('is_best_seller', true);
+    if (params.isNew === 'true') q = q.eq('is_new_item', true);
+    if (params.recommended === 'true') q = q.eq('is_recommended', true);
+    const term = searchTerm(params.search);
+    if (term) q = q.or(`name.ilike.%${term}%,description.ilike.%${term}%`);
+    return ok(menuList(unwrap(await q)));
+};
+export const getAllMenuItems = async () =>
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).order('name'))));
+export const getBestsellers = async () =>
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_best_seller', true).eq('is_available', true).limit(10))));
+export const getNewItems = async () =>
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_new_item', true).eq('is_available', true).limit(10))));
+export const getRecommended = async () =>
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_recommended', true).eq('is_available', true))));
+
+export const createMenuItem = async (data) => {
+    const row = toDb(data, MENU);
+    if (!row.stock_quantity) row.stock_quantity = -1;
+    const image = await uploadImage(imageFrom(data), 'menu');
+    if (image) row.image = image;
+    return ok(menuToClient(unwrap(await supabase.from('menu_items').insert(row).select(MENU_SELECT).single())));
+};
+export const updateMenuItem = async (id, data) => {
+    const row = toDb(data, MENU);
+    const image = await uploadImage(imageFrom(data), 'menu');
+    if (image) row.image = image;
+    return ok(menuToClient(unwrap(await supabase.from('menu_items').update(row).eq('id', id).select(MENU_SELECT).single())));
+};
+export const updateStock = async (id, data) => {
+    const row = toDb(data, { isAvailable: MENU.isAvailable, stockQuantity: MENU.stockQuantity });
+    return ok(menuToClient(unwrap(await supabase.from('menu_items').update(row).eq('id', id).select(MENU_SELECT).single())));
+};
+export const deleteMenuItem = async (id) => {
+    unwrap(await supabase.from('menu_items').delete().eq('id', id));
+    return ok({ message: 'Menu item deleted' });
+};
+
+// ---------------------------------------------------------------------------
+// Orders (server-side functions return orders already in client shape)
+// ---------------------------------------------------------------------------
+export const getMyOrders = async () => ok(await rpc('my_orders'));
+export const getCurrentOrder = async () => ok(await rpc('current_order'));
+export const getAllOrders = async (params = {}) =>
+    ok(await rpc('admin_orders', { p_scope: 'all', p_status: params.status || null, p_date: params.date || null }));
+export const getActiveOrders = async () => ok(await rpc('admin_orders', { p_scope: 'active' }));
+export const getOrder = async (id) => {
+    const order = await rpc('get_order', { p_id: id });
+    if (!order) throw apiError('Order not found', 404);
+    return ok(order);
+};
+export const createOrder = async (data) => {
+    const id = await rpc('place_order', {
+        p_items: data.items,
+        p_coupon_code: data.couponCode || '',
+        p_table_id: data.tableId || null,
+        p_special_instructions: data.specialInstructions || '',
+        p_loyalty_offer_id: data.pointsUsed && data.loyaltyOfferId ? data.loyaltyOfferId : null,
+    });
+    return getOrder(id);
+};
+export const updateOrderStatus = async (id, status) => ok(await rpc('update_order_status', { p_order_id: id, p_status: status }));
+export const requestBill = async (id) => ok(await rpc('request_bill', { p_order_id: id }));
+export const updatePayment = async (id, paymentMethod, amountPaid) =>
+    ok(await rpc('record_payment', { p_order_id: id, p_method: paymentMethod, p_amount: amountPaid }));
+
+// ---------------------------------------------------------------------------
 // Coupons
-export const getCoupons = () => axios.get(`${API_URL}/coupons`);
-export const getAllCoupons = () => axios.get(`${API_URL}/coupons/all`);
-export const validateCoupon = (code, orderTotal) => axios.post(`${API_URL}/coupons/validate`, { code, orderTotal });
-export const createCoupon = (data) => axios.post(`${API_URL}/coupons`, data);
-export const updateCoupon = (id, data) => axios.put(`${API_URL}/coupons/${id}`, data);
-export const deleteCoupon = (id) => axios.delete(`${API_URL}/coupons/${id}`);
+// ---------------------------------------------------------------------------
+const COUPON = {
+    code: ['code', 'text'], description: ['description', 'text'], discountType: ['discount_type', 'text'],
+    discountValue: ['discount_value', 'num'], minOrderAmount: ['min_order_amount', 'num'],
+    maxDiscount: ['max_discount', 'numOrNull'], applicableItems: ['applicable_items', 'list'],
+    applicableCategories: ['applicable_categories', 'list'], usageLimit: ['usage_limit', 'int'],
+    validFrom: ['valid_from', 'date'], validUntil: ['valid_until', 'date'], isActive: ['is_active', 'bool'],
+};
 
+export const getCoupons = async () => {
+    const now = new Date().toISOString();
+    return ok(listToClient(unwrap(await supabase.from('coupons')
+        .select('id, code, description, discount_type, discount_value, min_order_amount, max_discount')
+        .eq('is_active', true).lte('valid_from', now).gte('valid_until', now))));
+};
+export const getAllCoupons = async () =>
+    ok(listToClient(unwrap(await supabase.from('coupons').select().order('created_at', { ascending: false }))));
+export const validateCoupon = async (code, orderTotal) =>
+    ok(await rpc('validate_coupon', { p_code: code, p_order_total: orderTotal }));
+export const createCoupon = async (data) => {
+    const row = toDb(data, COUPON);
+    if (!row.usage_limit) row.usage_limit = -1;
+    return ok(toClient(unwrap(await supabase.from('coupons').insert(row).select().single(), 'coupons')));
+};
+export const updateCoupon = async (id, data) =>
+    ok(toClient(unwrap(await supabase.from('coupons').update(toDb(data, COUPON)).eq('id', id).select().single(), 'coupons')));
+export const deleteCoupon = async (id) => {
+    unwrap(await supabase.from('coupons').delete().eq('id', id));
+    return ok({ message: 'Coupon deleted' });
+};
+
+// ---------------------------------------------------------------------------
 // Inventory
-export const getInventory = (params) => axios.get(`${API_URL}/inventory`, { params });
-export const getLowStock = () => axios.get(`${API_URL}/inventory/low-stock`);
-export const createInventoryItem = (data) => axios.post(`${API_URL}/inventory`, data);
-export const updateInventoryItem = (id, data) => axios.put(`${API_URL}/inventory/${id}`, data);
-export const restockItem = (id, quantity) => axios.put(`${API_URL}/inventory/${id}/restock`, { quantity });
-export const deleteInventoryItem = (id) => axios.delete(`${API_URL}/inventory/${id}`);
+// ---------------------------------------------------------------------------
+const INVENTORY = {
+    name: ['name', 'text'], category: ['category', 'text'], unit: ['unit', 'text'],
+    currentStock: ['current_stock', 'num'], minimumStock: ['minimum_stock', 'num'],
+    costPerUnit: ['cost_per_unit', 'num'], supplier: ['supplier', 'text'], amountPaid: ['amount_paid', 'num'],
+};
+// inventory.category is a plain text column, not a relation
+const inventoryToClient = (row) => ({ ...toClient(row), category: row.category });
 
-// Employees
-export const getEmployees = (params) => axios.get(`${API_URL}/employees`, { params });
-export const getEmployee = (id) => axios.get(`${API_URL}/employees/${id}`);
-export const createEmployee = (data) => axios.post(`${API_URL}/employees`, data);
-export const updateEmployee = (id, data) => axios.put(`${API_URL}/employees/${id}`, data);
-export const deleteEmployee = (id) => axios.delete(`${API_URL}/employees/${id}`);
-export const getEmployeeAttendance = (id, params) => axios.get(`${API_URL}/employees/${id}/attendance`, { params });
-export const markAttendance = (id, data) => axios.post(`${API_URL}/employees/${id}/attendance`, data);
-export const getHolidays = () => axios.get(`${API_URL}/employees/holidays/list`);
-export const addHoliday = (data) => axios.post(`${API_URL}/employees/holidays`, data);
-export const deleteHoliday = (id) => axios.delete(`${API_URL}/employees/holidays/${id}`);
+export const getInventory = async (params = {}) => {
+    let q = supabase.from('inventory').select().order('name');
+    if (params.category) q = q.eq('category', params.category);
+    if (params.lowStock === 'true') q = q.eq('is_low_stock', true);
+    return ok(unwrap(await q).map(inventoryToClient));
+};
+export const getLowStock = async () =>
+    ok(unwrap(await supabase.from('inventory').select().eq('is_low_stock', true).order('current_stock')).map(inventoryToClient));
+export const createInventoryItem = async (data) =>
+    ok(inventoryToClient(unwrap(await supabase.from('inventory').insert(toDb(data, INVENTORY)).select().single())));
+export const updateInventoryItem = async (id, data) =>
+    ok(inventoryToClient(unwrap(await supabase.from('inventory').update(toDb(data, INVENTORY)).eq('id', id).select().single())));
+export const restockItem = async (id, quantity) => {
+    await rpc('restock_inventory', { p_id: id, p_quantity: Number(quantity) });
+    return ok(inventoryToClient(unwrap(await supabase.from('inventory').select().eq('id', id).single())));
+};
+export const deleteInventoryItem = async (id) => {
+    unwrap(await supabase.from('inventory').delete().eq('id', id));
+    return ok({ message: 'Item deleted' });
+};
 
+// ---------------------------------------------------------------------------
+// Employees, attendance, holidays
+// ---------------------------------------------------------------------------
+const EMPLOYEE = {
+    name: ['name', 'text'], phone: ['phone', 'text'], email: ['email', 'text'], role: ['role', 'text'],
+    salary: ['salary', 'num'], joiningDate: ['joining_date', 'date'], isActive: ['is_active', 'bool'],
+    address: ['address', 'text'], emergencyContact: ['emergency_contact', 'text'],
+};
+const ATTENDANCE = {
+    date: ['date', 'date'], status: ['status', 'text'], checkIn: ['check_in', 'text'],
+    checkOut: ['check_out', 'text'], notes: ['notes', 'text'],
+};
+const HOLIDAY = { date: ['date', 'date'], name: ['name', 'text'], description: ['description', 'text'] };
+const day = (value) => (value ? String(value).slice(0, 10) : value);
+
+export const getEmployees = async (params = {}) => {
+    let q = supabase.from('employees').select().order('name');
+    if (params.role) q = q.eq('role', params.role);
+    if (params.isActive !== undefined) q = q.eq('is_active', params.isActive === 'true' || params.isActive === true);
+    return ok(listToClient(unwrap(await q)));
+};
+export const getEmployee = async (id) => ok(toClient(unwrap(await supabase.from('employees').select().eq('id', id).single())));
+export const createEmployee = async (data) =>
+    ok(toClient(unwrap(await supabase.from('employees').insert(toDb(data, EMPLOYEE)).select().single())));
+export const updateEmployee = async (id, data) =>
+    ok(toClient(unwrap(await supabase.from('employees').update(toDb(data, EMPLOYEE)).eq('id', id).select().single())));
+export const deleteEmployee = async (id) => {
+    unwrap(await supabase.from('employees').delete().eq('id', id));
+    return ok({ message: 'Employee deleted' });
+};
+export const getEmployeeAttendance = async (id, params = {}) => {
+    let q = supabase.from('attendance').select().eq('employee_id', id).order('date');
+    if (params.month && params.year) {
+        const month = String(params.month).padStart(2, '0');
+        const lastDay = new Date(Number(params.year), Number(params.month), 0).getDate();
+        q = q.gte('date', `${params.year}-${month}-01`).lte('date', `${params.year}-${month}-${lastDay}`);
+    }
+    return ok(listToClient(unwrap(await q)));
+};
+export const markAttendance = async (id, data) => {
+    const row = { ...toDb(data, ATTENDANCE), employee_id: id };
+    row.date = day(row.date);
+    return ok(toClient(unwrap(await supabase.from('attendance')
+        .upsert(row, { onConflict: 'employee_id,date' }).select().single())));
+};
+export const getHolidays = async () => ok(listToClient(unwrap(await supabase.from('holidays').select().order('date'))));
+export const addHoliday = async (data) => {
+    const row = toDb(data, HOLIDAY);
+    row.date = day(row.date);
+    return ok(toClient(unwrap(await supabase.from('holidays').insert(row).select().single(), 'holidays')));
+};
+export const deleteHoliday = async (id) => {
+    unwrap(await supabase.from('holidays').delete().eq('id', id));
+    return ok({ message: 'Holiday deleted' });
+};
+
+// ---------------------------------------------------------------------------
 // Analytics
-export const getDashboardStats = () => axios.get(`${API_URL}/analytics/dashboard`);
-export const getRevenueData = (period) => axios.get(`${API_URL}/analytics/revenue`, { params: { period } });
-export const getCategorySales = (period) => axios.get(`${API_URL}/analytics/category-sales`, { params: { period } });
-export const getTopItems = () => axios.get(`${API_URL}/analytics/top-items`);
-export const getUserAnalytics = (period) => axios.get(`${API_URL}/analytics/users`, { params: { period } });
+// ---------------------------------------------------------------------------
+export const getDashboardStats = async () => ok(await rpc('dashboard_stats'));
+export const getRevenueData = async (period) => ok(await rpc('revenue_series', { p_period: period || 'week' }));
+export const getCategorySales = async (period) => ok(await rpc('category_sales', { p_period: period || 'month' }));
+export const getTopItems = async () => ok(await rpc('top_items'));
+export const getUserAnalytics = async (period) => ok(await rpc('user_analytics', { p_period: period || 'month' }));
 
+// ---------------------------------------------------------------------------
 // Tables
-export const getTables = () => axios.get(`${API_URL}/tables`);
-export const getAvailableTables = () => axios.get(`${API_URL}/tables/available`);
-export const createTable = (data) => axios.post(`${API_URL}/tables`, data);
-export const createBulkTables = (data) => axios.post(`${API_URL}/tables/bulk`, data);
-export const updateTable = (id, data) => axios.put(`${API_URL}/tables/${id}`, data);
-export const deleteTable = (id) => axios.delete(`${API_URL}/tables/${id}`);
+// ---------------------------------------------------------------------------
+const TABLE = {
+    tableNumber: ['table_number', 'text'], capacity: ['capacity', 'int'], status: ['status', 'text'],
+    isActive: ['is_active', 'bool'], isOccupied: ['is_occupied', 'bool'],
+};
+const TABLE_SELECT = '*, current_order:orders!dining_tables_current_order_fk(order_number, status)';
+const tableToClient = (row) => ({
+    ...toClient(row),
+    currentOrder: row.current_order ? { orderNumber: row.current_order.order_number, status: row.current_order.status } : row.current_order_id,
+});
+const byTableNumber = (a, b) => a.tableNumber.localeCompare(b.tableNumber, undefined, { numeric: true });
 
+export const getTables = async () =>
+    ok(unwrap(await supabase.from('dining_tables').select(TABLE_SELECT).eq('is_active', true)).map(tableToClient).sort(byTableNumber));
+export const getAvailableTables = async () =>
+    ok(unwrap(await supabase.from('dining_tables').select().eq('is_active', true).eq('status', 'available')).map(tableToClient).sort(byTableNumber));
+export const createTable = async (data) =>
+    ok(tableToClient(unwrap(await supabase.from('dining_tables').insert(toDb(data, TABLE)).select().single(), 'dining_tables')));
+export const createBulkTables = async (data) =>
+    ok(await rpc('create_tables_bulk', { p_start: Number(data.startNumber), p_end: Number(data.endNumber), p_capacity: Number(data.capacity) || 4 }));
+export const updateTable = async (id, data) => {
+    const row = toDb(data, TABLE);
+    if (row.status === 'available') Object.assign(row, { is_occupied: false, current_order_id: null });
+    return ok(tableToClient(unwrap(await supabase.from('dining_tables').update(row).eq('id', id).select().single(), 'dining_tables')));
+};
+export const deleteTable = async (id) => {
+    unwrap(await supabase.from('dining_tables').delete().eq('id', id));
+    return ok({ message: 'Table deleted' });
+};
+
+// ---------------------------------------------------------------------------
 // Settings
-export const getSettings = () => axios.get(`${API_URL}/settings`);
-export const getAllSettings = () => axios.get(`${API_URL}/settings`); // Alias for getSettings
-export const getGstRate = () => axios.get(`${API_URL}/settings/gst`);
-export const updateGstRate = (gstRate) => axios.put(`${API_URL}/settings/gst`, { gstRate });
-export const updateSetting = (key, value) => axios.put(`${API_URL}/settings/${key}`, { value });
+// ---------------------------------------------------------------------------
+export const getSettings = async () => {
+    const rows = unwrap(await supabase.from('settings').select('key, value'));
+    return ok(Object.fromEntries(rows.map(r => [r.key, r.value])));
+};
+export const getAllSettings = getSettings;
+export const getGstRate = async () => {
+    const { data } = await supabase.from('settings').select('value').eq('key', 'gst_rate').maybeSingle();
+    return ok({ gstRate: data ? Number(data.value) : 5 });
+};
+export const updateGstRate = async (gstRate) => {
+    const rate = Number(gstRate);
+    if (Number.isNaN(rate) || rate < 0 || rate > 100) throw apiError('GST rate must be between 0 and 100');
+    unwrap(await supabase.from('settings').upsert({ key: 'gst_rate', value: rate, description: 'Default GST rate (%)' }));
+    return ok({ gstRate: rate });
+};
+export const updateSetting = async (key, value) =>
+    ok(unwrap(await supabase.from('settings').upsert({ key, value }).select().single()));
 
-// Collections (Custom Homepage Sections)
-export const getCollections = (homepage = false) => axios.get(`${API_URL}/collections`, { params: { homepage: homepage ? 'true' : undefined } });
-export const getCollection = (slug) => axios.get(`${API_URL}/collections/${slug}`);
-export const getAdminCollections = () => axios.get(`${API_URL}/collections/admin/all`);
-export const createCollection = (data) => axios.post(`${API_URL}/collections`, data);
-export const updateCollection = (id, data) => axios.put(`${API_URL}/collections/${id}`, data);
-export const deleteCollection = (id) => axios.delete(`${API_URL}/collections/${id}`);
-export const addProductToCollection = (collectionId, productId) => axios.post(`${API_URL}/collections/${collectionId}/products`, { productId });
-export const removeProductFromCollection = (collectionId, productId) => axios.delete(`${API_URL}/collections/${collectionId}/products/${productId}`);
+// ---------------------------------------------------------------------------
+// Collections (homepage sections)
+// ---------------------------------------------------------------------------
+const COLLECTION = {
+    name: ['name', 'text'], icon: ['icon', 'text'], description: ['description', 'text'],
+    isActive: ['is_active', 'bool'], showOnHomepage: ['show_on_homepage', 'bool'], order: ['sort_order', 'int'],
+    type: ['type', 'text'],
+};
+const COLLECTION_SELECT = `*, collection_items(position, menu_items(${MENU_SELECT}))`;
+const SYSTEM_FLAGS = { bestseller: 'is_best_seller', new: 'is_new_item', recommended: 'is_recommended' };
 
-// Loyalty Points
-export const getLoyaltySettings = () => axios.get(`${API_URL}/loyalty/settings`);
-export const updateLoyaltySettings = (data) => axios.put(`${API_URL}/loyalty/settings`, data);
-export const getMyLoyaltyPoints = () => axios.get(`${API_URL}/loyalty/my-points`);
-export const calculateRedemption = (orderTotal, pointsToUse) => axios.post(`${API_URL}/loyalty/calculate-redemption`, { orderTotal, pointsToUse });
-export const getLoyaltyUsers = () => axios.get(`${API_URL}/loyalty/all-users`);
-export const adjustUserPoints = (userId, points, reason) => axios.put(`${API_URL}/loyalty/adjust-points/${userId}`, { points, reason });
-export const setProductBonusPoints = (productId, bonusLoyaltyPoints) => axios.put(`${API_URL}/loyalty/product/${productId}`, { bonusLoyaltyPoints });
-export const getLoyaltyOffers = () => axios.get(`${API_URL}/loyalty/offers`);
-export const createLoyaltyOffer = (data) => axios.post(`${API_URL}/loyalty/offers`, data);
-export const updateLoyaltyOffer = (id, data) => axios.put(`${API_URL}/loyalty/offers/${id}`, data);
-export const deleteLoyaltyOffer = (id) => axios.delete(`${API_URL}/loyalty/offers/${id}`);
+const collectionToClient = async (row) => {
+    const col = toClient(row);
+    delete col.collectionItems;
+    col.products = (row.collection_items || [])
+        .sort((a, b) => a.position - b.position)
+        .map(ci => ci.menu_items).filter(Boolean).map(menuToClient);
+    // System collections with no hand-picked items show items with the matching flag
+    if (col.products.length === 0 && SYSTEM_FLAGS[row.type]) {
+        col.products = menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT)
+            .eq(SYSTEM_FLAGS[row.type], true).eq('is_available', true).limit(10)));
+    }
+    return col;
+};
+const collectionList = (rows) => Promise.all((rows || []).map(collectionToClient));
+const fetchCollection = async (id) =>
+    collectionToClient(unwrap(await supabase.from('collections').select(COLLECTION_SELECT).eq('id', id).single()));
 
-// Customer Analytics
-export const getCustomerAnalytics = (params) => axios.get(`${API_URL}/analytics/customers`, { params });
-export const getCustomerDetail = (id) => axios.get(`${API_URL}/analytics/customer/${id}`);
-export const searchOrders = (params) => axios.get(`${API_URL}/analytics/orders/search`, { params });
+export const getCollections = async (homepage = false) => {
+    let q = supabase.from('collections').select(COLLECTION_SELECT).eq('is_active', true)
+        .order('sort_order').order('created_at', { ascending: false });
+    if (homepage) q = q.eq('show_on_homepage', true);
+    return ok(await collectionList(unwrap(await q)));
+};
+export const getCollection = async (slug) =>
+    ok(await collectionToClient(unwrap(await supabase.from('collections').select(COLLECTION_SELECT).eq('slug', slug).single())));
+export const getAdminCollections = async () =>
+    ok(await collectionList(unwrap(await supabase.from('collections').select(COLLECTION_SELECT)
+        .order('sort_order').order('created_at', { ascending: false }))));
+export const createCollection = async (data) => {
+    if (!data?.name) throw apiError('Collection name is required');
+    const row = { icon: '🍽️', show_on_homepage: data.showOnHomepage !== false, type: 'custom', ...toDb(data, COLLECTION) };
+    return ok(toClient(unwrap(await supabase.from('collections').insert(row).select().single())));
+};
+export const updateCollection = async (id, data) =>
+    ok(toClient(unwrap(await supabase.from('collections').update(toDb(data, COLLECTION)).eq('id', id).select().single())));
+export const deleteCollection = async (id) => {
+    unwrap(await supabase.from('collections').delete().eq('id', id));
+    return ok({ message: 'Collection deleted successfully' });
+};
+export const addProductToCollection = async (collectionId, productId) => {
+    const ids = Array.isArray(productId) ? productId : [productId];
+    const { count } = await supabase.from('collection_items').select('*', { count: 'exact', head: true }).eq('collection_id', collectionId);
+    unwrap(await supabase.from('collection_items').upsert(
+        ids.map((id, i) => ({ collection_id: collectionId, menu_item_id: id, position: (count || 0) + i })),
+        { onConflict: 'collection_id,menu_item_id', ignoreDuplicates: true }));
+    return ok(await fetchCollection(collectionId));
+};
+export const removeProductFromCollection = async (collectionId, productId) => {
+    unwrap(await supabase.from('collection_items').delete().eq('collection_id', collectionId).eq('menu_item_id', productId));
+    return ok(await fetchCollection(collectionId));
+};
 
+// ---------------------------------------------------------------------------
+// Loyalty
+// ---------------------------------------------------------------------------
+const LOYALTY_SETTINGS = {
+    pointsPerRupee: ['points_per_rupee', 'num'], minOrderForPoints: ['min_order_for_points', 'num'],
+    pointsToRupeeRatio: ['points_to_rupee_ratio', 'num'], minPointsToRedeem: ['min_points_to_redeem', 'int'],
+    maxRedemptionPercent: ['max_redemption_percent', 'num'], isActive: ['is_active', 'bool'],
+};
+const LOYALTY_OFFER = {
+    name: ['name', 'text'], description: ['description', 'text'], pointsRequired: ['points_required', 'int'],
+    discountValue: ['discount_value', 'num'], minOrderValue: ['min_order_value', 'num'], isActive: ['is_active', 'bool'],
+};
+
+export const getLoyaltySettings = async () =>
+    ok(toClient(unwrap(await supabase.from('loyalty_settings').select().eq('id', 1).single())));
+export const updateLoyaltySettings = async (data) =>
+    ok(toClient(unwrap(await supabase.from('loyalty_settings').update(toDb(data, LOYALTY_SETTINGS)).eq('id', 1).select().single())));
+export const getMyLoyaltyPoints = async () => {
+    const points = await rpc('my_loyalty_points');
+    if (!points) throw apiError('Please sign in first', 401);
+    return ok(points);
+};
+export const calculateRedemption = async (orderTotal, pointsToUse) =>
+    ok(await rpc('calculate_redemption', { p_order_total: orderTotal, p_points_to_use: pointsToUse ?? null }));
+export const getLoyaltyUsers = async () =>
+    ok(listToClient(unwrap(await supabase.from('customers')
+        .select('id, name, phone, loyalty_points, total_points_earned, created_at')
+        .order('loyalty_points', { ascending: false }))));
+export const adjustUserPoints = async (userId, points, reason) =>
+    ok(await rpc('adjust_points', { p_customer_id: userId, p_points: Number(points), p_reason: reason || '' }));
+export const setProductBonusPoints = async (productId, bonusLoyaltyPoints) =>
+    ok(menuToClient(unwrap(await supabase.from('menu_items')
+        .update({ bonus_loyalty_points: Number(bonusLoyaltyPoints) || 0 }).eq('id', productId).select(MENU_SELECT).single())));
+export const getLoyaltyOffers = async () =>
+    ok(listToClient(unwrap(await supabase.from('loyalty_offers').select().eq('is_active', true).order('points_required'))));
+export const createLoyaltyOffer = async (data) =>
+    ok(toClient(unwrap(await supabase.from('loyalty_offers').insert(toDb(data, LOYALTY_OFFER)).select().single())));
+export const updateLoyaltyOffer = async (id, data) =>
+    ok(toClient(unwrap(await supabase.from('loyalty_offers').update(toDb(data, LOYALTY_OFFER)).eq('id', id).select().single())));
+export const deleteLoyaltyOffer = async (id) => {
+    unwrap(await supabase.from('loyalty_offers').delete().eq('id', id));
+    return ok({ message: 'Offer deleted' });
+};
+
+// ---------------------------------------------------------------------------
+// Customer analytics
+// ---------------------------------------------------------------------------
+export const getCustomerAnalytics = async (params = {}) => ok(await rpc('customer_analytics', {
+    p_search: params.search || '', p_sort_by: params.sortBy || 'totalSpent', p_order: params.order || 'desc',
+    p_page: Number(params.page) || 1, p_limit: Number(params.limit) || 20,
+}));
+export const getCustomerDetail = async (id) => ok(await rpc('customer_detail', { p_customer_id: id }));
+export const searchOrders = async (params = {}) => ok(await rpc('search_orders', {
+    p_search: params.search || '', p_status: params.status || '',
+    p_start_date: params.startDate || null, p_end_date: params.endDate || null,
+    p_min_amount: params.minAmount ? Number(params.minAmount) : null,
+    p_max_amount: params.maxAmount ? Number(params.maxAmount) : null,
+    p_page: Number(params.page) || 1, p_limit: Number(params.limit) || 20,
+}));

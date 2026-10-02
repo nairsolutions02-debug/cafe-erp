@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiUsers } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiPrinter } from 'react-icons/fi';
+import { QRCodeSVG } from 'qrcode.react';
+import { tableQrUrl } from '../lib/qrTable';
+import brand from '../brand';
 import { getTables, createTable, createBulkTables, updateTable, deleteTable } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './AdminTables.css';
@@ -13,6 +16,8 @@ const AdminTables = () => {
     const [editItem, setEditItem] = useState(null);
     const [formData, setFormData] = useState({ tableNumber: '', capacity: 4 });
     const [bulkData, setBulkData] = useState({ startNumber: 1, endNumber: 10, capacity: 4 });
+    // Tables whose QR codes are shown for printing
+    const [qrTables, setQrTables] = useState(null);
 
     useEffect(() => { fetchData(); }, []);
 
@@ -119,6 +124,11 @@ const AdminTables = () => {
                     </div>
                 </div>
                 <div className="header-actions">
+                    {tables.length > 0 && (
+                        <button className="btn btn-secondary" onClick={() => setQrTables(tables)}>
+                            <FiPrinter /> QR Codes
+                        </button>
+                    )}
                     <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)}>
                         Add Multiple
                     </button>
@@ -153,6 +163,7 @@ const AdminTables = () => {
                             >
                                 {table.status === 'available' ? 'Mark Occupied' : 'Free Table'}
                             </button>
+                            <button onClick={() => setQrTables([table])} className="icon-btn" title="Table QR code"><FiPrinter /></button>
                             <button onClick={() => openEdit(table)} className="icon-btn edit"><FiEdit2 /></button>
                             <button
                                 onClick={() => handleDelete(table._id)}
@@ -171,6 +182,33 @@ const AdminTables = () => {
                     <FiUsers size={48} />
                     <h3>No tables configured</h3>
                     <p>Add tables for your restaurant</p>
+                </div>
+            )}
+
+            {/* Table QR codes: customers scan to open the menu with their table selected */}
+            {qrTables && (
+                <div className="modal-overlay qr-print-overlay" onClick={() => setQrTables(null)}>
+                    <div className="modal qr-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header no-print">
+                            <h2>Table QR Codes</h2>
+                            <button className="modal-close" onClick={() => setQrTables(null)}>×</button>
+                        </div>
+                        <div className="qr-grid">
+                            {qrTables.map(table => (
+                                <div key={table._id} className="qr-card">
+                                    <div className="qr-cafe">{brand.name}</div>
+                                    <QRCodeSVG value={tableQrUrl(table.tableNumber)} size={180} marginSize={2} />
+                                    <div className="qr-table">Table {table.tableNumber}</div>
+                                    <div className="qr-hint">Scan to see the menu &amp; order</div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="modal-footer no-print">
+                            <button className="btn btn-primary" onClick={() => window.print()}>
+                                <FiPrinter /> Print
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
 

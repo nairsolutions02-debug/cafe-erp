@@ -205,3 +205,77 @@
     color: var(--primary);
     text-align: center;
 }
+/* Table QR codes */
+.qr-modal {
+    max-width: 760px;
+    width: 95vw;
+}
+
+.qr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+    padding: 20px;
+    max-height: 65vh;
+    overflow-y: auto;
+}
+
+.qr-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 16px;
+    border: 2px dashed var(--primary);
+    border-radius: 12px;
+    background: #fff;
+    break-inside: avoid;
+}
+
+.qr-cafe {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.qr-table {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.qr-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .qr-print-overlay,
+    .qr-print-overlay * {
+        visibility: visible;
+    }
+
+    .qr-print-overlay {
+        position: absolute;
+        inset: 0;
+        background: #fff;
+    }
+
+    .qr-modal {
+        box-shadow: none;
+        max-width: none;
+        width: 100%;
+    }
+
+    .qr-grid {
+        max-height: none;
+        overflow: visible;
+    }
+
+    .qr-print-overlay .no-print {
+        display: none;
+    }
+}
