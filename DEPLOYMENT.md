@@ -56,15 +56,15 @@ select public.make_admin('owner@cafe.com');
 
 | Name | Value |
 |---|---|
-| `VITE_SUPABASE_URL` | Supabase → Settings → API → Project URL |
-| `VITE_SUPABASE_ANON_KEY` | Supabase → Settings → API → `anon` `public` key |
+| `VITE_SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API Keys → Publishable key (`sb_publishable_...`) |
 | `VITE_CAFE_NAME` | e.g. `Chai Point` |
 | `VITE_CAFE_TAGLINE` | e.g. `Bhilai's favourite chai` |
 | `VITE_CAFE_THEME_COLOR` | e.g. `#2E7D32` |
 | `VITE_CAFE_LOGO_URL` | URL of the logo (upload it to Supabase Storage → `images` bucket → copy URL) |
 | `VITE_CAFE_ADDRESS`, `VITE_CAFE_PHONE`, `VITE_CAFE_HOURS_TIME` | contact details for the footer |
 
-Never put the `service_role` key in Vercel. The site only needs the `anon` key.
+Never put the secret key (`sb_secret_...`) in Vercel. The site only needs the publishable key.
 
 4. **Deploy**. Then put the Vercel URL into Supabase's Site URL (step 1.3).
 5. Custom domain (optional): Vercel → Settings → Domains.
@@ -112,7 +112,7 @@ The SMS OTP code is kept but switched off. To turn it on for a cafe:
 |---|---|
 | Customer login says "Anonymous sign-ins are disabled" | Turn on anonymous sign-ins (step 1.2) |
 | Admin login says "This account is not an admin" | Run `select public.make_admin('email')` |
-| Site loads but menu is empty / errors | Check `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`, then redeploy |
+| Site loads but menu is empty / errors | Check `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`, then redeploy |
 | Orders don't appear live on the admin screen | Run `npx supabase db push` (enables live updates on orders and tables) |
 | Image upload fails | Must be logged in as admin; images up to 5 MB (jpg, png, webp, gif) |
 
@@ -121,7 +121,7 @@ The SMS OTP code is kept but switched off. To turn it on for a cafe:
 ```bash
 npx supabase start            # local Supabase in Docker
 npx supabase db reset         # apply migrations
-cd frontend && cp .env.example .env.local   # use the local URL + anon key printed by `supabase start`
+cd frontend && cp .env.example .env.local   # use the local URL + publishable key printed by `supabase start`
 npm install && npm run dev
 npm run test:db               # end-to-end database checks
 ```

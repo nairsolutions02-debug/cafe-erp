@@ -70,7 +70,7 @@ Bill details (name, address, GSTIN, taxes) are set in Admin → Settings.
 ```bash
 npx supabase start && npx supabase db reset
 cd frontend
-cp .env.example .env.local    # fill in the local URL + anon key from `supabase start`
+cp .env.example .env.local    # fill in the local URL + publishable key from `supabase start`
 npm install && npm run dev    # http://localhost:5173
 npm run test:db               # end-to-end database checks (needs the local stack)
 ```

@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
 const url = import.meta.env.VITE_SUPABASE_URL;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Publishable key (sb_publishable_...) or, for older projects, the legacy anon key
+const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!url || !anonKey) {
-    console.error('VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set');
+    console.error('VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY must be set');
 }
 
 export const supabase = createClient(url || 'http://localhost:54321', anonKey || 'missing-anon-key');
