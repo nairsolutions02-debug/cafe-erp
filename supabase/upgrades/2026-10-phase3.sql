@@ -644,4 +644,45 @@ begin
 end;
 $$;
 
+-- (also in Phase 2) Bill extras: don't touch the order when there is nothing to add
+create or replace function public.apply_bill_extras(p_order uuid) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+declare
+    v_o public.orders;
+    v_pct numeric;
+    v_rate numeric;
+    v_net numeric;
+    v_base numeric;
+    v_sc numeric := 0;
+    v_sc_tax numeric := 0;
+    v_sum numeric;
+    v_ro numeric := 0;
+begin
+    select * into v_o from public.orders where id = p_order for update;
+    if v_o.id is null then
+        return;
+    end if;
+    v_base := coalesce(v_o.base_total, v_o.total);
+    v_pct := coalesce((public.get_setting('service_charge_pct', '0', v_o.tenant_id) #>> '{}')::numeric, 0);
+    if v_pct > 0 and not v_o.service_charge_removed and v_o.channel in ('qr', 'dine_in') then
+        select coalesce(sum(net_amount), 0) into v_net from public.order_items where order_id = p_order;
+        select coalesce(sum((c ->> 'rate')::numeric), 0) into v_rate
+          from jsonb_array_elements(coalesce(public.get_setting('tax_config', '[]', v_o.tenant_id), '[]'::jsonb)) c;
+        v_sc := round(v_net * v_pct / 100, 2);
+        v_sc_tax := round(v_sc * v_rate / 100, 2);
+    end if;
+    v_sum := v_base + v_sc + v_sc_tax;
+    if coalesce((public.get_setting('round_off', 'false', v_o.tenant_id) #>> '{}')::boolean, false) then
+        v_ro := round(v_sum) - v_sum;
+    end if;
+    -- Nothing to add and nothing added before: leave the order untouched (no extra live update)
+    if v_sc = 0 and v_sc_tax = 0 and v_ro = 0 and v_o.service_charge = 0 and v_o.service_charge_tax = 0 and v_o.round_off = 0 then
+        return;
+    end if;
+    update public.orders
+       set base_total = v_base, service_charge = v_sc, service_charge_tax = v_sc_tax, round_off = v_ro, total = v_sum + v_ro
+     where id = p_order;
+end;
+$$;
+
 commit;
