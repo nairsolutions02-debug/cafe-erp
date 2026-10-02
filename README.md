@@ -25,6 +25,9 @@ Each cafe runs on its own **Vercel** site and **Supabase** project. There is no 
 - **Inventory**: stock by location (store, kitchen, kiosk), vendors, purchases with weighted average cost and
   price alerts, wastage, transfers, counts with variance in ₹, reorder alerts with WhatsApp orders
 - **Recipes & costing**: every sale deducts its recipe; cost, food cost % and margin per dish
+- **Counter (POS)** with offline mode, **kitchen screen**, 80 mm KOT/bill printing, split payments, manager-PIN discounts and voids
+- **Cash & shifts** with note counts, **money ledger**, expenses (recurring, spread), payables with aging, day summary
+- **Alerts**: bell + full-screen alarm when a table asks to pay by UPI
 - **Employees**, attendance and holidays
 - **Customers** and **analytics** (revenue, categories, top items, growth)
 - **Settings**: restaurant details, FSSAI and taxes printed on bills

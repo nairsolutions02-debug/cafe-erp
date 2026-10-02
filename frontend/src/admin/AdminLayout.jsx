@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { FiLogOut, FiMenu, FiX } from 'react-icons/fi';
 import { ADMIN_NAV } from './adminNav';
 import GlobalSearch from './GlobalSearch';
+import Notifications from './Notifications';
 import { useAuth } from '../context/AuthContext';
 import './AdminLayout.css';
 import brand from '../brand';
@@ -92,6 +93,7 @@ const AdminLayout = () => {
                     </button>
                     <GlobalSearch />
                     <div className="header-right">
+                        <Notifications />
                         <div className="admin-user">
                             <span className="admin-name">{user?.name || 'Admin'}</span>
                             <span className="admin-role">{user?.roleName}</span>

@@ -69,7 +69,8 @@ const AdminSettings = () => {
         setSaving(true);
         try {
             // Save basic settings
-            const basicKeys = ['restaurant_name', 'restaurant_address', 'restaurant_phone', 'gst_number', 'fssai_number', 'gst_rate'];
+            const basicKeys = ['restaurant_name', 'restaurant_address', 'restaurant_phone', 'gst_number', 'fssai_number', 'gst_rate',
+                'service_charge_pct', 'round_off', 'bill_footer', 'shift_tolerance'];
             for (const key of basicKeys) {
                 if (settings[key] !== undefined) {
                     await updateSetting(key, settings[key]);
@@ -139,6 +140,39 @@ const AdminSettings = () => {
                             onChange={(e) => handleBasicChange('fssai_number', e.target.value)}
                             placeholder="14-digit FSSAI number"
                         />
+                    </div>
+                    <div className="form-group">
+                        <label>Service charge % (optional; 0 = off)</label>
+                        <input
+                            type="number" min="0" max="20" step="0.5"
+                            value={settings.service_charge_pct ?? 0}
+                            onChange={(e) => handleBasicChange('service_charge_pct', Number(e.target.value))}
+                        />
+                        <small className="hint">Shown as optional on QR and dine-in bills; staff remove it if the customer asks (consumer authority guidelines).</small>
+                    </div>
+                    <div className="form-group">
+                        <label>
+                            <input type="checkbox" checked={settings.round_off === true}
+                                onChange={(e) => handleBasicChange('round_off', e.target.checked)} /> Round bill totals to the nearest rupee
+                        </label>
+                    </div>
+                    <div className="form-group">
+                        <label>Bill footer</label>
+                        <input
+                            type="text"
+                            value={settings.bill_footer || ''}
+                            onChange={(e) => handleBasicChange('bill_footer', e.target.value)}
+                            placeholder="Thank you! Visit again."
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>Cash difference allowed at shift close (₹)</label>
+                        <input
+                            type="number" min="0"
+                            value={settings.shift_tolerance ?? 50}
+                            onChange={(e) => handleBasicChange('shift_tolerance', Number(e.target.value))}
+                        />
+                        <small className="hint">A bigger difference needs a reason and alerts the owner.</small>
                     </div>
                     <div className="form-group">
                         <label>Contact Phone</label>

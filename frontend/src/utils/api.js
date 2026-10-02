@@ -671,3 +671,73 @@ export const saSavePlan = async (plan) => {
     const q = plan.id ? supabase.from('plans').update(row).eq('id', plan.id) : supabase.from('plans').insert(row);
     return ok(toClient(unwrap(await q.select().single())));
 };
+
+// ---------------------------------------------------------------------------
+// Counter, kitchen and money (Phase 2)
+// ---------------------------------------------------------------------------
+// Everything the counter needs to work offline: menu with pack units, categories, tables
+export const getPosCatalogue = async () => {
+    const [items, cats, tables] = await Promise.all([
+        supabase.from('menu_items').select('id, name, price, mrp, image, is_veg, is_available, is_restricted, item_type, category_id, brand_id, tax_group_id, price_includes_tax, item_units(id, name, factor, sale_price)').order('name'),
+        supabase.from('categories').select('id, name, parent_id, sort_order, is_active').order('sort_order'),
+        supabase.from('dining_tables').select('id, table_number, status').order('table_number'),
+    ]);
+    const [groups, taxSetting, brands] = await Promise.all([
+        supabase.from('tax_groups').select('id, components'),
+        supabase.from('settings').select('value').eq('key', 'tax_config').maybeSingle(),
+        supabase.from('brands').select('id, name').order('name'),
+    ]);
+    return ok({ items: unwrap(items), categories: unwrap(cats), tables: unwrap(tables), taxGroups: unwrap(groups),
+        defaultTax: unwrap(taxSetting)?.value || [], brands: unwrap(brands) });
+};
+export const quoteStaffOrder = async (p) => ok(await rpc('quote_staff_order', { p }));
+export const createStaffOrder = async (p) => ok(await rpc('create_staff_order', { p }));
+export const settleOrder = async (orderId, payments, drawer = 'cash_counter', clientId = null) =>
+    ok(await rpc('settle_order', { p_order_id: orderId, p_payments: payments, p_drawer: drawer, p_client_id: clientId }));
+export const cancelOrder = async (orderId, reason, approverPhone = null, approverPin = null) =>
+    ok(await rpc('cancel_order', { p_order_id: orderId, p_reason: reason, p_approver_phone: approverPhone, p_approver_pin: approverPin }));
+export const removeServiceCharge = async (orderId, remove = true) => ok(await rpc('remove_service_charge', { p_order_id: orderId, p_remove: remove }));
+export const requestPayment = async (orderId, mode) => ok(await rpc('request_payment', { p_order_id: orderId, p_mode: mode }));
+export const findCustomers = async (q) => ok(await rpc('find_customers', { p_query: q }));
+export const registerDevice = async (kind, name) => ok(await rpc('register_device', { p_kind: kind, p_name: name }));
+export const touchDevice = async (code) => ok(await rpc('touch_device', { p_code: code }));
+export const getDevices = async () => ok(listToClient(unwrap(await supabase.from('devices').select().order('code'))));
+export const setDeviceActive = async (id, isActive) => ok(unwrap(await supabase.from('devices').update({ is_active: isActive }).eq('id', id)));
+
+export const getKitchenOrders = async () => ok(await rpc('kitchen_orders'));
+export const setKitchenStatus = async (orderId, itemId, status) =>
+    ok(await rpc('set_kitchen_status', { p_order_id: orderId, p_item_id: itemId, p_status: status }));
+
+export const getCurrentShifts = async () => ok(await rpc('current_shifts'));
+export const openShift = async (drawer, denoms, note = '') => ok(await rpc('open_shift', { p_drawer: drawer, p_denoms: denoms, p_note: note }));
+export const closeShift = async (id, denoms, upiReported, cardReported, reason, note = '') =>
+    ok(await rpc('close_shift', { p_shift_id: id, p_denoms: denoms, p_upi_reported: upiReported, p_card_reported: cardReported, p_reason: reason, p_note: note }));
+export const cashMovement = async (drawer, kind, amount, note, categoryId = null, clientId = null) =>
+    ok(await rpc('cash_movement', { p_drawer: drawer, p_kind: kind, p_amount: Number(amount), p_note: note, p_category_id: categoryId, p_client_id: clientId }));
+export const getShifts = async (from, to) => ok(await rpc('list_shifts', { p_from: from || null, p_to: to || null }));
+
+export const getExpenseCategories = async () =>
+    ok(listToClient(unwrap(await supabase.from('expense_categories').select().order('sort_order').order('name'))));
+export const addExpenseCategory = async (name) =>
+    ok(toClient(unwrap(await supabase.from('expense_categories').insert({ name }).select().single(), 'expense_categories')));
+export const recordExpense = async (p) => ok(await rpc('record_expense', { p }));
+export const payExpense = async (id, accountCode) => ok(await rpc('pay_expense', { p_id: id, p_account_code: accountCode }));
+export const voidExpense = async (id, reason) => ok(await rpc('void_expense', { p_id: id, p_reason: reason }));
+export const getExpenses = async (from, to) => ok(await rpc('list_expenses', { p_from: from || null, p_to: to || null }));
+export const getRecurringExpenses = async () =>
+    ok(listToClient(unwrap(await supabase.from('recurring_expenses').select('*, category:expense_categories(name)').order('name'))));
+export const saveRecurringExpense = async ({ id, name, categoryId, amount, dayOfMonth, spreadMonths, nextDue, isActive }) => {
+    const row = toDb({ name, categoryId, amount, dayOfMonth, spreadMonths, nextDue, isActive }, {
+        name: ['name', 'text'], categoryId: ['category_id', 'uuid'], amount: ['amount', 'num'], dayOfMonth: ['day_of_month', 'int'],
+        spreadMonths: ['spread_months', 'int'], nextDue: ['next_due', 'date'], isActive: ['is_active', 'bool'] });
+    const q = id ? supabase.from('recurring_expenses').update(row).eq('id', id) : supabase.from('recurring_expenses').insert(row);
+    return ok(unwrap(await q.select().single()));
+};
+export const deleteRecurringExpense = async (id) => ok(unwrap(await supabase.from('recurring_expenses').delete().eq('id', id)));
+export const getPayables = async () => ok(await rpc('payables'));
+export const getAccountBalances = async () => ok(await rpc('account_balances'));
+export const getLedger = async (filters = {}) => ok(await rpc('list_ledger', { p: filters }));
+export const getDaySummary = async (date) => ok(await rpc('day_summary', { p_date: date || null }));
+
+export const getMyNotifications = async (limit = 30) => ok(await rpc('my_notifications', { p_limit: limit }));
+export const ackNotification = async (id) => ok(await rpc('ack_notification', { p_id: id }));

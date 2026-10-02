@@ -4,7 +4,7 @@ import { FiFileText, FiCheckCircle } from 'react-icons/fi';
 import Header from '../components/Header';
 import OrderStatus from '../components/OrderStatus';
 import { useAuth } from '../context/AuthContext';
-import { getOrder, requestBill } from '../utils/api';
+import { getOrder, requestBill, requestPayment } from '../utils/api';
 import './OrderDetails.css';
 
 const OrderDetails = () => {
@@ -68,6 +68,14 @@ const OrderDetails = () => {
         }
     };
 
+    const handlePay = async (mode) => {
+        try {
+            setOrder((await requestPayment(id, mode)).data);
+        } catch (error) {
+            alert(error.response?.data?.message || 'Could not reach the staff, please ask at the counter');
+        }
+    };
+
     if (loading) {
         return (
             <div className="loading-screen">
@@ -125,10 +133,24 @@ const OrderDetails = () => {
                                 <span>-₹{order.discount.toFixed(2)}</span>
                             </div>
                         )}
-                        <div className="bill-row">
-                            <span>GST (5%)</span>
-                            <span>₹{order.tax.toFixed(2)}</span>
-                        </div>
+                        {(order.taxDetails?.length ? order.taxDetails : [{ name: 'GST', rate: order.gstRate, amount: order.tax }]).map(t => (
+                            <div className="bill-row" key={`${t.name}${t.rate}`}>
+                                <span>{t.name} ({t.rate}%)</span>
+                                <span>₹{Number(t.amount).toFixed(2)}</span>
+                            </div>
+                        ))}
+                        {order.serviceCharge > 0 && (
+                            <div className="bill-row">
+                                <span>Service charge (optional, ask staff to remove) + GST</span>
+                                <span>₹{(order.serviceCharge + order.serviceChargeTax).toFixed(2)}</span>
+                            </div>
+                        )}
+                        {Math.abs(order.roundOff || 0) > 0.001 && (
+                            <div className="bill-row">
+                                <span>Round off</span>
+                                <span>₹{order.roundOff.toFixed(2)}</span>
+                            </div>
+                        )}
                         <div className="bill-row total">
                             <span>Total</span>
                             <span>₹{order.total.toFixed(2)}</span>
@@ -139,6 +161,8 @@ const OrderDetails = () => {
                         <div className="paid-badge">
                             <FiCheckCircle /> Payment Received - Thank You!
                         </div>
+                    ) : order.paymentRequest === 'qr' ? (
+                        <p className="payment-instruction">Staff are bringing the UPI QR to your table.</p>
                     ) : (
                         <p className="payment-instruction">
                             Please proceed to the counter to complete payment
@@ -153,6 +177,14 @@ const OrderDetails = () => {
                     <button onClick={handleRequestBill} className="btn btn-primary btn-full">
                         Request Bill
                     </button>
+                )}
+
+                {['served', 'bill_requested', 'bill_generated'].includes(order.status) && !order.paymentRequest && (
+                    <div className="pay-choice">
+                        <p>How would you like to pay?</p>
+                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">Pay at the counter</button>
+                        <button onClick={() => handlePay('qr')} className="btn btn-primary btn-full">Pay by UPI at my table</button>
+                    </div>
                 )}
 
                 {order.status === 'bill_requested' && (

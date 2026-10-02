@@ -10,6 +10,7 @@ export const MODULES = [
     { key: 'customers', label: 'Customers' },
     { key: 'inventory', label: 'Inventory' },
     { key: 'employees', label: 'Employees & attendance' },
+    { key: 'finance', label: 'Finance: money, expenses, payables' },
     { key: 'reports', label: 'Dashboard & reports' },
     { key: 'settings', label: 'Settings' },
     { key: 'staff', label: 'Staff, roles & PINs' },

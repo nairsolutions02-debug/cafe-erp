@@ -1,40 +1,125 @@
 import React, { useState, useEffect } from 'react';
-import { FiCheck, FiX, FiFileText, FiAlertTriangle } from 'react-icons/fi';
-import { getActiveOrders, updateOrderStatus, updatePayment } from '../utils/api';
+import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter } from 'react-icons/fi';
+import { getActiveOrders, updateOrderStatus, settleOrder, cancelOrder, removeServiceCharge } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import OrderBill from '../components/OrderBill';
 import Loader from '../components/Loader';
+import Modal from './inventory/Modal';
+import { printKot, printBill } from '../lib/print';
+import { inr } from './pos/money';
 import './AdminOrders.css';
+import './pos/POS.css';
 
-const AdminOrders = () => {
-    const { socket } = useAuth();
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [selectedOrder, setSelectedOrder] = useState(null);
-    const [selectedOrdersForBill, setSelectedOrdersForBill] = useState([]);
-    const [showBill, setShowBill] = useState(false);
-    const [paymentAmount, setPaymentAmount] = useState({});
+const errText = (err) => err?.response?.data?.message || err?.message || 'Something went wrong';
+const CHANNEL = { qr: 'QR', dine_in: 'Dine-in', takeaway: 'Takeaway', kiosk: 'Kiosk', aggregator: 'Aggregator' };
 
-    const handlePartialPayment = async (orderId, total) => {
-        const amount = paymentAmount[orderId];
-        if (amount === undefined || amount === '') return;
-
+// Take payment: one method or split; cash shows change. Cash goes to the counter drawer.
+const SettleModal = ({ order, onClose, onDone }) => {
+    const due = Math.round((order.total - (order.amountPaid || 0)) * 100) / 100;
+    const [amounts, setAmounts] = useState({ cash: '', upi: '', card: '' });
+    const [method, setMethod] = useState('cash');
+    const [tendered, setTendered] = useState('');
+    const [error, setError] = useState('');
+    const [busy, setBusy] = useState(false);
+    const split = method === 'split';
+    const sum = Number(amounts.cash || 0) + Number(amounts.upi || 0) + Number(amounts.card || 0);
+    const change = method === 'cash' ? Math.max(0, Number(tendered || 0) - due) : 0;
+    const submit = async () => {
+        setBusy(true);
         try {
-            const res = await updatePayment(orderId, 'cash', parseFloat(amount));
-            if (res.data.status === 'paid') {
-                // If now fully paid, show bill
-                setSelectedOrder(res.data);
-                // Also pay for other orders of same table? 
-                // For now, let's keep simple payment per order or handle it in backend updatePayment
-                // The prompt was about "One Bill", so payment should ideally clear the bill.
-                setShowBill(true);
-            }
-            setPaymentAmount({ ...paymentAmount, [orderId]: '' });
-        } catch (error) {
-            alert('Failed to update payment');
+            const payments = split
+                ? Object.entries(amounts).filter(([, v]) => Number(v) > 0).map(([m, v]) => ({ method: m, amount: Number(v) }))
+                : [{ method, amount: method === 'cash' && Number(tendered) > due ? Number(tendered) : due }];
+            const res = await settleOrder(order._id, payments);
+            onDone(res.data);
+        } catch (err) {
+            setError(errText(err));
+        } finally {
+            setBusy(false);
         }
     };
+    const dropSc = async () => {
+        try { onDone((await removeServiceCharge(order._id, !order.serviceChargeRemoved)).data, true); } catch (err) { setError(errText(err)); }
+    };
+    return (
+        <Modal title={`Payment · ${order.orderNumber}`} onClose={onClose}>
+            <div className="modal-body">
+                <div className="kv">
+                    <span>Bill total</span><span>{inr(order.total)}</span>
+                    {order.amountPaid > 0 && <><span>Already paid</span><span>{inr(order.amountPaid)}</span></>}
+                    <span className="strong">Due</span><span className="strong">{inr(due)}</span>
+                </div>
+                {(order.serviceCharge > 0 || order.serviceChargeRemoved) && (
+                    <p className="small">Service charge {inr(order.serviceCharge)} (optional) ·{' '}
+                        <button className="link-btn" onClick={dropSc}>{order.serviceChargeRemoved ? 'Add it back' : 'Customer asked to remove it'}</button></p>
+                )}
+                <div className="pay-methods">
+                    {['cash', 'upi', 'card', 'split'].map(m => <button key={m} className={method === m ? 'active' : ''} onClick={() => setMethod(m)}>{m === 'upi' ? 'UPI' : m[0].toUpperCase() + m.slice(1)}</button>)}
+                </div>
+                {method === 'cash' && (
+                    <div className="input-group" style={{ marginTop: 10 }}><label>Cash received</label>
+                        <input className="input" type="number" value={tendered} placeholder={String(due)} onChange={e => setTendered(e.target.value)} autoFocus />
+                        {change > 0 && <p className="change">Change {inr(change)}</p>}</div>
+                )}
+                {split && ['cash', 'upi', 'card'].map(m => (
+                    <div key={m} className="input-group"><label>{m === 'upi' ? 'UPI' : m[0].toUpperCase() + m.slice(1)}</label>
+                        <input className="input" type="number" value={amounts[m]} onChange={e => setAmounts({ ...amounts, [m]: e.target.value })} /></div>
+                ))}
+                {split && <p className={Math.abs(sum - due) < 0.01 ? 'change' : 'change neg'}>Entered {inr(sum)} of {inr(due)}</p>}
+                {error && <p className="error-message">{error}</p>}
+            </div>
+            <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+                <button className="btn btn-primary" disabled={busy || (split && sum <= 0) || (method === 'cash' && tendered !== '' && Number(tendered) < due)} onClick={submit}>Paid</button>
+            </div>
+        </Modal>
+    );
+};
 
+// Cancel / void: reason always; a manager PIN when the person can't void bills
+const CancelModal = ({ order, canVoid, onClose, onDone }) => {
+    const [reason, setReason] = useState('');
+    const [phone, setPhone] = useState('');
+    const [pin, setPin] = useState('');
+    const [error, setError] = useState('');
+    const submit = async () => {
+        try {
+            onDone((await cancelOrder(order._id, reason, phone || null, pin || null)).data);
+        } catch (err) {
+            setError(errText(err));
+        }
+    };
+    return (
+        <Modal title={`Cancel ${order.orderNumber}`} onClose={onClose}>
+            <div className="modal-body">
+                {order.amountPaid > 0 && <p className="neg">{inr(order.amountPaid)} was paid; it will be refunded from where it came.</p>}
+                {['preparing', 'ready', 'served'].includes(order.status) && <p className="neg small">The kitchen already started: this is flagged in the daily report.</p>}
+                <div className="input-group"><label>Reason *</label>
+                    <input className="input" value={reason} onChange={e => setReason(e.target.value)} autoFocus /></div>
+                {!canVoid && (
+                    <div className="form-grid">
+                        <div className="input-group"><label>Manager mobile</label><input className="input" inputMode="numeric" value={phone} onChange={e => setPhone(e.target.value)} /></div>
+                        <div className="input-group"><label>Manager PIN</label><input className="input" type="password" inputMode="numeric" value={pin} onChange={e => setPin(e.target.value)} /></div>
+                    </div>
+                )}
+                {error && <p className="error-message">{error}</p>}
+            </div>
+            <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={onClose}>Back</button>
+                <button className="btn btn-danger" disabled={!reason.trim()} onClick={submit}>Cancel order</button>
+            </div>
+        </Modal>
+    );
+};
+
+const AdminOrders = () => {
+    const { socket, hasPerm } = useAuth();
+    const [settling, setSettling] = useState(null);
+    const [cancelling, setCancelling] = useState(null);
+    const [orders, setOrders] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [selectedOrdersForBill, setSelectedOrdersForBill] = useState([]);
+    const [showBill, setShowBill] = useState(false);
     useEffect(() => {
         fetchOrders();
     }, []);
@@ -140,18 +225,14 @@ const AdminOrders = () => {
         }
     };
 
-    const handlePayment = async (orderId, method, amount) => {
-        try {
-            const res = await updatePayment(orderId, method, amount);
-            // After payment, refresh to see updated status
-            fetchOrders();
-            // If still needs to show bill (e.g. partial payment), update selectedOrder
-            setSelectedOrder(res.data);
-
-            // Re-fetch session orders to keep bill up to date?
-            // Simplified: just refresh main list.
-        } catch (error) {
-            alert('Failed to update payment');
+    const afterChange = (order, keepOpen) => {
+        setOrders(prev => (order.status === 'paid' || order.status === 'cancelled'
+            ? prev.filter(o => o._id !== order._id)
+            : prev.map(o => (o._id === order._id ? order : o))));
+        if (keepOpen) setSettling(order);
+        else {
+            setSettling(null);
+            setCancelling(null);
         }
     };
 
@@ -202,10 +283,18 @@ const AdminOrders = () => {
                                     </span>
                                 </div>
 
+                                {order.paymentRequest && (
+                                    <div className={`pay-request ${order.paymentRequest}`}>
+                                        {order.paymentRequest === 'qr' ? `Wants to pay ${inr(order.total - (order.amountPaid || 0))} by UPI — take the QR to the table`
+                                            : 'Coming to the counter to pay'}
+                                    </div>
+                                )}
                                 <div className="order-customer">
                                     <strong>{order.user?.name || 'Customer'}</strong>
                                     <span>{order.user?.phone}</span>
                                     {order.tableNumber && <span>Table: {order.tableNumber}</span>}
+                                    {!order.tableNumber && order.tokenNumber && <span>Token: {order.tokenNumber}</span>}
+                                    <span className="channel-tag">{CHANNEL[order.channel] || 'QR'}{order.staffName ? ` · ${order.staffName}` : ''}</span>
                                 </div>
 
                                 <div className="order-items">
@@ -242,16 +331,6 @@ const AdminOrders = () => {
                                     </div>
                                 </div>
 
-                                <div className="order-payment-input">
-                                    <input
-                                        type="number"
-                                        placeholder="Add Pay"
-                                        value={paymentAmount[order._id] || ''}
-                                        onChange={(e) => setPaymentAmount({ ...paymentAmount, [order._id]: e.target.value })}
-                                    />
-                                    <button onClick={() => handlePartialPayment(order._id, order.total)}>Pay</button>
-                                </div>
-
                                 <div className="order-actions">
                                     {getNextStatus(order.status) && (
                                         <button
@@ -262,31 +341,24 @@ const AdminOrders = () => {
                                         </button>
                                     )}
 
-                                    {order.status === 'bill_generated' && (
-                                        <div className="payment-btns">
-                                            <button
-                                                className="btn btn-success btn-sm"
-                                                onClick={() => handlePayment(order._id, 'cash', order.total)}
-                                            >
-                                                Cash Paid
-                                            </button>
-                                            <button
-                                                className="btn btn-primary btn-sm"
-                                                onClick={() => handlePayment(order._id, 'online', order.total)}
-                                            >
-                                                Online Paid
-                                            </button>
-                                        </div>
+                                    {hasPerm('orders.edit') && (
+                                        <button className="btn btn-success btn-sm" onClick={() => setSettling(order)}>
+                                            <FiCreditCard /> Take payment
+                                        </button>
                                     )}
 
-                                    {order.status === 'pending' && (
-                                        <button
-                                            className="btn btn-danger btn-sm"
-                                            onClick={() => handleStatusChange(order._id, 'cancelled')}
-                                        >
+                                    {hasPerm('orders.edit') && (
+                                        <button className="btn btn-danger btn-sm" onClick={() => setCancelling(order)}>
                                             <FiX /> Cancel
                                         </button>
                                     )}
+
+                                    <button className="btn btn-ghost btn-sm" onClick={() => printKot(order)} title="Print kitchen ticket">
+                                        <FiPrinter /> KOT
+                                    </button>
+                                    <button className="btn btn-ghost btn-sm" onClick={() => printBill(order)} title="Print bill on the thermal printer">
+                                        <FiPrinter /> Print
+                                    </button>
 
                                     <button
                                         className="btn btn-secondary btn-sm"
@@ -304,6 +376,9 @@ const AdminOrders = () => {
                     </div>
                 )}
             </div>
+
+            {settling && <SettleModal order={settling} onClose={() => setSettling(null)} onDone={afterChange} />}
+            {cancelling && <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)} onDone={afterChange} />}
 
             {showBill && selectedOrdersForBill.length > 0 && (
                 <OrderBill

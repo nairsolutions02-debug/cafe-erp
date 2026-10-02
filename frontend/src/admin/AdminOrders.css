@@ -266,3 +266,23 @@
 .order-payment-input button:hover {
     filter: brightness(0.9);
 }
+.pay-request {
+    margin: 6px 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    background: #fff4dc;
+    color: #a86400;
+}
+
+.pay-request.qr {
+    background: #fdecea;
+    color: var(--error);
+    animation: alarmPulse 1.2s infinite alternate;
+}
+
+.channel-tag {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}

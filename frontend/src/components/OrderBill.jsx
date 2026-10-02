@@ -27,6 +27,13 @@ const OrderBill = ({ order, orders, onCancel }) => {
         acc.discount += (curr.discount || 0);
         acc.tax += (curr.tax || 0);
         acc.total += (curr.total || 0);
+        acc.serviceCharge += (curr.serviceCharge || 0);
+        acc.serviceChargeTax += (curr.serviceChargeTax || 0);
+        acc.roundOff += (curr.roundOff || 0);
+        (curr.payments || []).forEach(p => {
+            const existing = acc.payments.find(x => x.method === p.method);
+            if (existing) existing.amount += p.amount; else acc.payments.push({ ...p });
+        });
 
         // Items
         if (curr.items) {
@@ -47,7 +54,7 @@ const OrderBill = ({ order, orders, onCancel }) => {
             });
         }
         return acc;
-    }, { subtotal: 0, discount: 0, tax: 0, total: 0, items: [], taxDetails: [] });
+    }, { subtotal: 0, discount: 0, tax: 0, total: 0, serviceCharge: 0, serviceChargeTax: 0, roundOff: 0, payments: [], items: [], taxDetails: [] });
 
     // Consolidate items by ID/name to show quantities neatly
     const consolidatedItems = {};
@@ -141,6 +148,25 @@ const OrderBill = ({ order, orders, onCancel }) => {
                         </div>
                     )}
 
+                    {aggregated.serviceCharge > 0 && (
+                        <>
+                            <div className="bill-total-row">
+                                <span>Service charge (optional)</span>
+                                <span>₹{aggregated.serviceCharge.toFixed(2)}</span>
+                            </div>
+                            <div className="bill-total-row">
+                                <span>GST on service charge</span>
+                                <span>₹{aggregated.serviceChargeTax.toFixed(2)}</span>
+                            </div>
+                        </>
+                    )}
+                    {Math.abs(aggregated.roundOff) > 0.001 && (
+                        <div className="bill-total-row">
+                            <span>Round off</span>
+                            <span>₹{aggregated.roundOff.toFixed(2)}</span>
+                        </div>
+                    )}
+
                     <div className="bill-total-row grand-total">
                         <span>GRAND TOTAL</span>
                         <span>₹{aggregated.total.toFixed(2)}</span>
@@ -148,9 +174,10 @@ const OrderBill = ({ order, orders, onCancel }) => {
                 </div>
 
                 <div className="bill-footer">
-                    <p>Payment: {mainOrder.paymentMethod?.toUpperCase() || 'NOT PAID'}</p>
-                    <p>Thank you for visiting!</p>
-                    <p>Visit again soon!</p>
+                    {aggregated.payments.length > 0
+                        ? aggregated.payments.map(p => <p key={p.method}>Paid {p.method.toUpperCase()}: ₹{p.amount.toFixed(2)}</p>)
+                        : <p>Payment: {mainOrder.paymentMethod?.toUpperCase() || 'NOT PAID'}</p>}
+                    <p>{restaurant.footer || 'Thank you for visiting! Visit again soon!'}</p>
                 </div>
 
                 <div className="bill-actions">

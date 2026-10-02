@@ -4,6 +4,59 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phase 2 — Counter, kitchen, offline and money (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Counter (`/admin/pos`) | Fast billing screen: tap tiles (Enter in search adds the first match), takeaway or dine-in (table or token), optional customer by mobile, line notes, pack sizes (e.g. Box of 6 at the box price), discount with reason. **Pay** by cash (quick notes + change), UPI, card or split; or **Send to kitchen** and pay later. |
+| Offline | The counter keeps working without internet: the menu is stored on the device, sales get numbers like `C1-261003-0007` (device code + date + count), and a pill shows *Offline · 3 waiting to sync*. They sync in order when the internet returns and are stored exactly once. Failed ones show with Retry. Expenses and drawer pay-outs work offline too. |
+| Discounts & voids | Each person's discount limit comes from their role (Cashier 10%, Kiosk 5%, Manager 100%; editable as `max_discount_pct`). Above the limit, a manager types their mobile + PIN at the counter. Cancelling an order needs a reason; people without *Cancel / void orders* need a manager PIN. Paid money is refunded to where it came from. Cancels after the kitchen started are flagged and alert the owner. |
+| Kitchen (`/admin/kitchen`) | One ticket per order with table/token, age (amber 10 min, red 20 min), line notes. Tap a line to move it queued → preparing → ready; *All ready* / *Served*. New orders beep. Works on any tablet or TV (Full screen). |
+| Printing | 80 mm **KOT** and **bill** printing from the counter, kitchen and orders board through the browser print dialog (works with the USB thermal printer). Optional auto-print KOT. |
+| Customer payment | After being served, the customer taps **Pay at the counter** or **Pay by UPI at my table**. Staff get a **full-screen alarm** with sound ("Table 4 wants to pay ₹640 by UPI") until someone taps Acknowledge. |
+| Orders board | **Take payment** (cash with change, UPI, card, split; remove the optional service charge), **Cancel** with reason/manager PIN, **KOT** and thermal **Print**, channel/token/staff on every card. |
+| Cash & Shifts (`/admin/shifts`) | Open each drawer (Counter, Kiosk) with a note-by-note count. During the shift: pay-outs (optionally recorded as an expense), cash to/from the safe. Close with a count, UPI-app and card-machine totals: shows expected vs counted. A difference above the tolerance (Settings, default ₹50) needs a reason and alerts the owner. |
+| Money ledger | Every rupee is one line: sales, refunds, pay-outs, drops, expenses, vendor payments. Never edited; mistakes are reversed. Accounts: Cash – Counter, Cash – Kiosk, Cash – Office/safe, UPI, Card, Bank, Khata. |
+| Finance (`/admin/finance`) | **Today** (sales, GST, discounts, unpaid, cancels, money in/out by account, channels, expenses, shifts, voids and discounts list), **Money ledger**, **Expenses** (categories, bill photo, paid now or later, spread over months, cancel with reason, monthly bills like rent), **Payables** (vendor bills aged 0–7/8–15/16–30/30+ days, bills due, pay from any account), **Accounts** (balances). Vendor payments from purchases now go through the ledger. |
+| Bill settings | Settings: optional **service charge %** (off by default; shown as optional with its GST, removable), **round-off**, **bill footer**, shift cash tolerance. |
+| Alerts | Bell in the admin header with recent alerts (payment requests, cash mismatches, voids after kitchen). |
+| Roles | New permission module **Finance** (Manager: view/create/edit; Accountant: view). Cashiers now land on the Counter. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste **`supabase/upgrades/2026-10-phase2.sql`** → Run → *Success*.
+2. Vercel redeploys from `main` (~1 min).
+3. On the billing computer: Chrome → print dialog → choose the thermal printer, paper 80 mm, margins *None*, untick *Headers and footers* once; Chrome remembers it.
+
+**Test checklist**
+
+- [ ] **Cash & Shifts** → Counter → Open shift → count notes (e.g. ₹500×2, ₹100×5) → shows ₹1,500
+- [ ] **Counter** → 2 coffees + 1 snack, Takeaway → total with GST → Pay → ₹500 → change shown → Paid → popup prints the KOT/bill (allow pop-ups once)
+- [ ] Dine-in → pick a table → item note "less sugar" → Send to kitchen
+- [ ] **Kitchen** → ticket shows table + note → tap the line (preparing → ready) → All ready → Served → ticket disappears
+- [ ] Counter: discount 50% with reason as a Cashier → asks for manager mobile + PIN → manager approves → saved; Finance → Today lists it with who approved
+- [ ] Offline: switch off Wi-Fi on the counter device → sale → pill shows *Offline · 1 waiting* → Wi-Fi on → *Online*; the order appears once in History
+- [ ] Customer: QR order → staff mark served → customer taps **Pay by UPI at my table** → admin screen shows the red alarm with sound → Acknowledge → card says "take the QR to the table" → **Take payment** → UPI → customer sees *Payment Received*
+- [ ] Orders → **Cancel** a paid order (reason) → cash refunded; if the kitchen had started, the bell shows a void alert
+- [ ] Settings → Service charge 10% + Round off → new QR order shows "Service charge (optional)" and a round-off line → Take payment → *Customer asked to remove it* → total drops
+- [ ] Cash & Shifts → **Pay out** ₹200 (category Consumables, "milk") → **To safe** ₹1,000 → Close shift: count less than expected → asks for a reason → closes; bell shows "closed short by ₹…"
+- [ ] **Finance** → Today: sales, money in/out, shifts, voids; Money ledger lists every entry
+- [ ] Finance → Expenses → Add expense (Electricity, *To pay later*) → Payables shows it → pay from Bank → disappears
+- [ ] Finance → Expenses → Monthly bills → add "Shop rent" day 1 → it appears under Payables on its day
+- [ ] Inventory → Purchases: a bill with *Paid in full* unticked → Finance → Payables shows it under the right age bucket
+- [ ] Cashier login → lands on Counter; no Finance in the sidebar
+
+**Known limits in this release**
+
+- Offline needs the device to have opened the Counter online once (to store the menu). Offline bills show "≈" totals; the exact bill is priced when it syncs (cash is recorded as the exact bill amount).
+- Bluetooth printers on Android come with the app (Phase 5); USB/network printers on a computer work now.
+- Khata (credit) payments arrive with the kiosk (Phase 3).
+- Money that moved before this release isn't in the ledger; account balances start from zero.
+
+---
+
 ## Phase 1 — Inventory and recipes (2026-10-03)
 
 **What's new**

@@ -1,7 +1,7 @@
 // Live updates from Supabase Realtime, exposed with the same on/off/emit
 // interface the pages used with Socket.IO, and the same event names:
 //   new-order, order-updated, my-order-updated, bill-requested,
-//   table-occupied, table-freed
+//   table-occupied, table-freed, notification
 import { supabase } from './supabase';
 
 const orderJson = async (id) => {
@@ -30,6 +30,9 @@ export function createRealtimeSocket() {
             if (row.status === 'bill_requested' && old?.status !== 'bill_requested') {
                 emit('bill-requested', order);
             }
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notification_events' }, ({ new: row }) => {
+            if (row) emit('notification', row);
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'dining_tables' }, ({ new: row }) => {
             if (!row) return;
