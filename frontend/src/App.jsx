@@ -50,7 +50,7 @@ const AdminRoute = ({ children }) => {
 
 // User Layout with Bottom Nav and Login Modal
 const UserLayout = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, isAdmin, loading } = useAuth();
 
   if (loading) {
     return (
@@ -60,13 +60,16 @@ const UserLayout = ({ children }) => {
     );
   }
 
+  // An admin session can't place customer orders, so ask for a customer login
+  const needsCustomerLogin = !isAuthenticated || isAdmin;
+
   return (
     <>
-      <div className={!isAuthenticated ? 'page-blurred' : ''}>
+      <div className={needsCustomerLogin ? 'page-blurred' : ''}>
         {children}
         <BottomNav />
       </div>
-      {!isAuthenticated && <LoginModal />}
+      {needsCustomerLogin && <LoginModal />}
     </>
   );
 };
