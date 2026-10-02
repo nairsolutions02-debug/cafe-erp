@@ -22,7 +22,9 @@ Each cafe runs on its own **Vercel** site and **Supabase** project. There is no 
 - **Menu, categories, homepage sections** with photo upload (auto-resized)
 - **Tables** with printable QR codes
 - **Coupons**, **loyalty program** (points per ₹, rewards, bonus points per item)
-- **Inventory** with supplier payments and low-stock alerts
+- **Inventory**: stock by location (store, kitchen, kiosk), vendors, purchases with weighted average cost and
+  price alerts, wastage, transfers, counts with variance in ₹, reorder alerts with WhatsApp orders
+- **Recipes & costing**: every sale deducts its recipe; cost, food cost % and margin per dish
 - **Employees**, attendance and holidays
 - **Customers** and **analytics** (revenue, categories, top items, growth)
 - **Settings**: restaurant details, FSSAI and taxes printed on bills

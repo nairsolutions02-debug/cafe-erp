@@ -17,6 +17,7 @@ const DUPLICATE_MESSAGES = {
     coupons: 'Coupon code already exists',
     dining_tables: 'Table number already exists',
     holidays: 'Holiday exists',
+    vendors: 'A vendor with this name already exists',
 };
 
 const unwrap = ({ data, error }, table) => {
@@ -110,7 +111,7 @@ const searchTerm = (s) => String(s || '').replace(/[,()*%\\]/g, ' ').trim();
 // ---------------------------------------------------------------------------
 const CATEGORY = {
     name: ['name', 'text'], description: ['description', 'text'], order: ['sort_order', 'int'],
-    isActive: ['is_active', 'bool'], parentId: ['parent_id', 'uuid'],
+    isActive: ['is_active', 'bool'], parentId: ['parent_id', 'uuid'], stockLocationId: ['stock_location_id', 'uuid'],
 };
 
 // Customer menu shows top-level categories; sub-categories' items appear under their parent
@@ -268,36 +269,63 @@ export const deleteCoupon = async (id) => {
 };
 
 // ---------------------------------------------------------------------------
-// Inventory
+// Inventory: stock items, locations, vendors, purchases, recipes, counts.
+// Stock only changes through database functions that write the stock ledger.
 // ---------------------------------------------------------------------------
-const INVENTORY = {
-    name: ['name', 'text'], category: ['category', 'text'], unit: ['unit', 'text'],
-    currentStock: ['current_stock', 'num'], minimumStock: ['minimum_stock', 'num'],
-    costPerUnit: ['cost_per_unit', 'num'], supplier: ['supplier', 'text'], amountPaid: ['amount_paid', 'num'],
-};
-// inventory.category is a plain text column, not a relation
-const inventoryToClient = (row) => ({ ...toClient(row), category: row.category });
+export const getStock = async (locationId) => ok(await rpc('stock_overview', { p_location: locationId || null }));
+export const saveStockItem = async (data) => ok(await rpc('save_stock_item', { p: data }));
+export const deleteStockItem = async (id) => ok(await rpc('delete_stock_item', { p_id: id }));
 
-export const getInventory = async (params = {}) => {
-    let q = supabase.from('inventory').select().order('name');
-    if (params.category) q = q.eq('category', params.category);
-    if (params.lowStock === 'true') q = q.eq('is_low_stock', true);
-    return ok(unwrap(await q).map(inventoryToClient));
+export const getStockLocations = async () =>
+    ok(listToClient(unwrap(await supabase.from('stock_locations').select().order('sort_order').order('name'))));
+export const saveStockLocation = async ({ id, name, sortOrder, isActive }) => {
+    const row = toDb({ name, sortOrder, isActive }, { name: ['name', 'text'], sortOrder: ['sort_order', 'int'], isActive: ['is_active', 'bool'] });
+    const q = id ? supabase.from('stock_locations').update(row).eq('id', id) : supabase.from('stock_locations').insert(row);
+    return ok(toClient(unwrap(await q.select().single())));
 };
-export const getLowStock = async () =>
-    ok(unwrap(await supabase.from('inventory').select().eq('is_low_stock', true).order('current_stock')).map(inventoryToClient));
-export const createInventoryItem = async (data) =>
-    ok(inventoryToClient(unwrap(await supabase.from('inventory').insert(toDb(data, INVENTORY)).select().single())));
-export const updateInventoryItem = async (id, data) =>
-    ok(inventoryToClient(unwrap(await supabase.from('inventory').update(toDb(data, INVENTORY)).eq('id', id).select().single())));
-export const restockItem = async (id, quantity) => {
-    await rpc('restock_inventory', { p_id: id, p_quantity: Number(quantity) });
-    return ok(inventoryToClient(unwrap(await supabase.from('inventory').select().eq('id', id).single())));
+export const deleteStockLocation = async (id) => ok(unwrap(await supabase.from('stock_locations').delete().eq('id', id)));
+export const setLocationDefault = async (id, kind) => ok(await rpc('set_location_default', { p_location: id, p_kind: kind }));
+
+const VENDOR = {
+    name: ['name', 'text'], phone: ['phone', 'text'], gstin: ['gstin', 'text'], address: ['address', 'text'],
+    leadTimeDays: ['lead_time_days', 'int'], orderCycleDays: ['order_cycle_days', 'int'],
+    paymentTermsDays: ['payment_terms_days', 'int'], notes: ['notes', 'text'], isActive: ['is_active', 'bool'],
 };
-export const deleteInventoryItem = async (id) => {
-    unwrap(await supabase.from('inventory').delete().eq('id', id));
-    return ok({ message: 'Item deleted' });
+export const getVendors = async () => ok(await rpc('list_vendors'));
+export const saveVendor = async ({ id, ...data }) => {
+    const row = toDb(data, VENDOR);
+    const q = id ? supabase.from('vendors').update(row).eq('id', id) : supabase.from('vendors').insert(row);
+    return ok(toClient(unwrap(await q.select().single(), 'vendors')));
 };
+export const deleteVendor = async (id) => ok(unwrap(await supabase.from('vendors').delete().eq('id', id)));
+
+export const recordPurchase = async (data) => ok(await rpc('record_purchase', { p: data }));
+export const getPurchases = async ({ from, to, vendorId } = {}) =>
+    ok(await rpc('list_purchases', { p_from: from || null, p_to: to || null, p_vendor: vendorId || null }));
+export const getPurchase = async (id) => ok(await rpc('get_purchase', { p_id: id }));
+export const payPurchase = async (id, amount, mode) => ok(await rpc('pay_purchase', { p_id: id, p_amount: Number(amount), p_mode: mode }));
+export const voidPurchase = async (id) => ok(await rpc('void_purchase', { p_id: id }));
+export const uploadStockPhoto = async (file, folder = 'bills') => uploadImage(file, folder);
+
+export const recordStockChange = async (data) => ok(await rpc('record_stock_change', { p: data }));
+export const transferStock = async (data) => ok(await rpc('transfer_stock', { p: data }));
+export const getStockMoves = async (filters = {}) => ok(await rpc('list_stock_moves', { p: filters }));
+export const getUsage = async (itemId, days = 7) => ok(await rpc('usage_breakdown', { p_item: itemId, p_days: days }));
+export const getStockLeaks = async (days = 7) => ok(await rpc('stock_leaks', { p_days: days }));
+export const getInventoryAlerts = async () => ok(await rpc('inventory_alerts'));
+
+export const getCounts = async () => ok(await rpc('list_counts'));
+export const startCount = async (locationId, scope) => ok(await rpc('start_count', { p_location: locationId, p_scope: scope }));
+export const getCount = async (id) => ok(await rpc('get_count', { p_id: id }));
+export const saveCount = async (id, lines) => ok(await rpc('save_count', { p_id: id, p_lines: lines }));
+export const postCount = async (id) => ok(await rpc('post_count', { p_id: id }));
+export const cancelCount = async (id) => ok(await rpc('cancel_count', { p_id: id }));
+
+export const getRecipe = async (menuItemId) => ok(await rpc('get_recipe', { p_menu_item: menuItemId }));
+export const saveRecipe = async (menuItemId, lines, locationId) =>
+    ok(await rpc('save_recipe', { p_menu_item: menuItemId, p_lines: lines, p_location: locationId ?? null }));
+export const trackMenuItemStock = async (menuItemId) => ok(await rpc('track_menu_item_stock', { p_menu_item: menuItemId }));
+export const getMenuCosting = async () => ok(await rpc('menu_costing'));
 
 // ---------------------------------------------------------------------------
 // Employees, attendance, holidays

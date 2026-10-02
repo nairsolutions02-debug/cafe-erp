@@ -1,6 +1,6 @@
 import {
     FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage, FiUsers, FiBarChart2, FiLayout, FiActivity,
-    FiSettings, FiShield, FiLayers, FiFileText,
+    FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen,
 } from 'react-icons/fi';
 
 // Admin sections and the permission each needs (sidebar + route guards)
@@ -16,6 +16,7 @@ export const ADMIN_NAV = [
     { path: '/admin/coupons', icon: FiTag, label: 'Coupons', perm: 'coupons.view' },
     { path: '/admin/loyalty', icon: FiTag, label: 'Loyalty Points', perm: 'rewards.view' },
     { path: '/admin/inventory', icon: FiPackage, label: 'Inventory', perm: 'inventory.view' },
+    { path: '/admin/recipes', icon: FiBookOpen, label: 'Recipes & Costing', perm: 'inventory.view' },
     { path: '/admin/employees', icon: FiUsers, label: 'Employees', perm: 'employees.view' },
     { path: '/admin/customers', icon: FiUsers, label: 'Customers', perm: 'customers.view' },
     { path: '/admin/analytics', icon: FiBarChart2, label: 'Analytics', perm: 'reports.view' },

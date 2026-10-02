@@ -230,3 +230,24 @@
     font-weight: 600;
     font-size: 0.9rem;
 }
+
+/* Keep wide tables inside their own scroll area instead of widening the page */
+.admin-main,
+.admin-content {
+    min-width: 0;
+}
+
+@media (max-width: 600px) {
+    .admin-header {
+        padding: 12px 16px;
+        gap: 10px;
+    }
+
+    .admin-content {
+        padding: 16px;
+    }
+
+    .admin-user {
+        display: none;
+    }
+}

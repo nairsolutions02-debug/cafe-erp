@@ -8,7 +8,7 @@ import './GlobalSearch.css';
 
 const GROUPS = [
     ['pages', 'Pages'], ['items', 'Menu items'], ['orders', 'Orders'], ['customers', 'Customers'],
-    ['categories', 'Categories'], ['brands', 'Brands'], ['staff', 'Staff'],
+    ['stock', 'Stock'], ['vendors', 'Vendors'], ['categories', 'Categories'], ['brands', 'Brands'], ['staff', 'Staff'],
 ];
 
 // Where each kind of result opens
@@ -20,6 +20,8 @@ const target = (group, r) => ({
     categories: `/admin/categories`,
     brands: `/admin/menu?q=${encodeURIComponent(r.title)}`,
     staff: `/admin/staff`,
+    stock: `/admin/inventory?q=${encodeURIComponent(r.title)}`,
+    vendors: `/admin/inventory?tab=vendors&q=${encodeURIComponent(r.title)}`,
 }[group]);
 
 // One search box for everything the signed-in person may see (Ctrl+K or / to focus)

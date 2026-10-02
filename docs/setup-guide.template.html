@@ -396,7 +396,7 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
   <h4>Website changes (all cafes at once)</h4>
   <p>Merge to <code>main</code> on GitHub → every cafe's Vercel project rebuilds automatically in ~1 minute.</p>
   <h4>Database changes (per cafe)</h4>
-  <p>Each release is listed in <code>RELEASES.md</code> with its deploy steps and a test checklist. When a release ships a file in <code>supabase/upgrades/</code> (e.g. <code>2026-10-phase0.sql</code>), paste that one file into each cafe's SQL Editor and Run. It is wrapped in a transaction: it either applies fully or not at all. Or from your Mac (needs the DB password):</p>
+  <p>Each release is listed in <code>RELEASES.md</code> with its deploy steps and a test checklist. When a release ships a file in <code>supabase/upgrades/</code> (e.g. <code>2026-10-phase0.sql</code>, then <code>2026-10-phase1.sql</code>), paste that one file into each cafe's SQL Editor and Run, oldest first, once each. It is wrapped in a transaction: it either applies fully or not at all. A new project doesn't need upgrades: the setup SQL above already includes them. Or from your Mac (needs the DB password):</p>
   <div class="copybox"><pre id="out_dbpush"></pre><button class="btn small" data-copy="out_dbpush">Copy</button></div>
   <h4>Monthly check per cafe (5 min)</h4>
   <ul class="check" data-group="maintain">
