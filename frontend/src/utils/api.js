@@ -30,6 +30,10 @@ const unwrap = ({ data, error }, table) => {
 
 const ok = (data) => ({ data });
 
+// The signed-in staff member's cafe (set by AuthContext); used where an update needs a row filter
+let sessionTenantId = null;
+export const setSessionTenant = (id) => { sessionTenantId = id || null; };
+
 const rpc = async (fn, args = {}) => unwrap(await supabase.rpc(fn, args));
 
 const camel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
@@ -104,10 +108,14 @@ const searchTerm = (s) => String(s || '').replace(/[,()*%\\]/g, ' ').trim();
 // ---------------------------------------------------------------------------
 // Categories
 // ---------------------------------------------------------------------------
-const CATEGORY = { name: ['name', 'text'], description: ['description', 'text'], order: ['sort_order', 'int'], isActive: ['is_active', 'bool'] };
+const CATEGORY = {
+    name: ['name', 'text'], description: ['description', 'text'], order: ['sort_order', 'int'],
+    isActive: ['is_active', 'bool'], parentId: ['parent_id', 'uuid'],
+};
 
+// Customer menu shows top-level categories; sub-categories' items appear under their parent
 export const getCategories = async () =>
-    ok(listToClient(unwrap(await supabase.from('categories').select().eq('is_active', true).order('sort_order'))));
+    ok(listToClient(unwrap(await supabase.from('categories').select().eq('is_active', true).is('parent_id', null).order('sort_order'))));
 export const getAllCategories = async () =>
     ok(listToClient(unwrap(await supabase.from('categories').select().order('sort_order'))));
 export const createCategory = async (data) => {
@@ -130,7 +138,7 @@ export const deleteCategory = async (id) => {
 // ---------------------------------------------------------------------------
 // Menu items
 // ---------------------------------------------------------------------------
-const MENU_SELECT = '*, category:categories(id, name)';
+const MENU_SELECT = '*, category:categories(id, name, parent_id), brand:brands(id, name)';
 const MENU = {
     name: ['name', 'text'], description: ['description', 'text'], price: ['price', 'num'],
     category: ['category_id', 'uuid'], isVeg: ['is_veg', 'bool'], isAvailable: ['is_available', 'bool'],
@@ -139,19 +147,27 @@ const MENU = {
     preparationTime: ['preparation_time', 'int'], stockQuantity: ['stock_quantity', 'int'],
     bonusLoyaltyPoints: ['bonus_loyalty_points', 'int'], initialStock: ['initial_stock', 'int'],
     lowStockThreshold: ['low_stock_threshold', 'int'], costPrice: ['cost_price', 'num'],
+    brand: ['brand_id', 'uuid'], itemType: ['item_type', 'text'], unit: ['unit', 'text'], mrp: ['mrp', 'numOrNull'],
+    priceIncludesTax: ['price_includes_tax', 'bool'], taxGroup: ['tax_group_id', 'uuid'],
+    isRestricted: ['is_restricted', 'bool'], sku: ['sku', 'text'],
 };
 
 const menuToClient = (row) => {
     const item = toClient(row);
-    if (row.category && typeof row.category === 'object') item.category = { _id: row.category.id, name: row.category.name };
+    if (row.category && typeof row.category === 'object') item.category = { _id: row.category.id, name: row.category.name, parentId: row.category.parent_id };
     else item.category = row.category_id;
+    item.brand = row.brand && typeof row.brand === 'object' ? { _id: row.brand.id, name: row.brand.name } : null;
+    item.taxGroup = row.tax_group_id;
     return item;
 };
 const menuList = (rows) => (rows || []).map(menuToClient);
 
 export const getMenuItems = async (params = {}) => {
     let q = supabase.from('menu_items').select(MENU_SELECT).eq('is_available', true).order('name');
-    if (params.category) q = q.eq('category_id', params.category);
+    if (params.category) {
+        const children = unwrap(await supabase.from('categories').select('id').eq('parent_id', params.category));
+        q = q.in('category_id', [params.category, ...children.map(c => c.id)]);
+    }
     if (params.bestseller === 'true') q = q.eq('is_best_seller', true);
     if (params.isNew === 'true') q = q.eq('is_new_item', true);
     if (params.recommended === 'true') q = q.eq('is_recommended', true);
@@ -299,10 +315,11 @@ const HOLIDAY = { date: ['date', 'date'], name: ['name', 'text'], description: [
 const day = (value) => (value ? String(value).slice(0, 10) : value);
 
 export const getEmployees = async (params = {}) => {
-    let q = supabase.from('employees').select().order('name');
-    if (params.role) q = q.eq('role', params.role);
-    if (params.isActive !== undefined) q = q.eq('is_active', params.isActive === 'true' || params.isActive === true);
-    return ok(listToClient(unwrap(await q)));
+    // Through a function so salaries stay hidden from roles without permission
+    let rows = listToClient(await rpc('list_employees'));
+    if (params.role) rows = rows.filter(e => e.role === params.role);
+    if (params.isActive !== undefined) rows = rows.filter(e => e.isActive === (params.isActive === 'true' || params.isActive === true));
+    return ok(rows);
 };
 export const getEmployee = async (id) => ok(toClient(unwrap(await supabase.from('employees').select().eq('id', id).single())));
 export const createEmployee = async (data) =>
@@ -478,9 +495,10 @@ const LOYALTY_OFFER = {
 };
 
 export const getLoyaltySettings = async () =>
-    ok(toClient(unwrap(await supabase.from('loyalty_settings').select().eq('id', 1).single())));
+    ok(toClient(unwrap(await supabase.from('loyalty_settings').select().limit(1).single())));
 export const updateLoyaltySettings = async (data) =>
-    ok(toClient(unwrap(await supabase.from('loyalty_settings').update(toDb(data, LOYALTY_SETTINGS)).eq('id', 1).select().single())));
+    ok(toClient(unwrap(await supabase.from('loyalty_settings').update(toDb(data, LOYALTY_SETTINGS))
+        .eq('tenant_id', sessionTenantId).select().single())));
 export const getMyLoyaltyPoints = async () => {
     const points = await rpc('my_loyalty_points');
     if (!points) throw apiError('Please sign in first', 401);
@@ -488,10 +506,7 @@ export const getMyLoyaltyPoints = async () => {
 };
 export const calculateRedemption = async (orderTotal, pointsToUse) =>
     ok(await rpc('calculate_redemption', { p_order_total: orderTotal, p_points_to_use: pointsToUse ?? null }));
-export const getLoyaltyUsers = async () =>
-    ok(listToClient(unwrap(await supabase.from('customers')
-        .select('id, name, phone, loyalty_points, total_points_earned, created_at')
-        .order('loyalty_points', { ascending: false }))));
+export const getLoyaltyUsers = async () => ok(await rpc('loyalty_customers'));
 export const adjustUserPoints = async (userId, points, reason) =>
     ok(await rpc('adjust_points', { p_customer_id: userId, p_points: Number(points), p_reason: reason || '' }));
 export const setProductBonusPoints = async (productId, bonusLoyaltyPoints) =>
@@ -523,3 +538,108 @@ export const searchOrders = async (params = {}) => ok(await rpc('search_orders',
     p_max_amount: params.maxAmount ? Number(params.maxAmount) : null,
     p_page: Number(params.page) || 1, p_limit: Number(params.limit) || 20,
 }));
+
+// ---------------------------------------------------------------------------
+// Phase 0: exact bill preview, global search, staff and roles, catalogue, audit
+// ---------------------------------------------------------------------------
+export const quoteOrder = async (items, couponCode = '', loyaltyOfferId = null) =>
+    ok(await rpc('quote_order', { p_items: items, p_coupon_code: couponCode || '', p_loyalty_offer_id: loyaltyOfferId }));
+
+export const globalSearch = async (query) => ok(await rpc('global_search', { p_query: query }));
+
+export const getTenantPublic = async () => ok(await rpc('get_tenant_public'));
+
+// Staff
+export const getStaff = async () => ok(await rpc('list_staff'));
+export const createStaff = async ({ name, phone, roleId, pin }) =>
+    ok(await rpc('create_staff', { p_name: name, p_phone: phone, p_role_id: roleId, p_pin: pin }));
+export const setStaffPin = async (staffId, pin) => ok(await rpc('set_staff_pin', { p_staff_id: staffId, p_pin: pin }));
+export const updateStaff = async (id, data) => {
+    const row = toDb(data, { name: ['name', 'text'], roleId: ['role_id', 'uuid'], isActive: ['is_active', 'bool'] });
+    return ok(unwrap(await supabase.from('staff_users').update(row).eq('id', id).select('id').single()));
+};
+export const setStaffOverride = async (staffId, perm, allow) => {
+    if (allow === null) {
+        unwrap(await supabase.from('staff_overrides').delete().eq('staff_id', staffId).eq('perm', perm));
+    } else {
+        unwrap(await supabase.from('staff_overrides').upsert({ staff_id: staffId, perm, allow }));
+    }
+    return ok(true);
+};
+
+// Roles and their permissions
+export const getRoles = async () => {
+    const roles = unwrap(await supabase.from('roles').select('*, role_permissions(perm)').order('created_at'));
+    return ok(roles.map(r => ({ ...toClient(r), permissions: (r.role_permissions || []).map(p => p.perm) })));
+};
+export const createRole = async ({ name, description }) =>
+    ok(toClient(unwrap(await supabase.from('roles').insert({ name, description: description || '' }).select().single(), 'roles')));
+export const updateRole = async (id, { name, description }) =>
+    ok(toClient(unwrap(await supabase.from('roles').update({ name, description }).eq('id', id).select().single(), 'roles')));
+export const deleteRole = async (id) => {
+    unwrap(await supabase.from('roles').delete().eq('id', id));
+    return ok(true);
+};
+export const setRolePermission = async (roleId, perm, on) => {
+    if (on) unwrap(await supabase.from('role_permissions').upsert({ role_id: roleId, perm }, { ignoreDuplicates: true }));
+    else unwrap(await supabase.from('role_permissions').delete().eq('role_id', roleId).eq('perm', perm));
+    return ok(true);
+};
+
+// Brands and tax groups
+export const getBrands = async () => ok(listToClient(unwrap(await supabase.from('brands').select().order('name'))));
+export const createBrand = async (name) => ok(toClient(unwrap(await supabase.from('brands').insert({ name }).select().single(), 'brands')));
+export const deleteBrand = async (id) => { unwrap(await supabase.from('brands').delete().eq('id', id)); return ok(true); };
+export const getTaxGroups = async () => ok(listToClient(unwrap(await supabase.from('tax_groups').select().order('name'))));
+export const saveTaxGroup = async ({ id, name, components }) => {
+    const row = { name, components: components.map(c => ({ name: c.name, rate: Number(c.rate) || 0 })) };
+    const q = id ? supabase.from('tax_groups').update(row).eq('id', id) : supabase.from('tax_groups').insert(row);
+    return ok(toClient(unwrap(await q.select().single(), 'tax_groups')));
+};
+export const deleteTaxGroup = async (id) => { unwrap(await supabase.from('tax_groups').delete().eq('id', id)); return ok(true); };
+
+// Pack units for an item (1 Pack = 10 pieces)
+export const getItemUnits = async (menuItemId) =>
+    ok(listToClient(unwrap(await supabase.from('item_units').select().eq('menu_item_id', menuItemId).order('factor'))));
+export const createItemUnit = async (menuItemId, { name, factor, salePrice }) =>
+    ok(toClient(unwrap(await supabase.from('item_units').insert({
+        menu_item_id: menuItemId, name, factor: Number(factor), sale_price: salePrice === '' || salePrice == null ? null : Number(salePrice),
+    }).select().single())));
+export const deleteItemUnit = async (id) => { unwrap(await supabase.from('item_units').delete().eq('id', id)); return ok(true); };
+
+// Audit log
+export const getAuditLog = async ({ entity, page = 1, limit = 50 } = {}) => {
+    let q = supabase.from('audit_log').select('*', { count: 'exact' }).order('at', { ascending: false })
+        .range((page - 1) * limit, page * limit - 1);
+    if (entity) q = q.eq('entity', entity);
+    const { data, count, error } = await q;
+    unwrap({ data, error });
+    return ok({ rows: listToClient(data), total: count || 0 });
+};
+
+// Terms
+export const acceptTerms = async (kind, version) =>
+    ok(await rpc('accept_terms', { p_kind: kind, p_version: version, p_user_agent: navigator.userAgent }));
+export const getAcceptances = async () =>
+    ok(listToClient(unwrap(await supabase.from('acceptances').select().order('accepted_at', { ascending: false }))));
+export const getTermsText = async (kind, version) =>
+    ok(unwrap(await supabase.from('terms_versions').select().eq('kind', kind).eq('version', version).single()));
+
+// Superadmin
+export const saOverview = async () => ok(await rpc('sa_overview'));
+export const saCreateTenant = async (t) => ok(await rpc('sa_create_tenant', {
+    p_name: t.name, p_slug: t.slug, p_plan_id: t.planId, p_paid_until: t.paidUntil || null,
+    p_owner_name: t.ownerName, p_owner_phone: t.ownerPhone, p_owner_pin: t.ownerPin, p_owner_email: t.ownerEmail || '',
+}));
+export const saUpdateTenant = async (id, patch) => ok(await rpc('sa_update_tenant', { p_id: id, p_patch: patch }));
+export const saRecordPayment = async (id, months, amount, note) =>
+    ok(await rpc('sa_record_payment', { p_id: id, p_months: Number(months), p_amount: Number(amount) || 0, p_note: note || '' }));
+export const saResetOwnerPin = async (tenantId, pin) => ok(await rpc('sa_reset_owner_pin', { p_tenant: tenantId, p_pin: pin }));
+export const saSavePlan = async (plan) => {
+    const row = {
+        name: plan.name, max_staff: Number(plan.maxStaff), max_kiosks: Number(plan.maxKiosks),
+        max_devices: Number(plan.maxDevices), monthly_price: Number(plan.monthlyPrice) || 0,
+    };
+    const q = plan.id ? supabase.from('plans').update(row).eq('id', plan.id) : supabase.from('plans').insert(row);
+    return ok(toClient(unwrap(await q.select().single())));
+};

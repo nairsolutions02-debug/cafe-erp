@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FiSearch, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiDownload, FiCalendar, FiX } from 'react-icons/fi';
 import { getAllOrders } from '../utils/api';
 import { exportToCSV, orderExportColumns, getFilenameDate } from '../utils/exportUtils';
@@ -9,7 +10,10 @@ const AdminHistory = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
-    const [allTime, setAllTime] = useState(false);
+    const [searchParams] = useSearchParams();
+    const orderQuery = (searchParams.get('q') || '').trim().toLowerCase();
+    // Opened from global search with an order number: look across all dates
+    const [allTime, setAllTime] = useState(!!orderQuery);
     const [filters, setFilters] = useState({
         status: '',
         date: new Date().toISOString().split('T')[0]
@@ -131,7 +135,7 @@ const AdminHistory = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {orders.map(order => (
+                            {orders.filter(o => !orderQuery || o.orderNumber.toLowerCase().includes(orderQuery)).map(order => (
                                 <tr key={order._id}>
                                     <td className="font-bold">{order.orderNumber}</td>
                                     <td>

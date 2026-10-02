@@ -30,6 +30,12 @@ import AdminHistory from './admin/AdminHistory';
 import AdminSettings from './admin/AdminSettings';
 import AdminLoyalty from './admin/AdminLoyalty';
 import AdminCustomers from './admin/AdminCustomers';
+import AdminStaff from './admin/AdminStaff';
+import AdminCatalogue from './admin/AdminCatalogue';
+import AdminAudit from './admin/AdminAudit';
+import AdminGate from './admin/AdminGate';
+import Superadmin from './superadmin/Superadmin';
+import { ADMIN_NAV, firstAllowedPath } from './admin/adminNav';
 
 import './index.css';
 
@@ -45,12 +51,22 @@ const AdminRoute = ({ children }) => {
     );
   }
 
-  return isAdmin ? children : <Navigate to="/admin/login" />;
+  return isAdmin ? <AdminGate>{children}</AdminGate> : <Navigate to="/admin/login" />;
+};
+
+// Shows a section only to roles that have its permission; otherwise goes to the first allowed one
+const RequirePerm = ({ path, children }) => {
+  const { hasPerm } = useAuth();
+  const perm = ADMIN_NAV.find(n => n.path === path)?.perm;
+  if (!perm || hasPerm(perm)) return children;
+  const fallback = firstAllowedPath(hasPerm);
+  if (fallback && fallback !== path) return <Navigate to={fallback} replace />;
+  return <div className="no-access"><h2>No access</h2><p>Your role doesn't include any admin sections yet. Ask the owner to update it.</p></div>;
 };
 
 // User Layout with Bottom Nav and Login Modal
 const UserLayout = ({ children }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isAdmin, isPlatform, loading } = useAuth();
 
   if (loading) {
     return (
@@ -61,7 +77,7 @@ const UserLayout = ({ children }) => {
   }
 
   // An admin session can't place customer orders, so ask for a customer login
-  const needsCustomerLogin = !isAuthenticated || isAdmin;
+  const needsCustomerLogin = !isAuthenticated || isAdmin || isPlatform;
 
   return (
     <>
@@ -93,21 +109,27 @@ function AppRoutes() {
           <AdminLayout />
         </AdminRoute>
       }>
-        <Route index element={<AdminDashboard />} />
-        <Route path="orders" element={<AdminOrders />} />
-        <Route path="menu" element={<AdminMenu />} />
-        <Route path="categories" element={<AdminCategories />} />
-        <Route path="collections" element={<AdminCollections />} />
-        <Route path="coupons" element={<AdminCoupons />} />
-        <Route path="inventory" element={<AdminInventory />} />
-        <Route path="employees" element={<AdminEmployees />} />
-        <Route path="tables" element={<AdminTables />} />
-        <Route path="analytics" element={<AdminAnalytics />} />
-        <Route path="history" element={<AdminHistory />} />
-        <Route path="settings" element={<AdminSettings />} />
-        <Route path="loyalty" element={<AdminLoyalty />} />
-        <Route path="customers" element={<AdminCustomers />} />
+        <Route index element={<RequirePerm path="/admin"><AdminDashboard /></RequirePerm>} />
+        <Route path="orders" element={<RequirePerm path="/admin/orders"><AdminOrders /></RequirePerm>} />
+        <Route path="menu" element={<RequirePerm path="/admin/menu"><AdminMenu /></RequirePerm>} />
+        <Route path="categories" element={<RequirePerm path="/admin/categories"><AdminCategories /></RequirePerm>} />
+        <Route path="catalogue" element={<RequirePerm path="/admin/catalogue"><AdminCatalogue /></RequirePerm>} />
+        <Route path="collections" element={<RequirePerm path="/admin/collections"><AdminCollections /></RequirePerm>} />
+        <Route path="coupons" element={<RequirePerm path="/admin/coupons"><AdminCoupons /></RequirePerm>} />
+        <Route path="inventory" element={<RequirePerm path="/admin/inventory"><AdminInventory /></RequirePerm>} />
+        <Route path="employees" element={<RequirePerm path="/admin/employees"><AdminEmployees /></RequirePerm>} />
+        <Route path="tables" element={<RequirePerm path="/admin/tables"><AdminTables /></RequirePerm>} />
+        <Route path="analytics" element={<RequirePerm path="/admin/analytics"><AdminAnalytics /></RequirePerm>} />
+        <Route path="history" element={<RequirePerm path="/admin/history"><AdminHistory /></RequirePerm>} />
+        <Route path="settings" element={<RequirePerm path="/admin/settings"><AdminSettings /></RequirePerm>} />
+        <Route path="loyalty" element={<RequirePerm path="/admin/loyalty"><AdminLoyalty /></RequirePerm>} />
+        <Route path="customers" element={<RequirePerm path="/admin/customers"><AdminCustomers /></RequirePerm>} />
+        <Route path="staff" element={<RequirePerm path="/admin/staff"><AdminStaff /></RequirePerm>} />
+        <Route path="audit" element={<RequirePerm path="/admin/audit"><AdminAudit /></RequirePerm>} />
       </Route>
+
+      {/* Platform (N.A.I.R. Solutions) console */}
+      <Route path="/superadmin" element={<Superadmin />} />
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" />} />

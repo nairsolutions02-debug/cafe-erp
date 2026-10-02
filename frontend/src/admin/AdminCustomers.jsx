@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiUser, FiPhone, FiDollarSign, FiShoppingBag, FiChevronDown, FiChevronUp, FiX, FiStar, FiGift, FiDownload, FiCalendar } from 'react-icons/fi';
 import { getCustomerAnalytics, getCustomerDetail } from '../utils/api';
@@ -8,7 +9,8 @@ import './AdminCustomers.css';
 const AdminCustomers = () => {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [searchParams] = useSearchParams();
+    const [search, setSearch] = useState(searchParams.get('q') || '');
     const [sortBy, setSortBy] = useState('totalSpent');
     const [sortOrder, setSortOrder] = useState('desc');
     const [selectedCustomer, setSelectedCustomer] = useState(null);

@@ -16,6 +16,7 @@ import {
     getMyLoyaltyPoints,
     calculateRedemption,
     getLoyaltyOffers,
+    quoteOrder,
 } from '../utils/api';
 import { getQrTable } from '../lib/qrTable';
 import { getImageUrl } from '../utils/config';
@@ -50,6 +51,27 @@ const Cart = () => {
     const [usePoints, setUsePoints] = useState(false);
     const [pointsDiscount, setPointsDiscount] = useState(0);
     const [pointsUsed, setPointsUsed] = useState(0);
+
+    // Exact bill from the server for the signed-in customer
+    const [quote, setQuote] = useState(null);
+    const cartKey = cart.map(i => `${i._id}:${i.quantity}`).join(',');
+    useEffect(() => {
+        if (!isAuthenticated || cart.length === 0) { setQuote(null); return undefined; }
+        let cancelled = false;
+        const timer = setTimeout(async () => {
+            try {
+                const res = await quoteOrder(
+                    cart.map(i => ({ menuItem: i._id, quantity: i.quantity })),
+                    couponApplied ? couponCode : '',
+                    usePoints && selectedOffer ? selectedOffer._id : null);
+                if (!cancelled) setQuote(res.data);
+            } catch {
+                if (!cancelled) setQuote(null);
+            }
+        }, 250);
+        return () => { cancelled = true; clearTimeout(timer); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cartKey, isAuthenticated, couponApplied, usePoints, selectedOffer]);
 
     useEffect(() => {
         fetchTables();
@@ -227,8 +249,11 @@ const Cart = () => {
 
     const subtotal = getCartTotal;
     const totalDiscount = discount + (usePoints ? pointsDiscount : 0);
-    const tax = (subtotal - totalDiscount) * (gstRate / 100);
-    const total = subtotal - totalDiscount + tax;
+    // Estimate until the exact quote (per-item taxes, MRP items, restricted items) arrives
+    const estimatedTax = (subtotal - totalDiscount) * (gstRate / 100);
+    const tax = quote ? quote.tax : estimatedTax;
+    const total = quote ? quote.total : subtotal - totalDiscount + estimatedTax;
+    const shownDiscount = quote ? quote.discount : totalDiscount;
 
     if (cart.length === 0) {
         return (
@@ -516,22 +541,35 @@ const Cart = () => {
                         <span>Subtotal</span>
                         <span>₹{subtotal.toFixed(2)}</span>
                     </div>
-                    {discount > 0 && (
+                    {(quote ? quote.couponDiscount : discount) > 0 && (
                         <div className="bill-row discount-row">
                             <span>Coupon Discount</span>
-                            <span>-₹{discount.toFixed(2)}</span>
+                            <span>-₹{(quote ? quote.couponDiscount : discount).toFixed(2)}</span>
                         </div>
                     )}
-                    {usePoints && pointsDiscount > 0 && (
+                    {usePoints && (quote ? quote.offerDiscount : pointsDiscount) > 0 && (
                         <div className="bill-row points-row">
                             <span><FiAward /> Points ({pointsUsed} pts)</span>
-                            <span>-₹{pointsDiscount.toFixed(2)}</span>
+                            <span>-₹{(quote ? quote.offerDiscount : pointsDiscount).toFixed(2)}</span>
                         </div>
                     )}
-                    <div className="bill-row">
-                        <span>GST ({gstRate}%)</span>
-                        <span>₹{tax.toFixed(2)}</span>
-                    </div>
+                    {quote ? quote.taxDetails.map(t => (
+                        <div className="bill-row" key={`${t.name}-${t.rate}`}>
+                            <span>{t.name} ({t.rate}%)</span>
+                            <span>₹{Number(t.amount).toFixed(2)}</span>
+                        </div>
+                    )) : (
+                        <div className="bill-row">
+                            <span>GST ({gstRate}%)</span>
+                            <span>₹{tax.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {quote && subtotal - shownDiscount + tax - total > 0.009 && (
+                        <div className="bill-row muted-row">
+                            <span>Tax included in MRP items</span>
+                            <span></span>
+                        </div>
+                    )}
                     <div className="bill-row total-row">
                         <span>Total</span>
                         <span>₹{total.toFixed(2)}</span>

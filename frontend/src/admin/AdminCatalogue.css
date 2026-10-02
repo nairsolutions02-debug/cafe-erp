@@ -1,0 +1,55 @@
+.catalogue-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .catalogue-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.panel {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.panel h2 {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+}
+
+.panel > p {
+    font-size: 0.88rem;
+    margin-bottom: 12px;
+}
+
+.plain-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px;
+}
+
+.plain-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f1e8d8;
+}
+
+.inline-form {
+    display: flex;
+    gap: 8px;
+}
+
+.component-row {
+    display: grid;
+    grid-template-columns: 1fr 90px auto auto;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}

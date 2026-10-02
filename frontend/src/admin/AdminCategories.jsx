@@ -2,14 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../utils/api';
 import { getImageUrl } from '../utils/config';
+import { useAuth } from '../context/AuthContext';
 import './AdminCategories.css';
 
 const AdminCategories = () => {
+    const { hasPerm } = useAuth();
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState(null);
-    const [formData, setFormData] = useState({ name: '', description: '', order: 1 });
+    const [formData, setFormData] = useState({ name: '', description: '', order: 1, parentId: '' });
     const [image, setImage] = useState(null);
 
     useEffect(() => { fetchData(); }, []);
@@ -58,13 +60,13 @@ const AdminCategories = () => {
 
     const openEdit = (item) => {
         setEditItem(item);
-        setFormData({ name: item.name, description: item.description || '', order: item.order || 1 });
+        setFormData({ name: item.name, description: item.description || '', order: item.order || 1, parentId: item.parentId || '' });
         setShowModal(true);
     };
 
     const resetForm = () => {
         setEditItem(null);
-        setFormData({ name: '', description: '', order: 1 });
+        setFormData({ name: '', description: '', order: 1, parentId: '' });
         setImage(null);
     };
 
@@ -74,14 +76,18 @@ const AdminCategories = () => {
         <div className="admin-categories">
             <div className="page-header">
                 <h1>Categories Management</h1>
-                <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                    <FiPlus /> Add Category
-                </button>
+                {hasPerm('menu.create') && (
+                    <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
+                        <FiPlus /> Add Category
+                    </button>
+                )}
             </div>
 
             <div className="categories-grid">
-                {categories.map(cat => (
-                    <div key={cat._id} className="category-item">
+                {[...categories.filter(c => !c.parentId), ...categories.filter(c => c.parentId && !categories.some(p => p._id === c.parentId))]
+                    .flatMap(parent => [parent, ...categories.filter(c => c.parentId === parent._id)])
+                    .map(cat => (
+                    <div key={cat._id} className={`category-item ${cat.parentId ? 'sub' : ''}`}>
                         <div className="category-image">
                             {cat.image ? (
                                 <img src={getImageUrl(cat.image)} alt={cat.name} />
@@ -90,12 +96,13 @@ const AdminCategories = () => {
                             )}
                         </div>
                         <div className="category-info">
-                            <h3>{cat.name}</h3>
+                            <h3>{cat.parentId && <span className="sub-mark">↳ </span>}{cat.name}</h3>
+                            {cat.parentId && <small className="muted">in {categories.find(p => p._id === cat.parentId)?.name}</small>}
                             <p>{cat.description || 'No description'}</p>
                         </div>
                         <div className="category-actions">
-                            <button onClick={() => openEdit(cat)} className="icon-btn edit"><FiEdit2 /></button>
-                            <button onClick={() => handleDelete(cat._id)} className="icon-btn delete"><FiTrash2 /></button>
+                            {hasPerm('menu.edit') && <button onClick={() => openEdit(cat)} className="icon-btn edit" aria-label="Edit"><FiEdit2 /></button>}
+                            {hasPerm('menu.delete') && <button onClick={() => handleDelete(cat._id)} className="icon-btn delete" aria-label="Delete"><FiTrash2 /></button>}
                         </div>
                     </div>
                 ))}
@@ -114,6 +121,15 @@ const AdminCategories = () => {
                                     <label>Name *</label>
                                     <input type="text" className="input" value={formData.name}
                                         onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                                </div>
+                                <div className="input-group">
+                                    <label>Parent category</label>
+                                    <select className="input" value={formData.parentId}
+                                        onChange={e => setFormData({ ...formData, parentId: e.target.value })}>
+                                        <option value="">None (top level)</option>
+                                        {categories.filter(c => !c.parentId && c._id !== editItem?._id)
+                                            .map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                    </select>
                                 </div>
                                 <div className="input-group">
                                     <label>Description</label>

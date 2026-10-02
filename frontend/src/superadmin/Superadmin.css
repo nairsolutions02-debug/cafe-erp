@@ -1,0 +1,165 @@
+.sa-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px 60px;
+}
+
+.sa-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+}
+
+.sa-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.sa-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+}
+
+.sa-tenant {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    border: 1px solid #eadfcb;
+    border-top: 4px solid #1e8e4e;
+}
+
+.sa-tenant.status-grace {
+    border-top-color: #f59e0b;
+}
+
+.sa-tenant.status-locked {
+    border-top-color: #b42318;
+}
+
+.sa-tenant-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 12px;
+}
+
+.sa-tenant h2 {
+    font-size: 1.1rem;
+    margin: 0 0 2px;
+}
+
+.sa-status {
+    text-transform: capitalize;
+    font-weight: 700;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 99px;
+    background: #e5f6ec;
+    color: #1e8e4e;
+}
+
+.sa-status.grace {
+    background: #fff4d6;
+    color: #9a5b00;
+}
+
+.sa-status.locked {
+    background: #fdecea;
+    color: #b42318;
+}
+
+.sa-tenant dl {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 4px 8px;
+    font-size: 0.88rem;
+    margin: 0 0 14px;
+}
+
+.sa-tenant dt {
+    color: var(--text-muted);
+}
+
+.sa-tenant dd {
+    margin: 0;
+}
+
+.sa-tenant-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.sa-tenant-actions .btn {
+    padding: 6px 10px;
+    font-size: 0.82rem;
+}
+
+.sa-payments {
+    margin-top: 10px;
+    font-size: 0.85rem;
+}
+
+.sa-plans {
+    background: white;
+    border-radius: 14px;
+    padding: 18px;
+    margin-top: 24px;
+}
+
+.sa-plans-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sa-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+
+.sa-table th,
+.sa-table td {
+    text-align: left;
+    padding: 8px;
+    border-bottom: 1px solid #f1e8d8;
+}
+
+.sa-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.sa-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #15110c;
+    padding: 20px;
+}
+
+.sa-card {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sa-card h1 {
+    margin: 0;
+    font-size: 1.4rem;
+}

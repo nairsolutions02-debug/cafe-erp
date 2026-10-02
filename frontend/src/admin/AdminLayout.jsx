@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import {
-    FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage,
-    FiUsers, FiBarChart2, FiLogOut, FiMenu, FiX, FiLayout, FiActivity, FiSettings
-} from 'react-icons/fi';
+import { FiLogOut, FiMenu, FiX } from 'react-icons/fi';
+import { ADMIN_NAV } from './adminNav';
+import GlobalSearch from './GlobalSearch';
 import { useAuth } from '../context/AuthContext';
 import './AdminLayout.css';
 import brand from '../brand';
 
 const AdminLayout = () => {
-    const { user, logout, socket } = useAuth();
+    const { user, logout, socket, hasPerm } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -44,22 +43,7 @@ const AdminLayout = () => {
         navigate('/admin/login');
     };
 
-    const menuItems = [
-        { path: '/admin', icon: FiHome, label: 'Dashboard', exact: true },
-        { path: '/admin/orders', icon: FiShoppingBag, label: 'Orders' },
-        { path: '/admin/history', icon: FiActivity, label: 'History' },
-        { path: '/admin/menu', icon: FiGrid, label: 'Menu' },
-        { path: '/admin/categories', icon: FiGrid, label: 'Categories' },
-        { path: '/admin/collections', icon: FiLayout, label: 'Homepage Sections' },
-        { path: '/admin/tables', icon: FiLayout, label: 'Tables' },
-        { path: '/admin/coupons', icon: FiTag, label: 'Coupons' },
-        { path: '/admin/loyalty', icon: FiTag, label: 'Loyalty Points' },
-        { path: '/admin/inventory', icon: FiPackage, label: 'Inventory' },
-        { path: '/admin/employees', icon: FiUsers, label: 'Employees' },
-        { path: '/admin/customers', icon: FiUsers, label: 'Customers' },
-        { path: '/admin/analytics', icon: FiBarChart2, label: 'Analytics' },
-        { path: '/admin/settings', icon: FiSettings, label: 'Settings' },
-    ];
+    const menuItems = ADMIN_NAV.filter(item => hasPerm(item.perm));
 
     const isActive = (path, exact) => {
         if (exact) return location.pathname === path;
@@ -106,12 +90,21 @@ const AdminLayout = () => {
                     <button className="menu-toggle" onClick={() => setSidebarOpen(true)}>
                         <FiMenu />
                     </button>
+                    <GlobalSearch />
                     <div className="header-right">
                         <div className="admin-user">
                             <span className="admin-name">{user?.name || 'Admin'}</span>
+                            <span className="admin-role">{user?.roleName}</span>
                         </div>
                     </div>
                 </header>
+
+                {user?.tenant?.status === 'grace' && (
+                    <div className="billing-banner">
+                        Subscription payment is overdue{user.tenant.paidUntil ? ` since ${new Date(user.tenant.paidUntil).toLocaleDateString('en-IN')}` : ''}.
+                        The account will be locked after the grace period. Please contact N.A.I.R. Solutions.
+                    </div>
+                )}
 
                 {/* Notifications */}
                 {notifications.length > 0 && (

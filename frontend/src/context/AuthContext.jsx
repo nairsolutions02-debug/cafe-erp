@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { createRealtimeSocket } from '../lib/realtime';
+import { can } from '../lib/permissions';
+import { setSessionTenant } from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -36,6 +38,7 @@ export const AuthProvider = ({ children }) => {
         const { data, error } = await supabase.rpc('me');
         const me = error ? null : data;
         setUser(me);
+        setSessionTenant(me?.tenant?.id);
         return me;
     }, []);
 
@@ -82,15 +85,32 @@ export const AuthProvider = ({ children }) => {
         return fetchUser();
     };
 
-    const adminLogin = async (email, password) => {
+    // Owner (or platform admin) login with email + password
+    const adminLogin = async (email, password, { platform = false } = {}) => {
+        await supabase.auth.signOut();
         const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
         if (error) throw apiError('Invalid credentials');
         const me = await fetchUser();
-        if (me?.role !== 'admin') {
+        const expected = platform ? 'platform' : 'admin';
+        if (me?.role !== expected) {
             await supabase.auth.signOut();
-            throw apiError('This account is not an admin');
+            setUser(null);
+            throw apiError(platform ? 'This account is not a platform admin' : 'This account is not an admin');
         }
         return me;
+    };
+
+    // Staff login on any device: phone + PIN for this cafe
+    const staffLogin = async (phone, pin) => {
+        await supabase.auth.signOut();
+        await ensureSession();
+        const { data, error } = await supabase.rpc('staff_pin_login', { p_phone: phone, p_pin: pin });
+        if (error) throw apiError(error.message);
+        if (!data?.ok) {
+            await supabase.auth.signOut();
+            throw apiError(data?.message || 'Invalid phone or PIN');
+        }
+        return fetchUser();
     };
 
     const logout = async () => {
@@ -116,11 +136,17 @@ export const AuthProvider = ({ children }) => {
             sendOTP,
             verifyOTP,
             adminLogin,
+            staffLogin,
             logout,
             updateProfile,
             refreshUser: fetchUser,
             isAuthenticated: !!user,
-            isAdmin: user?.role === 'admin'
+            isAdmin: user?.role === 'admin',
+            isPlatform: user?.role === 'platform',
+            // Before the Phase 0 database upgrade, owners have no permission list: treat as full access
+            permissions: user?.permissions || (user?.role === 'admin' ? ['*'] : []),
+            hasPerm: (perm) => can(user?.permissions || (user?.role === 'admin' ? ['*'] : []), perm),
+            tenant: user?.tenant || null
         }}>
             {children}
         </AuthContext.Provider>

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { FiSettings, FiSave, FiPlus, FiTrash2, FiInfo } from 'react-icons/fi';
 import { getAllSettings, updateSetting } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import './AdminSettings.css';
 import brand from '../brand';
 
 const AdminSettings = () => {
+    const { hasPerm } = useAuth();
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -67,7 +69,7 @@ const AdminSettings = () => {
         setSaving(true);
         try {
             // Save basic settings
-            const basicKeys = ['restaurant_name', 'restaurant_address', 'restaurant_phone', 'gst_number', 'gst_rate'];
+            const basicKeys = ['restaurant_name', 'restaurant_address', 'restaurant_phone', 'gst_number', 'fssai_number', 'gst_rate'];
             for (const key of basicKeys) {
                 if (settings[key] !== undefined) {
                     await updateSetting(key, settings[key]);
@@ -95,7 +97,8 @@ const AdminSettings = () => {
                 <button
                     className="btn btn-primary btn-save"
                     onClick={saveSettings}
-                    disabled={saving}
+                    disabled={saving || !hasPerm('settings.edit')}
+                    title={hasPerm('settings.edit') ? '' : 'Your role can view settings but not change them'}
                 >
                     {saving ? 'Saving...' : <><FiSave /> Save Changes</>}
                 </button>
@@ -126,6 +129,15 @@ const AdminSettings = () => {
                             value={settings.restaurant_address || ''}
                             onChange={(e) => handleBasicChange('restaurant_address', e.target.value)}
                             placeholder="Full address for bills"
+                        />
+                    </div>
+                    <div className="form-group">
+                        <label>FSSAI licence number (printed on bills)</label>
+                        <input
+                            type="text"
+                            value={settings.fssai_number || ''}
+                            onChange={(e) => handleBasicChange('fssai_number', e.target.value)}
+                            placeholder="14-digit FSSAI number"
                         />
                     </div>
                     <div className="form-group">
@@ -209,6 +221,7 @@ const AdminSettings = () => {
                         <div className="receipt-mock">
                             <div className="mock-line center"><strong>{settings.restaurant_name || brand.name}</strong></div>
                             <div className="mock-line center">GSTIN: {settings.gst_number || 'XXXXXXXXXXXXX'}</div>
+                            {settings.fssai_number && <div className="mock-line center">FSSAI: {settings.fssai_number}</div>}
                             <div className="mock-line dashed"></div>
                             <div className="mock-line-flex"><span>Sample Item x1</span><span>₹60.00</span></div>
                             <div className="mock-line dashed"></div>

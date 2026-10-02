@@ -18,7 +18,7 @@ const LoginModal = () => {
     const [otpLength, setOtpLength] = useState(6);
     const isSubmittingRef = useRef(false);
 
-    const { sendOTP, verifyOTP, isAdmin, logout } = useAuth();
+    const { sendOTP, verifyOTP, isAdmin, isPlatform, logout } = useAuth();
 
     // Resend timer countdown
     useEffect(() => {
@@ -120,15 +120,15 @@ const LoginModal = () => {
                 </div>
 
                 <div className="login-modal-content">
-                    {isAdmin ? (
+                    {isAdmin || isPlatform ? (
                         <div>
-                            <p className="modal-title">Signed in as admin</p>
+                            <p className="modal-title">{isPlatform ? 'Signed in as platform admin' : 'Signed in as staff'}</p>
                             <p className="modal-subtitle">
                                 This browser is logged in to the admin panel. To order as a customer,
                                 log out of admin here or use another browser / incognito window.
                             </p>
                             <button type="button" className="btn btn-primary btn-full" onClick={logout}>
-                                Log out admin
+                                Log out
                             </button>
                             <a href="/admin" className="btn btn-ghost btn-full">Back to admin panel</a>
                         </div>

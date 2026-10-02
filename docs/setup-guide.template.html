@@ -160,6 +160,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24
   <p class="time">Fill this once; it's saved on this phone until you clear it. Everything below updates as you type.</p>
   <div class="form">
     <label>Cafe name<input id="f_name" placeholder="Chai Point"></label>
+    <label>Cafe code (tenant slug) <span class="hint">keep <code>default</code> when the cafe has its own Supabase project</span><input id="f_cafecode" placeholder="default"></label>
     <label>Tagline<input id="f_tagline" placeholder="Bhilai's favourite chai"></label>
     <label>Owner email (admin login)<input id="f_email" type="email" placeholder="owner@gmail.com"></label>
     <label>Brand colour<input id="f_color" placeholder="#C87316"></label>
@@ -168,6 +169,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24
     <label>Opening hours<input id="f_hours" placeholder="9:00 AM - 11:00 PM"></label>
     <label>Instagram URL<input id="f_insta" placeholder="https://instagram.com/…"></label>
     <label>GSTIN <span class="hint">(blank if not registered)</span><input id="f_gstin" placeholder="22ABCDE1234F1Z5"></label>
+    <label>FSSAI licence no. <span class="hint">(printed on bills)</span><input id="f_fssai" inputmode="numeric" placeholder="12345678901234"></label>
     <label>GST % total<input id="f_gst" inputmode="decimal" placeholder="5"></label>
     <label>Split GST as CGST + SGST?<select id="f_split"><option value="yes">Yes (2.5% + 2.5%)</option><option value="no">No (single GST line)</option></select></label>
     <label>Number of tables<input id="f_tables" inputmode="numeric" placeholder="8"></label>
@@ -233,7 +235,10 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24
     <li><input type="checkbox"><div>Email: <code data-bind="email">owner@email</code>. Password: make a strong one (12+ characters). Tick <strong>Auto Confirm User</strong> → Create.<br><span class="muted">Save it in your password manager; you'll give it to the owner in step 14.</span></div></li>
     <li><input type="checkbox"><div>Make them admin: <a class="linkbtn" data-href="project:/sql/new" href="#details" target="_blank" rel="noopener">SQL Editor → New query</a>, paste and Run:
       <div class="copybox"><pre id="out_makeadmin"></pre><button class="btn small" data-copy="out_makeadmin">Copy</button></div>
-      <div class="ok"><strong>Expected:</strong> one row: <code>ok</code>. "No user with email…" means the email doesn't match exactly.</div></div></li>
+      <div class="ok"><strong>Expected:</strong> one row: <code>ok</code>. "No user with email…" means the email doesn't match exactly. "No cafe with slug…" means the Cafe code is wrong (use <code>default</code> for a cafe with its own Supabase project).</div></div></li>
+    <li><input type="checkbox"><div><strong>Your own platform login (once per Supabase project)</strong>: add a user with <em>your</em> email the same way, then run <code>select public.make_superadmin('your@email.com');</code>. Open <a class="linkbtn" data-href="site:/superadmin" href="#details" target="_blank" rel="noopener">/superadmin</a> to set the plan, record monthly payments (sets "paid until") and lock/unlock the cafe.
+      <div class="warn">The cafe locks itself 3 days after "paid until" if no payment is recorded. Record the first payment (or edit "paid until") right after setup.</div></div></li>
+    <li><input type="checkbox"><div><strong>Staff logins</strong> are added later by the owner in Admin → <strong>Staff &amp; Roles</strong> (mobile + 4–6 digit PIN). Staff log in at <code>/admin/login</code> → <em>Phone + PIN</em>. No Supabase user needed for staff.</div></li>
   </ul>
 </section>
 
@@ -308,7 +313,8 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
   <p class="time">5 min · use the owner's laptop/tablet for admin and your phone for customer</p>
   <div class="warn"><strong>Admin and customer can't share one browser.</strong> Use two devices, or a normal + Incognito window. A browser logged in as admin shows "Signed in as admin" on customer pages.</div>
   <ul class="check" data-group="test">
-    <li><input type="checkbox"><div><strong>Admin login</strong>: <a class="linkbtn" data-href="site:/admin/login" href="#details" target="_blank" rel="noopener">Open admin login</a> with the owner's email + password.</div></li>
+    <li><input type="checkbox"><div><strong>Admin login</strong>: <a class="linkbtn" data-href="site:/admin/login" href="#details" target="_blank" rel="noopener">Open admin login</a> → <em>Owner email</em> tab, with the owner's email + password → accept the terms once.</div></li>
+    <li><input type="checkbox"><div><strong>Staff &amp; Roles</strong>: add one Cashier with a PIN; log in as them in Incognito (<em>Phone + PIN</em>) → they land on Orders and don't see Dashboard/Analytics.</div></li>
     <li><input type="checkbox"><div><strong>Admin → Settings</strong>: restaurant name, address, GSTIN and taxes show what you set. Fix anything and Save.</div></li>
     <li><input type="checkbox"><div><strong>Admin → Menu</strong>: items are there. Add a photo to 1 item to test uploads.</div></li>
     <li><input type="checkbox"><div>Leave <strong>Admin → Orders</strong> open.</div></li>
@@ -390,7 +396,7 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
   <h4>Website changes (all cafes at once)</h4>
   <p>Merge to <code>main</code> on GitHub → every cafe's Vercel project rebuilds automatically in ~1 minute.</p>
   <h4>Database changes (per cafe)</h4>
-  <p>When a release adds a new file in <code>supabase/migrations/</code>, run only that new file's SQL in each cafe's SQL Editor. Or from your Mac (needs the DB password):</p>
+  <p>Each release is listed in <code>RELEASES.md</code> with its deploy steps and a test checklist. When a release ships a file in <code>supabase/upgrades/</code> (e.g. <code>2026-10-phase0.sql</code>), paste that one file into each cafe's SQL Editor and Run. It is wrapped in a transaction: it either applies fully or not at all. Or from your Mac (needs the DB password):</p>
   <div class="copybox"><pre id="out_dbpush"></pre><button class="btn small" data-copy="out_dbpush">Copy</button></div>
   <h4>Monthly check per cafe (5 min)</h4>
   <ul class="check" data-group="maintain">
@@ -453,7 +459,7 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
   };
 
   // ---------- Form fields ----------
-  const FIELDS = ['name', 'tagline', 'email', 'color', 'address', 'phone', 'hours', 'insta', 'gstin', 'gst', 'split',
+  const FIELDS = ['name', 'cafecode', 'tagline', 'email', 'color', 'address', 'phone', 'hours', 'insta', 'gstin', 'fssai', 'gst', 'split',
     'tables', 'tabletype', 'tablelist', 'sburl', 'key', 'logo', 'site', 'menu'];
   const details = store.get('details', {});
   FIELDS.forEach((f) => {
@@ -467,6 +473,8 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
   const v = (f) => (($('f_' + f) || {}).value || '').trim();
   const slugify = (s) => s.toLowerCase().replace(/['’`]/g, '').normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cafe';
   const sq = (s) => "'" + String(s).replace(/'/g, "''") + "'";
+  const cafeCode = () => (v('cafecode') || 'default').toLowerCase();
+  const tenantSel = () => `(select id from public.tenants where slug = ${sq(cafeCode())})`;
   const envq = (s) => '"' + String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
 
   function projectRef() {
@@ -519,31 +527,38 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
       ['gst_rate', JSON.stringify(gst)],
       ['tax_config', JSON.stringify(taxes)],
     ];
-    out.push('insert into public.settings (key, value) values');
+    if (v('fssai')) settings.push(['fssai_number', JSON.stringify(v('fssai'))]);
+    out.push('insert into public.settings (tenant_id, key, value)');
+    out.push(`select t.id, v.key, v.value from ${tenantSel()} t, (values`);
     out.push(settings.map(([k, val]) => `    (${sq(k)}, ${sq(val)}::jsonb)`).join(',\n'));
-    out.push('on conflict (key) do update set value = excluded.value;');
+    out.push(') as v(key, value)');
+    out.push('on conflict (tenant_id, key) do update set value = excluded.value;');
 
     const { items } = parseMenu();
     if (items.length) {
       const cats = [...new Set(items.map((i) => i.category))];
       out.push('');
-      out.push('insert into public.categories (name, sort_order) values');
+      out.push('insert into public.categories (tenant_id, name, sort_order)');
+      out.push(`select ${tenantSel()}, v.name, v.sort_order from (values`);
       out.push(cats.map((c, i) => `    (${sq(c)}, ${i + 1})`).join(',\n'));
-      out.push('on conflict (name) do nothing;');
+      out.push(') as v(name, sort_order)');
+      out.push('on conflict (tenant_id, name) do nothing;');
       out.push('');
-      out.push('insert into public.menu_items (name, description, price, is_veg, is_upsell, category_id)');
-      out.push('select v.name, v.description, v.price, v.is_veg, v.is_upsell, c.id from (values');
+      out.push('insert into public.menu_items (tenant_id, name, description, price, is_veg, is_upsell, category_id)');
+      out.push('select c.tenant_id, v.name, v.description, v.price, v.is_veg, v.is_upsell, c.id from (values');
       out.push(items.map((it) => `    (${sq(it.name)}, ${sq(it.description)}, ${it.price}, ${it.veg}, ${/^water bottle$/i.test(it.name)}, ${sq(it.category)})`).join(',\n'));
       out.push(') as v(name, description, price, is_veg, is_upsell, category)');
-      out.push('join public.categories c on c.name = v.category');
-      out.push('where not exists (select 1 from public.menu_items m where lower(m.name) = lower(v.name));');
+      out.push(`join public.categories c on c.name = v.category and c.tenant_id = ${tenantSel()}`);
+      out.push('where not exists (select 1 from public.menu_items m where m.tenant_id = c.tenant_id and lower(m.name) = lower(v.name));');
     }
     const tables = tableNames();
     if (tables.length) {
       out.push('');
-      out.push('insert into public.dining_tables (table_number) values');
+      out.push('insert into public.dining_tables (tenant_id, table_number)');
+      out.push(`select ${tenantSel()}, v.table_number from (values`);
       out.push(tables.map((t) => `    (${sq(t)})`).join(',\n'));
-      out.push('on conflict (table_number) do nothing;');
+      out.push(') as v(table_number)');
+      out.push('on conflict (tenant_id, table_number) do nothing;');
     }
     return out.join('\n');
   }
@@ -553,6 +568,7 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
     const lines = [
       ['VITE_SUPABASE_URL', ref ? `https://${ref}.supabase.co` : 'https://<project-ref>.supabase.co'],
       ['VITE_SUPABASE_PUBLISHABLE_KEY', v('key') || 'sb_publishable_…'],
+      ['VITE_TENANT_SLUG', cafeCode()],
       ['VITE_CAFE_NAME', v('name') || 'Cafe'],
       ['VITE_CAFE_TAGLINE', v('tagline')],
       ['VITE_CAFE_THEME_COLOR', v('color')],
@@ -561,7 +577,7 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
       ['VITE_CAFE_PHONE', v('phone')],
       ['VITE_CAFE_HOURS_TIME', v('hours')],
       ['VITE_CAFE_INSTAGRAM', v('insta')],
-    ].filter(([k, val], i) => i < 3 || val);
+    ].filter(([k, val], i) => i < 4 || val);
     return lines.map(([k, val]) => `${k}=${envq(val)}`).join('\n');
   }
 
@@ -584,7 +600,7 @@ Cold Beverages | Water Bottle | 20"></textarea></label></div>
       else { el.href = '#details'; el.removeAttribute('target'); el.style.opacity = .6; el.title = 'Fill Cafe details first'; }
     });
 
-    $('out_makeadmin').textContent = `select public.make_admin(${sq(email)});`;
+    $('out_makeadmin').textContent = `select public.make_admin(${sq(email)}, ${sq(cafeCode())});`;
     $('out_cafesql').textContent = cafeSql();
     $('out_env').textContent = envBlock();
     $('out_dbpush').textContent = `cd cafe-erp && git pull\nnpx supabase link --project-ref ${ref || '<project-ref>'}\nnpx supabase db push`;

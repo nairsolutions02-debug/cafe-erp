@@ -102,3 +102,10 @@
     background: #DC2626;
     transform: scale(1.1);
 }
+.category-item.sub {
+    margin-left: 24px;
+}
+
+.sub-mark {
+    color: var(--text-muted);
+}

@@ -10,7 +10,7 @@ const MAX_VERIFY_ATTEMPTS = 5;
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-tenant-slug",
 };
 
 const reply = (status: number, body: Record<string, unknown>) =>
@@ -29,12 +29,17 @@ Deno.serve(async (req) => {
   const { data: auth } = await admin.auth.getUser(jwt);
   if (!auth?.user) return reply(401, { message: "Not signed in" });
 
+  // Which cafe: the app sends its slug in x-tenant-slug (no header = 'default')
+  const slug = req.headers.get("x-tenant-slug") || "default";
+  const { data: tenant } = await admin.from("tenants").select("id").eq("slug", slug).maybeSingle();
+  if (!tenant) return reply(400, { message: "Unknown cafe" });
+
   const body = await req.json().catch(() => ({}));
   const phone = String(body.phone || "").replace(/\D/g, "").slice(-10);
   if (!/^[6-9]\d{9}$/.test(phone)) return reply(400, { message: "Enter a valid 10-digit mobile number" });
 
   if (body.action === "send") {
-    const { data: last } = await admin.from("otp_requests").select("sent_at").eq("phone", phone).maybeSingle();
+    const { data: last } = await admin.from("otp_requests").select("sent_at").eq("tenant_id", tenant.id).eq("phone", phone).maybeSingle();
     const waited = last ? (Date.now() - new Date(last.sent_at).getTime()) / 1000 : Infinity;
     if (waited < RESEND_SECONDS) {
       const retryAfter = Math.ceil(RESEND_SECONDS - waited);
@@ -43,7 +48,7 @@ Deno.serve(async (req) => {
     const res = await fetch(`https://2factor.in/API/V1/${apiKey}/SMS/${phone}/AUTOGEN`);
     const json = await res.json().catch(() => ({}));
     if (json.Status !== "Success") return reply(502, { message: "Failed to send OTP" });
-    await admin.from("otp_requests").upsert({ phone, sent_at: new Date().toISOString(), attempts: 0 });
+    await admin.from("otp_requests").upsert({ tenant_id: tenant.id, phone, sent_at: new Date().toISOString(), attempts: 0 });
     return reply(200, { message: "OTP sent successfully", phone, otpLength: 6, expiresIn: 300 });
   }
 
@@ -52,21 +57,21 @@ Deno.serve(async (req) => {
     const name = String(body.name || "").trim();
 
     // New customers must give a name before the OTP is spent
-    const { data: existing } = await admin.from("customers").select("id, name").eq("phone", phone).maybeSingle();
+    const { data: existing } = await admin.from("customers").select("id, name").eq("tenant_id", tenant.id).eq("phone", phone).maybeSingle();
     if (!name && !existing?.name) return reply(400, { message: "Name is required", requiresProfile: true });
 
-    const { data: request } = await admin.from("otp_requests").select("attempts").eq("phone", phone).maybeSingle();
+    const { data: request } = await admin.from("otp_requests").select("attempts").eq("tenant_id", tenant.id).eq("phone", phone).maybeSingle();
     if (!request) return reply(400, { message: "Please request an OTP first" });
     if (request.attempts >= MAX_VERIFY_ATTEMPTS) return reply(429, { message: "Too many attempts. Request a new OTP." });
-    await admin.from("otp_requests").update({ attempts: request.attempts + 1 }).eq("phone", phone);
+    await admin.from("otp_requests").update({ attempts: request.attempts + 1 }).eq("tenant_id", tenant.id).eq("phone", phone);
 
     const res = await fetch(`https://2factor.in/API/V1/${apiKey}/SMS/VERIFY3/${phone}/${otp}`);
     const json = await res.json().catch(() => ({}));
     if (json.Status !== "Success") return reply(400, { message: "Invalid OTP" });
 
-    await admin.from("otp_requests").delete().eq("phone", phone);
+    await admin.from("otp_requests").delete().eq("tenant_id", tenant.id).eq("phone", phone);
     const { error } = await admin.rpc("link_customer", {
-      p_user: auth.user.id, p_name: name, p_phone: phone, p_email: String(body.email || ""), p_verified: true,
+      p_user: auth.user.id, p_tenant: tenant.id, p_name: name, p_phone: phone, p_email: String(body.email || ""), p_verified: true,
     });
     if (error) return reply(400, { message: error.message });
     return reply(200, { message: "Verified" });
