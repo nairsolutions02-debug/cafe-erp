@@ -56,7 +56,7 @@ Each cafe runs on its own **Vercel** site and **Supabase** project. There is no 
 
 ## 🚀 Setting up a cafe
 
-See **[DEPLOYMENT.md](DEPLOYMENT.md)**: create a Supabase project, `supabase db push`, create the
+On your phone, open **[docs/cafe-setup-guide.html](docs/cafe-setup-guide.html)** (offline, fills in links and SQL for you). Reference copy: **[DEPLOYMENT.md](DEPLOYMENT.md)**: create a Supabase project, `supabase db push`, create the
 owner's admin login, deploy `frontend/` to Vercel with the cafe's env vars, print the table QR codes.
 
 ## 🏷️ Branding
