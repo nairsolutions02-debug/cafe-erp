@@ -40,6 +40,8 @@ import AdminShifts from './admin/pos/AdminShifts';
 import AdminFinance from './admin/finance/AdminFinance';
 import AdminKiosk from './admin/pos/AdminKiosk';
 import AdminKhata from './admin/pos/AdminKhata';
+import AdminReports from './admin/finance/AdminReports';
+import AdminPayroll from './admin/finance/AdminPayroll';
 import AdminGate from './admin/AdminGate';
 import Superadmin from './superadmin/Superadmin';
 import { ADMIN_NAV, firstAllowedPath } from './admin/adminNav';
@@ -131,6 +133,8 @@ function AppRoutes() {
         <Route path="finance" element={<RequirePerm path="/admin/finance"><AdminFinance /></RequirePerm>} />
         <Route path="kiosk" element={<RequirePerm path="/admin/kiosk"><AdminKiosk /></RequirePerm>} />
         <Route path="khata" element={<RequirePerm path="/admin/khata"><AdminKhata /></RequirePerm>} />
+        <Route path="reports" element={<RequirePerm path="/admin/reports"><AdminReports /></RequirePerm>} />
+        <Route path="payroll" element={<RequirePerm path="/admin/payroll"><AdminPayroll /></RequirePerm>} />
         <Route path="employees" element={<RequirePerm path="/admin/employees"><AdminEmployees /></RequirePerm>} />
         <Route path="tables" element={<RequirePerm path="/admin/tables"><AdminTables /></RequirePerm>} />
         <Route path="analytics" element={<RequirePerm path="/admin/analytics"><AdminAnalytics /></RequirePerm>} />

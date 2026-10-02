@@ -150,7 +150,7 @@ const MENU = {
     lowStockThreshold: ['low_stock_threshold', 'int'], costPrice: ['cost_price', 'num'],
     brand: ['brand_id', 'uuid'], itemType: ['item_type', 'text'], unit: ['unit', 'text'], mrp: ['mrp', 'numOrNull'],
     priceIncludesTax: ['price_includes_tax', 'bool'], taxGroup: ['tax_group_id', 'uuid'],
-    isRestricted: ['is_restricted', 'bool'], sku: ['sku', 'text'],
+    isRestricted: ['is_restricted', 'bool'], sku: ['sku', 'text'], hsnCode: ['hsn_code', 'text'],
 };
 
 const menuToClient = (row) => {
@@ -334,6 +334,8 @@ const EMPLOYEE = {
     name: ['name', 'text'], phone: ['phone', 'text'], email: ['email', 'text'], role: ['role', 'text'],
     salary: ['salary', 'num'], joiningDate: ['joining_date', 'date'], isActive: ['is_active', 'bool'],
     address: ['address', 'text'], emergencyContact: ['emergency_contact', 'text'],
+    payType: ['pay_type', 'text'], dailyRate: ['daily_rate', 'num'], hourlyRate: ['hourly_rate', 'num'], otRate: ['ot_rate', 'num'],
+    shiftHours: ['shift_hours', 'num'], weeklyOff: ['weekly_off', 'numOrNull'],
 };
 const ATTENDANCE = {
     date: ['date', 'date'], status: ['status', 'text'], checkIn: ['check_in', 'text'],
@@ -755,3 +757,29 @@ export const setCreditLimit = async (customerId, limit) => ok(await rpc('set_cre
 export const runDailyReminders = async () => ok(await rpc('daily_reminders'));
 export const setLocationMin = async (itemId, locationId, min) =>
     ok(await rpc('set_location_min', { p_item: itemId, p_location: locationId, p_min: Number(min) }));
+
+// ---------------------------------------------------------------------------
+// Reports and payroll (Phase 4)
+// ---------------------------------------------------------------------------
+export const getPnl = async (from, to) => ok(await rpc('pnl', { p_from: from, p_to: to }));
+export const getCashFlow = async (from, to) => ok(await rpc('cash_flow', { p_from: from, p_to: to }));
+export const getProfitTargets = async () => ok(await rpc('profit_targets'));
+export const getGstPack = async (from, to) => ok(await rpc('gst_pack', { p_from: from, p_to: to }));
+export const getGstDueDates = async () => ok(await rpc('gst_due_dates'));
+export const getItemEconomics = async (from, to) => ok(await rpc('item_economics', { p_from: from, p_to: to }));
+
+export const runPayroll = async (month) => ok(await rpc('run_payroll', { p_month: month }));
+export const getPayroll = async (month) => ok(await rpc('get_payroll', { p_month: month }));
+export const finalizePayroll = async (month) => ok(await rpc('finalize_payroll', { p_month: month }));
+export const payPayslips = async (month, accountCode, payslipId = null) =>
+    ok(await rpc('pay_payslips', { p_month: month, p_account_code: accountCode, p_payslip: payslipId }));
+export const giveAdvance = async (employeeId, amount, instalment, accountCode, note) =>
+    ok(await rpc('give_advance', { p_employee: employeeId, p_amount: Number(amount), p_instalment: Number(instalment), p_account_code: accountCode, p_note: note }));
+export const addPenalty = async (employeeId, date, reason, amount) =>
+    ok(await rpc('add_penalty', { p_employee: employeeId, p_date: date, p_reason: reason, p_amount: Number(amount) }));
+export const decidePenalty = async (id, approve) => ok(await rpc('decide_penalty', { p_id: id, p_approve: approve }));
+export const getPenaltiesAdvances = async () => ok(await rpc('list_penalties_advances'));
+export const requestLeave = async (employeeId, typeId, from, to, halfDay, reason) =>
+    ok(await rpc('request_leave', { p_employee: employeeId, p_type: typeId, p_from: from, p_to: to, p_half: halfDay, p_reason: reason }));
+export const decideLeave = async (id, approve) => ok(await rpc('decide_leave', { p_id: id, p_approve: approve }));
+export const getLeaveOverview = async () => ok(await rpc('leave_overview', {}));

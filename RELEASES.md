@@ -4,6 +4,52 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phase 4 — Reports and payroll (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Reports (`/admin/reports`) | **Profit & loss** for any period (this week, this month, last month, last 30 days, custom) next to the previous period with % change: sales by channel → GST → net sales → cost of goods (recipe/cost snapshot per order line) → gross profit → wastage and count losses → staff cost → expenses by category → net profit. Every line has a **Why?** with the formula and where the numbers come from. Needs *See profit*. |
+| Spread costs | An expense spread over several months (e.g. a yearly licence, a big electricity bill) counts a share per day, so one day's profit isn't distorted. One-month expenses count on their date. |
+| Staff cost | From finalized payroll; months without one use each active employee's salary as an **estimate** (labelled). |
+| Cash flow | Per money account: opening + in − out = closing. |
+| Profit target | Weekly and monthly ₹ targets with a progress bar and a straight-line **forecast** for the period end. |
+| Item profit | Every item sold: units, net sales, cost, contribution (₹ and %), per unit, share of total profit, trend vs the previous period; "cost unknown" flag for items without a recipe or cost. |
+| GST pack | Sales by GST rate (taxable, CGST, SGST), HSN/SAC summary (new *HSN code* on menu items; blank = SAC 996331), purchases with vendor GSTIN, bill number range; each downloads as CSV for the CA. **Due dates** for monthly, quarterly (QRMP) or composition filing, with a bell reminder 3 days before. |
+| Payroll (`/admin/payroll`) | Per employee pay type (**monthly / daily / hourly**), OT rate, shift hours, weekly off (Employees → Edit). **Run payroll** for a month from attendance: present, half-days (½), paid leave, holidays, weekly offs; overtime beyond the shift; advance instalment and approved penalties deducted. **Finalize**, then **Pay all** (or one) from Bank/Cash/UPI — each salary is a money-ledger entry. Printable **payslip** (Save as PDF). |
+| Leave | Leave types (Casual 8, Sick 6, Earned 12, Unpaid) with yearly quotas; requests → approve/reject (marks attendance as leave) → balances per employee. |
+| Advances & penalties | Give an advance (from any account, recovered per month); add a penalty (late, breakage) which a **second person** must approve; both appear on the payslip. |
+| Privacy | Salary, wage and OT rates are hidden from anyone without *See salaries*; payroll needs it too. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-phase4.sql`** → Run → *Success*.
+2. Vercel redeploys from `main`.
+
+**Test checklist**
+
+- [ ] Reports → Profit & loss → *This month*: sales by channel, net sales, cost of goods, gross profit, net profit; tap **Why?** on a few lines
+- [ ] Finance → Expenses → add a ₹12,000 *Licences* expense spread over 12 months → P&L for this month shows only its share
+- [ ] Reports → Profit target → set a monthly target → progress bar and forecast
+- [ ] Reports → Item profit → items with contribution and share; an item without recipe shows *cost unknown*
+- [ ] Reports → GST → pick *Last month* → sales by rate + HSN; download the three CSVs; set the filing type; due dates update
+- [ ] Menu → an item → *HSN code* (e.g. packaged drink 2202) → it appears in the HSN summary
+- [ ] Employees → Edit → pay type, OT rate, shift hours, weekly off → Save
+- [ ] Payroll → last month → **Run payroll** → check present / half / leave / offs / OT per person → **Finalize** → **Pay all** from Bank → Finance → Money ledger shows salary lines
+- [ ] Payroll → payslip printer icon → print / Save as PDF
+- [ ] Payroll → Leave → add a request → **Approve** → balance goes up by 1 used; the day shows as leave in attendance
+- [ ] Payroll → Advances & penalties → give ₹3,000 advance (₹1,000/month) → next payroll deducts ₹1,000; add a penalty → another manager approves → deducted
+- [ ] Cashier login → no Reports, Finance or Payroll; Accountant → can see Reports and Payroll but not run payroll
+
+**Known limits in this release**
+
+- PF/ESI are not calculated (off until the cafe crosses the thresholds; the CA confirms them).
+- Incentives on payslips arrive with Phase 6 (incentive rules).
+- Tally export isn't included; the CSVs open in Excel for the CA.
+
+---
+
 ## Phase 3 — Kiosk and khata (2026-10-03)
 
 **What's new**

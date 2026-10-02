@@ -107,7 +107,7 @@ const AdminMenu = () => {
             preparationTime: item.preparationTime, stockQuantity: item.stockQuantity,
             itemType: item.itemType || 'dish', brand: item.brand?._id || '', taxGroup: item.taxGroup || '',
             mrp: item.mrp ?? '', priceIncludesTax: !!item.priceIncludesTax, isRestricted: !!item.isRestricted,
-            unit: item.unit || 'pc', sku: item.sku || ''
+            unit: item.unit || 'pc', sku: item.sku || '', hsnCode: item.hsnCode || ''
         });
         setShowModal(true);
         try {
@@ -329,6 +329,11 @@ const AdminMenu = () => {
                                             <label>Selling unit</label>
                                             <input className="input" value={formData.unit}
                                                 onChange={e => setFormData({ ...formData, unit: e.target.value })} placeholder="pc, glass, plate" />
+                                        </div>
+                                        <div className="input-group">
+                                            <label>HSN code (GST pack; blank = restaurant SAC)</label>
+                                            <input className="input" value={formData.hsnCode || ''}
+                                                onChange={e => setFormData({ ...formData, hsnCode: e.target.value })} />
                                         </div>
                                         <div className="input-group">
                                             <label>SKU / barcode</label>

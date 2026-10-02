@@ -177,9 +177,52 @@ const AdminEmployees = () => {
                                         </select>
                                     </div>
                                     <div className="input-group">
-                                        <label>Salary</label>
-                                        <input type="number" className="input" value={formData.salary}
-                                            onChange={e => setFormData({ ...formData, salary: parseFloat(e.target.value) })} />
+                                        <label>Pay type</label>
+                                        <select className="input" value={formData.payType || 'monthly'}
+                                            onChange={e => setFormData({ ...formData, payType: e.target.value })}>
+                                            <option value="monthly">Monthly salary</option>
+                                            <option value="daily">Daily wage</option>
+                                            <option value="hourly">Hourly</option>
+                                        </select>
+                                    </div>
+                                    {(formData.payType || 'monthly') === 'monthly' && (
+                                        <div className="input-group">
+                                            <label>Monthly salary (₹)</label>
+                                            <input type="number" className="input" value={formData.salary ?? ''}
+                                                onChange={e => setFormData({ ...formData, salary: parseFloat(e.target.value) || 0 })} />
+                                        </div>
+                                    )}
+                                    {formData.payType === 'daily' && (
+                                        <div className="input-group">
+                                            <label>Daily wage (₹)</label>
+                                            <input type="number" className="input" value={formData.dailyRate ?? ''}
+                                                onChange={e => setFormData({ ...formData, dailyRate: e.target.value })} />
+                                        </div>
+                                    )}
+                                    {formData.payType === 'hourly' && (
+                                        <div className="input-group">
+                                            <label>Hourly rate (₹)</label>
+                                            <input type="number" className="input" value={formData.hourlyRate ?? ''}
+                                                onChange={e => setFormData({ ...formData, hourlyRate: e.target.value })} />
+                                        </div>
+                                    )}
+                                    <div className="input-group">
+                                        <label>Overtime ₹ per hour</label>
+                                        <input type="number" className="input" value={formData.otRate ?? ''}
+                                            onChange={e => setFormData({ ...formData, otRate: e.target.value })} />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Shift hours per day</label>
+                                        <input type="number" className="input" value={formData.shiftHours ?? 9}
+                                            onChange={e => setFormData({ ...formData, shiftHours: e.target.value })} />
+                                    </div>
+                                    <div className="input-group">
+                                        <label>Weekly off</label>
+                                        <select className="input" value={formData.weeklyOff ?? ''}
+                                            onChange={e => setFormData({ ...formData, weeklyOff: e.target.value })}>
+                                            <option value="">None</option>
+                                            {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((d, i) => <option key={d} value={i}>{d}</option>)}
+                                        </select>
                                     </div>
                                     <div className="input-group">
                                         <label>Emergency Contact</label>

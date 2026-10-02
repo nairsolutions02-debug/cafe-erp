@@ -1,0 +1,68 @@
+.reports-page .pl td:first-child {
+    min-width: 260px;
+}
+
+.pl-strong td {
+    font-weight: 800;
+    background: #fffaf2;
+}
+
+.why {
+    margin-left: 8px;
+    border: 0;
+    background: none;
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.why-row td {
+    background: #faf6ef;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.big-num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 6px 0;
+}
+
+.big-num .muted {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.progress {
+    height: 12px;
+    background: #f3ebe0;
+    border-radius: 99px;
+    overflow: hidden;
+    margin: 8px 0;
+}
+
+.progress i {
+    display: block;
+    height: 100%;
+    background: #1e8e4e;
+}
+
+.progress i.behind {
+    background: var(--warning);
+}
+
+.payslip-print {
+    max-width: 520px;
+}
+
+.payslip-print table {
+    width: 100%;
+}
+
+.payslip-print td {
+    padding: 4px 0;
+}

@@ -29,6 +29,7 @@ Each cafe runs on its own **Vercel** site and **Supabase** project. There is no 
 - **Cash & shifts** with note counts, **money ledger**, expenses (recurring, spread), payables with aging, day summary
 - **Alerts**: bell + full-screen alarm when a table asks to pay by UPI
 - **Quick kiosk** (tabs, packs, one-tap Cash/UPI/Khata) and **khata** with limits, aging, collection and WhatsApp reminders
+- **Reports**: P&L with "Why?", cash flow, profit targets, item profit, GST pack + due dates; **payroll** with leave, OT, advances, penalties, payslips
 - **Employees**, attendance and holidays
 - **Customers** and **analytics** (revenue, categories, top items, growth)
 - **Settings**: restaurant details, FSSAI and taxes printed on bills
