@@ -1,20 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiImage } from 'react-icons/fi';
-import { getAllMenuItems, getAllCategories, createMenuItem, updateMenuItem, deleteMenuItem, updateStock } from '../utils/api';
+import { useSearchParams } from 'react-router-dom';
+import { FiPlus, FiEdit2, FiTrash2, FiImage, FiSearch } from 'react-icons/fi';
+import {
+    getAllMenuItems, getAllCategories, createMenuItem, updateMenuItem, deleteMenuItem, updateStock,
+    getBrands, getTaxGroups, getItemUnits, createItemUnit, deleteItemUnit,
+} from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../utils/config';
 import './AdminMenu.css';
 
+const EMPTY_FORM = {
+        name: '', description: '', price: '', category: '',
+        isVeg: true, isBestSeller: false, isNewItem: false, isRecommended: false, isUpsell: false,
+        preparationTime: 15, stockQuantity: -1,
+        itemType: 'dish', brand: '', taxGroup: '', mrp: '', priceIncludesTax: false, isRestricted: false, unit: 'pc', sku: ''
+    };
+
+// "Beverages › Cold Drinks" for sub-categories
+const categoryLabel = (c, all) => {
+    const parent = c.parentId && all.find(p => p._id === c.parentId);
+    return parent ? `${parent.name} › ${c.name}` : c.name;
+};
+
 const AdminMenu = () => {
+    const { hasPerm } = useAuth();
+    const [searchParams] = useSearchParams();
+    const [query, setQuery] = useState(searchParams.get('q') || '');
+    const [categoryFilter, setCategoryFilter] = useState('');
+    const [brands, setBrands] = useState([]);
+    const [taxGroups, setTaxGroups] = useState([]);
+    const [units, setUnits] = useState([]);
+    const [newUnit, setNewUnit] = useState({ name: 'Pack', factor: '', salePrice: '' });
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState(null);
-    const [formData, setFormData] = useState({
-        name: '', description: '', price: '', category: '',
-        isVeg: true, isBestSeller: false, isNewItem: false, isRecommended: false,
-        preparationTime: 15, stockQuantity: -1
-    });
+    const [formData, setFormData] = useState(EMPTY_FORM);
     const [image, setImage] = useState(null);
 
     useEffect(() => {
@@ -23,9 +45,12 @@ const AdminMenu = () => {
 
     const fetchData = async () => {
         try {
-            const [itemsRes, catRes] = await Promise.all([getAllMenuItems(), getAllCategories()]);
+            const [itemsRes, catRes, brandRes, taxRes] = await Promise.all([
+                getAllMenuItems(), getAllCategories(), getBrands(), getTaxGroups()]);
             setItems(itemsRes.data);
             setCategories(catRes.data);
+            setBrands(brandRes.data);
+            setTaxGroups(taxRes.data);
         } catch (error) {
             console.error('Error:', error);
         } finally {
@@ -49,7 +74,7 @@ const AdminMenu = () => {
             resetForm();
             fetchData();
         } catch (error) {
-            alert('Failed to save item');
+            alert(error.response?.data?.message || 'Failed to save item');
         }
     };
 
@@ -73,26 +98,55 @@ const AdminMenu = () => {
         }
     };
 
-    const openEdit = (item) => {
+    const openEdit = async (item) => {
         setEditItem(item);
         setFormData({
             name: item.name, description: item.description || '', price: item.price,
             category: item.category?._id || '', isVeg: item.isVeg,
             isBestSeller: item.isBestSeller, isNewItem: item.isNewItem, isRecommended: item.isRecommended, isUpsell: item.isUpsell,
-            preparationTime: item.preparationTime, stockQuantity: item.stockQuantity
+            preparationTime: item.preparationTime, stockQuantity: item.stockQuantity,
+            itemType: item.itemType || 'dish', brand: item.brand?._id || '', taxGroup: item.taxGroup || '',
+            mrp: item.mrp ?? '', priceIncludesTax: !!item.priceIncludesTax, isRestricted: !!item.isRestricted,
+            unit: item.unit || 'pc', sku: item.sku || ''
         });
         setShowModal(true);
+        try {
+            setUnits((await getItemUnits(item._id)).data);
+        } catch {
+            setUnits([]);
+        }
     };
 
     const resetForm = () => {
         setEditItem(null);
-        setFormData({
-            name: '', description: '', price: '', category: '',
-            isVeg: true, isBestSeller: false, isNewItem: false, isRecommended: false,
-            preparationTime: 15, stockQuantity: -1
-        });
+        setFormData(EMPTY_FORM);
+        setUnits([]);
         setImage(null);
     };
+
+    const addUnit = async () => {
+        if (!newUnit.name || !(Number(newUnit.factor) > 0)) return;
+        try {
+            await createItemUnit(editItem._id, newUnit);
+            setUnits((await getItemUnits(editItem._id)).data);
+            setNewUnit({ name: 'Pack', factor: '', salePrice: '' });
+        } catch (error) {
+            alert(error.response?.data?.message || 'Could not add unit');
+        }
+    };
+
+    const removeUnit = async (id) => {
+        await deleteItemUnit(id);
+        setUnits(units.filter(u => u._id !== id));
+    };
+
+    const q = query.trim().toLowerCase();
+    const visibleItems = items.filter(item =>
+        (!q || item.name.toLowerCase().includes(q) || (item.brand?.name || '').toLowerCase().includes(q))
+        && (!categoryFilter || item.category?._id === categoryFilter
+            || categories.find(c => c._id === item.category?._id)?.parentId === categoryFilter));
+    const sortedCategories = [...categories].sort((a, b) =>
+        categoryLabel(a, categories).localeCompare(categoryLabel(b, categories)));
 
     if (loading) return <div className="admin-loading"><div className="spinner"></div></div>;
 
@@ -100,13 +154,27 @@ const AdminMenu = () => {
         <div className="admin-menu">
             <div className="page-header">
                 <h1>Menu Management</h1>
-                <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                    <FiPlus /> Add Item
-                </button>
+                {hasPerm('menu.create') && (
+                    <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
+                        <FiPlus /> Add Item
+                    </button>
+                )}
+            </div>
+
+            <div className="menu-filters">
+                <div className="menu-search">
+                    <FiSearch />
+                    <input className="input" value={query} onChange={e => setQuery(e.target.value)} placeholder="Search items or brands" />
+                </div>
+                <select className="input" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+                    <option value="">All categories</option>
+                    {sortedCategories.map(c => <option key={c._id} value={c._id}>{categoryLabel(c, categories)}</option>)}
+                </select>
+                <span className="menu-count">{visibleItems.length} of {items.length}</span>
             </div>
 
             <div className="items-grid">
-                {items.map(item => (
+                {visibleItems.map(item => (
                     <div key={item._id} className={`item-card ${!item.isAvailable ? 'out-of-stock' : ''}`}>
                         <div className="item-image">
                             {item.image ? (
@@ -116,21 +184,26 @@ const AdminMenu = () => {
                             )}
                             {item.isBestSeller && <span className="badge bestseller">Bestseller</span>}
                             {item.isNewItem && <span className="badge new">New</span>}
+                            {item.isRestricted && <span className="badge restricted">Restricted</span>}
                         </div>
                         <div className="item-content">
                             <div className="item-header">
                                 <span className={item.isVeg ? 'badge-veg' : 'badge-non-veg'}></span>
                                 <h3>{item.name}</h3>
                             </div>
-                            <p className="item-category">{item.category?.name}</p>
+                            <p className="item-category">
+                                {[item.category?.name, item.brand?.name].filter(Boolean).join(' · ')}
+                                {item.mrp ? ` · MRP ₹${item.mrp}` : ''}
+                            </p>
                             <div className="item-footer">
                                 <span className="item-price">₹{item.price}</span>
                                 <div className="item-actions">
-                                    <button onClick={() => handleStockToggle(item)} className={`stock-btn ${item.isAvailable ? 'in' : 'out'}`}>
+                                    <button onClick={() => handleStockToggle(item)} disabled={!hasPerm('menu.edit')}
+                                        className={`stock-btn ${item.isAvailable ? 'in' : 'out'}`}>
                                         {item.isAvailable ? 'In Stock' : 'Out of Stock'}
                                     </button>
-                                    <button onClick={() => openEdit(item)} className="icon-btn edit"><FiEdit2 /></button>
-                                    <button onClick={() => handleDelete(item._id)} className="icon-btn delete"><FiTrash2 /></button>
+                                    {hasPerm('menu.edit') && <button onClick={() => openEdit(item)} className="icon-btn edit" aria-label="Edit"><FiEdit2 /></button>}
+                                    {hasPerm('menu.delete') && <button onClick={() => handleDelete(item._id)} className="icon-btn delete" aria-label="Delete"><FiTrash2 /></button>}
                                 </div>
                             </div>
                         </div>
@@ -164,7 +237,7 @@ const AdminMenu = () => {
                                         <select className="input" value={formData.category}
                                             onChange={e => setFormData({ ...formData, category: e.target.value })} required>
                                             <option value="">Select Category</option>
-                                            {categories.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                            {sortedCategories.map(c => <option key={c._id} value={c._id}>{categoryLabel(c, categories)}</option>)}
                                         </select>
                                     </div>
                                     <div className="input-group image-upload-group">
@@ -219,7 +292,79 @@ const AdminMenu = () => {
                                     </div>
                                 </div>
 
+                                <fieldset className="form-section">
+                                    <legend>Catalogue &amp; tax</legend>
+                                    <div className="form-grid">
+                                        <div className="input-group">
+                                            <label>Item type</label>
+                                            <select className="input" value={formData.itemType}
+                                                onChange={e => setFormData({ ...formData, itemType: e.target.value })}>
+                                                <option value="dish">Prepared dish</option>
+                                                <option value="resale">Resale product (bought ready, e.g. Coke)</option>
+                                                <option value="combo">Combo</option>
+                                            </select>
+                                        </div>
+                                        <div className="input-group">
+                                            <label>Brand</label>
+                                            <select className="input" value={formData.brand}
+                                                onChange={e => setFormData({ ...formData, brand: e.target.value })}>
+                                                <option value="">No brand</option>
+                                                {brands.map(b => <option key={b._id} value={b._id}>{b.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="input-group">
+                                            <label>Tax group</label>
+                                            <select className="input" value={formData.taxGroup}
+                                                onChange={e => setFormData({ ...formData, taxGroup: e.target.value })}>
+                                                <option value="">Cafe default (Settings)</option>
+                                                {taxGroups.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="input-group">
+                                            <label>MRP (₹, packaged goods)</label>
+                                            <input type="number" step="0.01" className="input" value={formData.mrp}
+                                                onChange={e => setFormData({ ...formData, mrp: e.target.value })} placeholder="Leave empty if none" />
+                                        </div>
+                                        <div className="input-group">
+                                            <label>Selling unit</label>
+                                            <input className="input" value={formData.unit}
+                                                onChange={e => setFormData({ ...formData, unit: e.target.value })} placeholder="pc, glass, plate" />
+                                        </div>
+                                        <div className="input-group">
+                                            <label>SKU / barcode</label>
+                                            <input className="input" value={formData.sku}
+                                                onChange={e => setFormData({ ...formData, sku: e.target.value })} />
+                                        </div>
+                                    </div>
+                                    <div className="checkbox-group">
+                                        <label><input type="checkbox" checked={formData.priceIncludesTax}
+                                            onChange={e => setFormData({ ...formData, priceIncludesTax: e.target.checked })} /> Price includes tax (MRP items)</label>
+                                        <label><input type="checkbox" checked={formData.isRestricted}
+                                            onChange={e => setFormData({ ...formData, isRestricted: e.target.checked })} /> Restricted (tobacco etc.: no rewards, coupons or promotions)</label>
+                                    </div>
+                                    {editItem && (
+                                        <div className="units-editor">
+                                            <label className="toggle-label">Pack units</label>
+                                            {units.length === 0 && <p className="hint">e.g. 1 Pack = 10 pieces. Selling a pack removes 10 from stock.</p>}
+                                            {units.map(u => (
+                                                <div key={u._id} className="unit-row">
+                                                    <span>1 {u.name} = {u.factor} {formData.unit || 'pc'}{u.salePrice ? ` · ₹${u.salePrice}` : ''}</span>
+                                                    <button type="button" className="icon-btn delete" onClick={() => removeUnit(u._id)} aria-label="Remove unit"><FiTrash2 /></button>
+                                                </div>
+                                            ))}
+                                            <div className="unit-row add">
+                                                <input className="input" value={newUnit.name} onChange={e => setNewUnit({ ...newUnit, name: e.target.value })} placeholder="Pack" />
+                                                <input className="input" type="number" value={newUnit.factor} onChange={e => setNewUnit({ ...newUnit, factor: e.target.value })} placeholder="10" />
+                                                <input className="input" type="number" value={newUnit.salePrice} onChange={e => setNewUnit({ ...newUnit, salePrice: e.target.value })} placeholder="Price ₹ (optional)" />
+                                                <button type="button" className="btn btn-ghost" onClick={addUnit}>Add</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </fieldset>
+
                                 <div className="checkbox-group">
+                                    <label><input type="checkbox" checked={formData.isBestSeller}
+                                        onChange={e => setFormData({ ...formData, isBestSeller: e.target.checked })} /> Bestseller</label>
                                     <label><input type="checkbox" checked={formData.isNewItem}
                                         onChange={e => setFormData({ ...formData, isNewItem: e.target.checked })} /> New</label>
                                     <label><input type="checkbox" checked={formData.isRecommended}

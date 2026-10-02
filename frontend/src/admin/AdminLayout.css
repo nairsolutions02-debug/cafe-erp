@@ -207,3 +207,26 @@
         z-index: 99;
     }
 }
+.admin-header {
+    gap: 16px;
+}
+
+.admin-user {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+}
+
+.admin-role {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.billing-banner {
+    background: #fff4d6;
+    color: #9a5b00;
+    padding: 10px 24px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}

@@ -76,6 +76,7 @@ const OrderBill = ({ order, orders, onCancel }) => {
                     <p>{restaurant.address}</p>
                     <p>Ph: {restaurant.phone}</p>
                     {restaurant.gstNumber && <p>GSTIN: {restaurant.gstNumber}</p>}
+                    {restaurant.fssaiNumber && <p>FSSAI: {restaurant.fssaiNumber}</p>}
                 </div>
 
                 <div className="bill-info">

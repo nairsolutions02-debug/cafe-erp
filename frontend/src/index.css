@@ -753,3 +753,15 @@ tr:hover td {
 .bounce {
   animation: bounce 0.5s ease;
 }
+.no-access {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text-muted);
+}
+
+/* Subtitles inside the coloured page header bar stay readable */
+.page-header p,
+.page-header .muted {
+    color: inherit;
+    opacity: 0.85;
+}

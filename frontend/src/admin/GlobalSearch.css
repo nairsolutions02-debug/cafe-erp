@@ -1,0 +1,81 @@
+.global-search {
+    position: relative;
+    flex: 1;
+    max-width: 520px;
+}
+
+.global-search input {
+    width: 100%;
+    padding: 9px 12px 9px 36px;
+    border: 1.5px solid #eadfcb;
+    border-radius: 10px;
+    font: inherit;
+    background: #fffdf8;
+}
+
+.global-search input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.gs-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.gs-results {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 50;
+    padding: 6px;
+}
+
+.gs-group-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    padding: 8px 10px 4px;
+}
+
+.gs-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    border: 0;
+    background: none;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.gs-item.active {
+    background: #fff1dc;
+}
+
+.gs-title {
+    font-weight: 600;
+}
+
+.gs-sub {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.gs-empty {
+    padding: 14px;
+    color: var(--text-muted);
+    text-align: center;
+}

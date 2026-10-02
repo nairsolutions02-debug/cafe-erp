@@ -25,7 +25,16 @@ Each cafe runs on its own **Vercel** site and **Supabase** project. There is no 
 - **Inventory** with supplier payments and low-stock alerts
 - **Employees**, attendance and holidays
 - **Customers** and **analytics** (revenue, categories, top items, growth)
-- **Settings**: restaurant details and taxes printed on bills
+- **Settings**: restaurant details, FSSAI and taxes printed on bills
+- **Staff & Roles**: staff log in with mobile + PIN; editable roles and a permission grid enforced by the
+  database; per-person exceptions; consent records
+- **Catalogue**: sub-categories, brands, tax groups, MRP items, pack units, restricted items
+- **Audit log** and **global search** (Ctrl+K)
+
+### Platform (`/superadmin`)
+- Cafes (tenants), plans with staff limits, payments, automatic lock after the grace period
+
+Release notes and per-release test checklists: [`RELEASES.md`](RELEASES.md).
 
 ## 🛠️ Tech Stack
 
@@ -76,7 +85,7 @@ npm run test:db               # end-to-end database checks (needs the local stac
 ```
 
 Create a local admin: add a user in Supabase Studio (http://127.0.0.1:54323) and run
-`select public.make_admin('you@example.com');` in the SQL editor.
+`select public.make_admin('you@example.com', 'default');` in the SQL editor.
 
 ## 📝 License
 

@@ -98,10 +98,21 @@ Run it **once per project**. A second run gives "already exists" errors, which a
 3. SQL Editor → run (with the exact email):
 
 ```sql
-select public.make_admin('owner@email.com');
+select public.make_admin('owner@email.com', 'default');
 ```
 
 Expected: one row `ok`. "No user with email…" means the email doesn't match.
+The second value is the **cafe code** (tenant slug). A cafe with its own Supabase project always uses
+`default`.
+
+4. **Your platform login** (once per Supabase project): add a user with *your* email the same way, then
+   `select public.make_superadmin('your@email.com');`. Open `https://<site>/superadmin` to pick the plan
+   (staff limit), record monthly payments ("paid until") and lock/unlock. The cafe locks itself
+   `grace_days` (3) after "paid until" with no payment, so **record the first payment right after setup**.
+5. **Staff** don't need Supabase users: the owner adds them in Admin → **Staff & Roles** (mobile + 4–6
+   digit PIN, role). They log in at `/admin/login` → *Phone + PIN*. 5 wrong PINs lock for 15 minutes.
+6. Several cafes can also share **one** Supabase project: create them in `/superadmin` → **New cafe**
+   (owner gets a PIN login), then give each its own Vercel project with `VITE_TENANT_SLUG=<cafe code>`.
 
 ## 7. Bill details, menu & tables
 
@@ -110,35 +121,43 @@ The phone guide **generates this SQL from a typed menu** (`Category | Item | Pri
 one item per line). To write it by hand:
 
 ```sql
+-- Every row belongs to a cafe (tenant). Own Supabase project = cafe code 'default'.
+
 -- Bill details (printed on every bill)
-insert into public.settings (key, value) values
+insert into public.settings (tenant_id, key, value)
+select t.id, v.key, v.value from (select id from public.tenants where slug = 'default') t, (values
     ('restaurant_name', '"Chai Point"'::jsonb),
     ('restaurant_address', '"Shop 4, Nehru Nagar, Bhilai"'::jsonb),
     ('restaurant_phone', '"+91 98xxxxxxxx"'::jsonb),
     ('gst_number', '"22ABCDE1234F1Z5"'::jsonb),
+    ('fssai_number', '"12345678901234"'::jsonb),
     ('gst_rate', '5'::jsonb),
     ('tax_config', '[{"name":"CGST","rate":2.5},{"name":"SGST","rate":2.5}]'::jsonb)
-on conflict (key) do update set value = excluded.value;
+) as v(key, value)
+on conflict (tenant_id, key) do update set value = excluded.value;
 
 -- Categories (in display order)
-insert into public.categories (name, sort_order) values
+insert into public.categories (tenant_id, name, sort_order)
+select (select id from public.tenants where slug = 'default'), v.name, v.sort_order from (values
     ('Hot Beverages', 1), ('Snacks', 2), ('Cold Beverages', 3)
-on conflict (name) do nothing;
+) as v(name, sort_order)
+on conflict (tenant_id, name) do nothing;
 
 -- Menu items
-insert into public.menu_items (name, description, price, is_veg, is_upsell, category_id)
-select v.name, v.description, v.price, v.is_veg, v.is_upsell, c.id from (values
+insert into public.menu_items (tenant_id, name, description, price, is_veg, is_upsell, category_id)
+select c.tenant_id, v.name, v.description, v.price, v.is_veg, v.is_upsell, c.id from (values
     ('Masala Chai', 'Ginger & cardamom', 30, true, false, 'Hot Beverages'),
     ('Chicken Puff', '', 50, false, false, 'Snacks'),
     ('Water Bottle', '', 20, true, true, 'Cold Beverages')
 ) as v(name, description, price, is_veg, is_upsell, category)
 join public.categories c on c.name = v.category
-where not exists (select 1 from public.menu_items m where lower(m.name) = lower(v.name));
+ and c.tenant_id = (select id from public.tenants where slug = 'default')
+where not exists (select 1 from public.menu_items m where m.tenant_id = c.tenant_id and lower(m.name) = lower(v.name));
 
 -- Tables 1..8
-insert into public.dining_tables (table_number)
-select n::text from generate_series(1, 8) n
-on conflict (table_number) do nothing;
+insert into public.dining_tables (tenant_id, table_number)
+select (select id from public.tenants where slug = 'default'), n::text from generate_series(1, 8) n
+on conflict (tenant_id, table_number) do nothing;
 ```
 
 - Not GST-registered: `gst_rate` `0` and `tax_config` `[]`.
@@ -168,6 +187,7 @@ Skip it and a neutral cup logo is used.
 ```env
 VITE_SUPABASE_URL="https://<ref>.supabase.co"
 VITE_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
+VITE_TENANT_SLUG="default"
 VITE_CAFE_NAME="Chai Point"
 VITE_CAFE_TAGLINE="Bhilai's favourite chai"
 VITE_CAFE_THEME_COLOR="#2E7D32"
@@ -178,7 +198,7 @@ VITE_CAFE_HOURS_TIME="8:00 AM - 11:00 PM"
 VITE_CAFE_INSTAGRAM="https://instagram.com/..."
 ```
 
-   Only the first three are required. Keep the quotes (a bare `#` starts a comment).
+   Only the first two are required (`VITE_TENANT_SLUG` defaults to `default`). Keep the quotes (a bare `#` starts a comment).
    All options: `frontend/.env.example` (hero text/image, stats, search hints, hours days, email, Facebook).
 5. **Don't** click "Add" next to Supabase under *Optional Integrations* (it would create a second database).
 6. **Deploy** → copy the domain when it says *Congratulations*.
@@ -195,7 +215,10 @@ Use two devices (owner's laptop/tablet = admin, your phone = customer) or a norm
 **One browser can't be admin and customer at once.** A browser logged in as admin shows
 "Signed in as admin" on customer pages.
 
-- [ ] `https://<site>/admin/login` → owner's email + password
+- [ ] `https://<site>/admin/login` → **Owner email** tab → owner's email + password → accept terms once
+- [ ] Admin → **Staff & Roles**: add a Cashier with a PIN; in Incognito log in with *Phone + PIN* → lands
+      on Orders, no Dashboard/Analytics in the sidebar
+- [ ] `https://<site>/superadmin` (your login) → record the first payment
 - [ ] Admin → **Settings**: name, address, GSTIN, taxes correct → Save
 - [ ] Admin → **Menu**: items present; add a photo to one item (tests uploads)
 - [ ] Leave **Admin → Orders** open
@@ -260,8 +283,12 @@ Still stuck: screenshot the screen + browser console (F12 → Console) and send 
 ## Updates & maintenance
 
 - **Website changes**: merge to `main` → every cafe's Vercel project rebuilds (~1 min).
-- **Database changes**: when a release adds a file to `supabase/migrations/`, run **only that file**
-  in each cafe's SQL Editor, or from the repo on your Mac (needs the DB password):
+- **Release notes**: every push to `main` is listed in `RELEASES.md` with what changed, deploy steps and
+  a test checklist. Tick through that checklist on the live site after each release.
+- **Database changes**: when a release ships an upgrade file in `supabase/upgrades/` (e.g.
+  `2026-10-phase0.sql`), paste **that one file** into each cafe's SQL Editor → Run. It runs in one
+  transaction (all or nothing). Otherwise run only the new `supabase/migrations/` file, or from the repo
+  on your Mac (needs the DB password):
   ```bash
   git pull
   npx supabase link --project-ref <ref>

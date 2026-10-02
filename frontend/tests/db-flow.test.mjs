@@ -11,7 +11,10 @@ const ANON = process.env.SUPABASE_ANON_KEY
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY
     || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImV4cCI6MTk4MzgxMjk5Nn0.EGIM96RAZx35lJzdJsyH-qQwv8Hdp7fsn3W0YpN81IU';
 
-const client = () => createClient(URL, ANON, { auth: { persistSession: false, autoRefreshToken: false } });
+const client = (slug = 'default') => createClient(URL, ANON, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { 'x-tenant-slug': slug } },
+});
 const service = createClient(URL, SERVICE, { auth: { persistSession: false } });
 const run = Date.now().toString().slice(-6);
 const phone = (n) => `9${run}${String(n).padStart(3, '0')}`;
@@ -115,7 +118,7 @@ test('order totals are computed on the server, table session rules hold', async 
     assert.ok(mine.every(o => o.status === 'bill_requested'));
 
     // Customer cannot mark their own order paid
-    await assert.rejects(rpc(c, 'record_payment', { p_order_id: orderId, p_method: 'cash', p_amount: 999 }), /admin/);
+    await assert.rejects(rpc(c, 'record_payment', { p_order_id: orderId, p_method: 'cash', p_amount: 999 }), /Not authorized/);
 
     // Admin takes payment: points awarded, table freed only after the last order
     await rpc(admin, 'record_payment', { p_order_id: orderId, p_method: 'cash', p_amount: 399 });
@@ -127,8 +130,8 @@ test('order totals are computed on the server, table session rules hold', async 
     assert.equal(t.status, 'available');
 
     const points = await rpc(c, 'my_loyalty_points');
-    // 399 * 1 + 2 lattes * 5 bonus = 409 ; second order 105 total -> 105
-    assert.equal(points.currentPoints, 409 + 105);
+    // Points are earned on spend after discount, before tax: (400 - 20) + 2 lattes * 5 bonus = 390; second order 100
+    assert.equal(points.currentPoints, 390 + 100);
 });
 
 test('loyalty offer spends points and cancellation refunds them', async () => {
@@ -161,8 +164,8 @@ test('back office data is admin-only', async () => {
     const { error } = await c.from('menu_items').update({ price: 1 }).eq('id', latte.id).select();
     const { data: still } = await c.from('menu_items').select('price').eq('id', latte.id).single();
     assert.ok(error || still.price === 150);
-    await assert.rejects(rpc(c, 'dashboard_stats'), /admin/);
-    await assert.rejects(rpc(c, 'admin_orders', {}), /admin/);
+    await assert.rejects(rpc(c, 'dashboard_stats'), /Not authorized/);
+    await assert.rejects(rpc(c, 'admin_orders', {}), /Not authorized/);
 });
 
 test('admin analytics return the expected shapes', async () => {
