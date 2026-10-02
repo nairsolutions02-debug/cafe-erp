@@ -1,127 +1,315 @@
 # Cafe ERP - Setting Up a New Cafe
 
-Each cafe gets its **own Supabase project** (database, login, images, live updates)
-and its **own Vercel project** (the website), both built from this one repo.
-There is no separate backend server, so Railway is not needed.
+> **On your phone, use [`docs/cafe-setup-guide.html`](docs/cafe-setup-guide.html) instead.**
+> It's the same guide as one offline file with a form: type the cafe's details once and every
+> link, the Vercel env block and all SQL (database setup, admin, menu, tables) are generated with
+> Copy buttons, plus tick-off checklists. This Markdown file is the reference copy.
 
-A fix pushed to `main` redeploys every cafe's website. Database changes
-(new files in `supabase/migrations/`) are applied to each cafe with `supabase db push`.
+Each cafe gets its **own Supabase project** (database, logins, images, live updates) and its
+**own Vercel project** (the website), both from this one repo. There's no backend server and no Railway.
 
-| Part | Where | One per cafe |
+**Time per cafe:** ~30 minutes, most of it typing the menu.
+
+| # | Step | Time |
 |---|---|---|
-| Website (`frontend/`) | Vercel project | Yes |
-| Database, login, images, live updates | Supabase project | Yes |
+| 1 | [One-time setup](#1-one-time-setup-only-once-ever) | once ever |
+| 2 | [Collect from the owner](#2-collect-from-the-cafe-owner) | 10 min |
+| 3 | [Create Supabase project](#3-create-the-supabase-project) | 3 min + 2 min wait |
+| 4 | [Load the database](#4-load-the-database) | 2 min |
+| 5 | [Login settings](#5-login-settings) | 1 min |
+| 6 | [Owner's admin account](#6-owners-admin-account) | 2 min |
+| 7 | [Bill details, menu & tables](#7-bill-details-menu--tables) | 5–10 min |
+| 8 | [Upload logo](#8-upload-the-logo-optional) | 2 min (optional) |
+| 9 | [Deploy the website](#9-deploy-the-website-vercel) | 4 min + 1 min build |
+| 10 | [Connect site URL](#10-connect-the-site-url) | 1 min |
+| 11 | [Test everything](#11-test-everything) | 5 min |
+| 12 | [Print table QR codes](#12-print-table-qr-codes) | 3 min |
+| 13 | [Hand over to the owner](#13-hand-over-to-the-owner) | 5 min |
+| — | [Custom domain](#custom-domain-optional) · [Troubleshooting](#troubleshooting) · [Updates & maintenance](#updates--maintenance) · [OTP](#turning-on-sms-otp-later) · [Costs](#costs--plans) | |
 
-Time per cafe: about 30 minutes once you've done it once.
+In the links below, replace `<ref>` with the cafe's Supabase project ref (the part before
+`.supabase.co` in the Project URL).
 
 ---
 
-## 1. Create the Supabase project
+## 1. One-time setup (only once ever)
 
-1. supabase.com → **New project**. Name it after the cafe (e.g. `chaipoint`).
-   Region: **Mumbai (ap-south-1)**. Save the database password somewhere safe.
-2. **Authentication → Sign In / Providers**:
-   - turn **on** "Allow anonymous sign-ins" (this is how customers log in with just name + mobile)
-   - leave **Email** on (admins use it); turn **off** "Allow new users to sign up" so only you create admin accounts
-     (anonymous sign-ins keep working)
-3. **Authentication → URL Configuration**: set **Site URL** to the cafe's website URL (after step 3).
+- [ ] **GitHub repo** `nairsolutions02-debug/cafe-erp` has the latest code on `main`.
+- [ ] **Vercel can see the repo.** The *Vercel GitHub App* must be installed on `nairsolutions02-debug`
+      with access to `cafe-erp`. Signing in to Vercel with GitHub is **not** the same thing.
+      → https://github.com/settings/installations → Vercel → Configure → Repository access.
+- [ ] **Supabase account** → https://supabase.com/dashboard/projects
+- [ ] **Vercel Pro** before the first paying cafe (Hobby = non-commercial only). One Pro team holds all cafes.
+- [ ] **2-factor login** on GitHub, Vercel and Supabase.
+- [ ] **Password manager** for each cafe's Supabase DB password and owner login.
 
-## 2. Load the database
+## 2. Collect from the cafe owner
 
-From your Mac, in this repo:
+- [ ] Cafe **name** (exactly as on the board) and a one-line **tagline**
+- [ ] **Owner's email**: becomes the admin login; must be one they can open
+- [ ] **Logo**: square PNG/JPG, ideally 512×512
+- [ ] **Brand colour** hex, e.g. `#2E7D32`
+- [ ] **Address**, **phone**, **opening hours**, Instagram link
+- [ ] **GSTIN** (if registered) and GST rate. Most cafes 5% (2.5% CGST + 2.5% SGST); unregistered 0%
+- [ ] **Full menu with prices** (photo of the menu card is enough), veg / non-veg
+- [ ] **Number of tables** and their numbering (1, 2, 3… or A1, A2…)
+- [ ] Optional: photos of 5–10 bestsellers
 
-```bash
-npx supabase login                       # once
-npx supabase link --project-ref <project-ref>   # ref is in the project URL
-npx supabase db push                     # creates all tables, functions, security rules
-```
+## 3. Create the Supabase project
 
-Optional demo menu: open **SQL Editor**, paste `supabase/sample-data.sql`, run.
+1. https://supabase.com/dashboard/new → choose your organization.
+2. **Project name**: cafe name in lowercase with dashes, e.g. `chai-point`.
+3. **Database password**: *Generate a password* → save it in your password manager
+   ("Chai Point Supabase DB"). You can't view it again.
+4. **Region**: **South Asia (Mumbai)**.
+5. **Create new project** and wait ~2 minutes until it's ready.
+6. Note the **Project URL** (`https://<ref>.supabase.co`) and the **Publishable key** (`sb_publishable_…`)
+   from `https://supabase.com/dashboard/project/<ref>/settings/api-keys`.
 
-### Create the owner's admin login
+> **Never** copy the secret key (`sb_secret_…`) into Vercel, chats or the guide.
 
-1. **Authentication → Users → Add user → Create new user**: owner's email + a strong password,
-   tick "Auto Confirm User".
-2. **SQL Editor**, run:
+## 4. Load the database
+
+1. Open `https://supabase.com/dashboard/project/<ref>/sql/new`.
+2. Paste the **whole setup SQL** and tap **Run**. Get it from the phone guide (*Copy setup SQL*), or
+   concatenate every file in `supabase/migrations/` in order.
+3. Expected: **"Success. No rows returned"** (a `pgcrypto already exists` notice is fine).
+4. Check `…/editor` lists `orders`, `menu_items`, `dining_tables`, etc.
+
+Run it **once per project**. A second run gives "already exists" errors, which are harmless.
+
+## 5. Login settings
+
+`https://supabase.com/dashboard/project/<ref>/auth/providers`
+
+- [ ] **Allow anonymous sign-ins: ON**. This is how customers log in with name + mobile.
+- [ ] **Allow new users to sign up: leave ON.**
+- [ ] **Email provider: leave enabled.**
+
+> ⚠️ Turning off sign-ups **blocks customer login** ("Signups not allowed for this instance"), and
+> turning off Email **blocks admin login** ("Email logins are disabled"). Both were tested.
+> Leaving them on is safe: a stranger who signs up gets no admin access. Admin rights only come from
+> `make_admin` (next step).
+
+## 6. Owner's admin account
+
+1. `https://supabase.com/dashboard/project/<ref>/auth/users` → **Add user → Create new user**.
+2. Owner's email + a strong password (12+ chars) → tick **Auto Confirm User** → Create.
+3. SQL Editor → run (with the exact email):
 
 ```sql
-select public.make_admin('owner@cafe.com');
+select public.make_admin('owner@email.com');
 ```
 
-## 3. Create the Vercel project
+Expected: one row `ok`. "No user with email…" means the email doesn't match.
 
-1. vercel.com → **Add New → Project** → import this repo.
-2. **Root Directory: `frontend`**. Framework preset: **Vite** (auto-detected).
-3. **Environment Variables** (see `frontend/.env.example` for the full list):
+## 7. Bill details, menu & tables
 
-| Name | Value |
-|---|---|
-| `VITE_SUPABASE_URL` | `https://<project-ref>.supabase.co` |
-| `VITE_SUPABASE_PUBLISHABLE_KEY` | Supabase → Settings → API Keys → Publishable key (`sb_publishable_...`) |
-| `VITE_CAFE_NAME` | e.g. `Chai Point` |
-| `VITE_CAFE_TAGLINE` | e.g. `Bhilai's favourite chai` |
-| `VITE_CAFE_THEME_COLOR` | e.g. `#2E7D32` |
-| `VITE_CAFE_LOGO_URL` | URL of the logo (upload it to Supabase Storage → `images` bucket → copy URL) |
-| `VITE_CAFE_ADDRESS`, `VITE_CAFE_PHONE`, `VITE_CAFE_HOURS_TIME` | contact details for the footer |
+One SQL paste instead of tapping through admin screens; everything stays editable in the admin panel.
+The phone guide **generates this SQL from a typed menu** (`Category | Item | Price | veg/nonveg | description`,
+one item per line). To write it by hand:
 
-Never put the secret key (`sb_secret_...`) in Vercel. The site only needs the publishable key.
+```sql
+-- Bill details (printed on every bill)
+insert into public.settings (key, value) values
+    ('restaurant_name', '"Chai Point"'::jsonb),
+    ('restaurant_address', '"Shop 4, Nehru Nagar, Bhilai"'::jsonb),
+    ('restaurant_phone', '"+91 98xxxxxxxx"'::jsonb),
+    ('gst_number', '"22ABCDE1234F1Z5"'::jsonb),
+    ('gst_rate', '5'::jsonb),
+    ('tax_config', '[{"name":"CGST","rate":2.5},{"name":"SGST","rate":2.5}]'::jsonb)
+on conflict (key) do update set value = excluded.value;
 
-4. **Deploy**. Then put the Vercel URL into Supabase's Site URL (step 1.3).
-5. Custom domain (optional): Vercel → Settings → Domains.
+-- Categories (in display order)
+insert into public.categories (name, sort_order) values
+    ('Hot Beverages', 1), ('Snacks', 2), ('Cold Beverages', 3)
+on conflict (name) do nothing;
 
-## 4. First login and setup
+-- Menu items
+insert into public.menu_items (name, description, price, is_veg, is_upsell, category_id)
+select v.name, v.description, v.price, v.is_veg, v.is_upsell, c.id from (values
+    ('Masala Chai', 'Ginger & cardamom', 30, true, false, 'Hot Beverages'),
+    ('Chicken Puff', '', 50, false, false, 'Snacks'),
+    ('Water Bottle', '', 20, true, true, 'Cold Beverages')
+) as v(name, description, price, is_veg, is_upsell, category)
+join public.categories c on c.name = v.category
+where not exists (select 1 from public.menu_items m where lower(m.name) = lower(v.name));
 
-1. Open `https://<site>/admin/login`, sign in with the owner's email and password.
-2. **Settings**: restaurant name, address, phone, GSTIN, taxes (these print on bills).
-3. **Categories → Menu**: add items with photos (images are resized automatically).
-4. **Tables → Add Multiple**, then **QR Codes → Print**. Stick one QR on each table.
+-- Tables 1..8
+insert into public.dining_tables (table_number)
+select n::text from generate_series(1, 8) n
+on conflict (table_number) do nothing;
+```
 
-## How customers use it
+- Not GST-registered: `gst_rate` `0` and `tax_config` `[]`.
+- Name one item exactly **Water Bottle**: the cart suggests it to every customer.
+- Safe to re-run: existing categories, items and tables are skipped.
+- Sales demo instead of a real menu: run `supabase/sample-data.sql`.
 
-1. Scan the table QR → the menu opens with their table remembered.
-2. First time: enter **name + mobile number** → straight in, no OTP.
-   The same mobile number on another phone opens the same account (order history and points).
-3. Order → follow status live → **Request Bill** → pay at the counter.
+## 8. Upload the logo (optional)
 
-## Keeping cafes up to date
+1. `https://supabase.com/dashboard/project/<ref>/storage/buckets/images` → **Upload file**.
+2. Tap the file → **Get URL** → copy. That's `VITE_CAFE_LOGO_URL` for step 9.
+3. Optional: upload a wide food photo the same way for `VITE_CAFE_HERO_IMAGE_URL` (the home page
+   banner; default is a dosa photo).
 
-- **Website changes**: push to `main`. Every Vercel project rebuilds automatically.
-- **Database changes**: for each cafe, `npx supabase link --project-ref <ref> && npx supabase db push`.
+Skip it and a neutral cup logo is used.
 
-## Switching on OTP login later (dormant for now)
+## 9. Deploy the website (Vercel)
 
-The SMS OTP code is kept but switched off. To turn it on for a cafe:
+1. https://vercel.com/new → GitHub dropdown **nairsolutions02-debug** → **cafe-erp** → **Import**.
+   Not listed? Dropdown → *Add GitHub Scope*, or fix app access (step 1).
+2. **Vercel Team**: the Pro team for paying cafes. **Project Name**: e.g. `chai-point` →
+   site becomes `https://chai-point.vercel.app` if free.
+3. **Root Directory → Edit → `frontend`**. Framework: Vite (auto).
+   ⚠️ The #1 mistake: without Root Directory = `frontend` the build fails.
+4. **Environment Variables**: paste this block (edited) into the first **Key** box. Vercel splits it:
 
-1. `npx supabase secrets set TWOFACTOR_API_KEY=<2factor.in key>`
-2. `npx supabase functions deploy phone-otp`
-3. SQL: `update public.settings set value = 'true' where key = 'otp_login_enabled';`
-4. Vercel: set `VITE_OTP_LOGIN=true` and redeploy.
+```env
+VITE_SUPABASE_URL="https://<ref>.supabase.co"
+VITE_SUPABASE_PUBLISHABLE_KEY="sb_publishable_..."
+VITE_CAFE_NAME="Chai Point"
+VITE_CAFE_TAGLINE="Bhilai's favourite chai"
+VITE_CAFE_THEME_COLOR="#2E7D32"
+VITE_CAFE_LOGO_URL="https://<ref>.supabase.co/storage/v1/object/public/images/logo.png"
+VITE_CAFE_ADDRESS="Shop 4, Nehru Nagar, Bhilai"
+VITE_CAFE_PHONE="+91 98xxxxxxxx"
+VITE_CAFE_HOURS_TIME="8:00 AM - 11:00 PM"
+VITE_CAFE_INSTAGRAM="https://instagram.com/..."
+```
 
-## Good to know
+   Only the first three are required. Keep the quotes (a bare `#` starts a comment).
+   All options: `frontend/.env.example` (hero text/image, stats, search hints, hours days, email, Facebook).
+5. **Don't** click "Add" next to Supabase under *Optional Integrations* (it would create a second database).
+6. **Deploy** → copy the domain when it says *Congratulations*.
 
-- **Free plan pauses** a Supabase project after 7 days with no activity. A cafe that is open daily
-  won't hit this; for a cafe closing for a long holiday, open the site once a week or use the Pro plan.
-- **Vercel's free (Hobby) plan is for non-commercial use.** Paid cafes should be on Vercel Pro
-  (one Pro account can hold many cafe projects).
-- **Backups**: Supabase Pro has daily backups. On the free plan, export from Database → Backups
-  or run `npx supabase db dump` regularly.
+Changing env vars later: Project → Settings → Environment Variables → save → **Deployments → ⋯ → Redeploy**.
+
+## 10. Connect the site URL
+
+`https://supabase.com/dashboard/project/<ref>/auth/url-configuration` → **Site URL** = the Vercel URL → Save.
+
+## 11. Test everything
+
+Use two devices (owner's laptop/tablet = admin, your phone = customer) or a normal + Incognito window.
+**One browser can't be admin and customer at once.** A browser logged in as admin shows
+"Signed in as admin" on customer pages.
+
+- [ ] `https://<site>/admin/login` → owner's email + password
+- [ ] Admin → **Settings**: name, address, GSTIN, taxes correct → Save
+- [ ] Admin → **Menu**: items present; add a photo to one item (tests uploads)
+- [ ] Leave **Admin → Orders** open
+- [ ] Phone: `https://<site>/?table=1` → name + mobile → straight in (no OTP)
+- [ ] Add 2 items → cart shows **"Table 1 - Your table"** → Place Order
+- [ ] Order appears on admin **within 1–2 s without refresh**, with a sound
+- [ ] Admin: Confirm → Start Preparing → Mark Ready → Mark Served (phone updates each time)
+- [ ] Phone: **Request Bill** → Admin: **Generate Bill** (check name/GSTIN/tax lines) → **Cash Paid**
+      → phone shows "Payment Received"
+- [ ] Admin → Dashboard shows today's revenue
+
+## 12. Print table QR codes
+
+1. Admin → **Tables**: all tables listed (add more with *Add Multiple*).
+2. **QR Codes → Print**. On a phone choose *Save as PDF* and send it to a print shop
+   (laminated A6/A7 cards or table stands).
+3. Scan one printed QR before sticking them: it must open the menu with that table selected.
+4. Optional: a general QR (no table) for the counter/door: `https://<site>`.
+
+QR codes contain only the site address + table number; reprint if the domain changes.
+
+## 13. Hand over to the owner
+
+- [ ] WhatsApp the owner the menu link, admin link and login email; send the password separately.
+- [ ] Show staff the flow: **Confirm → Preparing → Ready → Served → Generate Bill → Cash/Online Paid**.
+      Keep the Orders page open on the counter device, volume up.
+- [ ] Show the owner: marking an item out of stock, changing prices, adding a coupon.
+- [ ] Save your own record: cafe name, site URL, Supabase project link, Vercel project name,
+      owner email, number of tables, setup date.
+
+---
+
+## Custom domain (optional)
+
+1. Vercel → project → **Settings → Domains** → add e.g. `order.chaipoint.in`.
+2. At the domain provider add the DNS record Vercel shows (usually CNAME → `cname.vercel-dns.com`).
+3. Once "Valid Configuration": update Supabase **Site URL** (step 10) and reprint QR codes.
 
 ## Troubleshooting
 
-| Problem | Fix |
+| What you see | Fix |
 |---|---|
-| Customer login says "Anonymous sign-ins are disabled" | Turn on anonymous sign-ins (step 1.2) |
-| Admin login says "This account is not an admin" | Run `select public.make_admin('email')` |
-| Site loads but menu is empty / errors | Check `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY`, then redeploy |
-| Orders don't appear live on the admin screen | Run `npx supabase db push` (enables live updates on orders and tables) |
-| Image upload fails | Must be logged in as admin; images up to 5 MB (jpg, png, webp, gif) |
+| Vercel build fails / "No package.json" | Settings → General → **Root Directory** = `frontend` → Redeploy |
+| `cafe-erp` missing in Vercel import list | GitHub → Settings → Installed apps → Vercel → Configure → add `cafe-erp` |
+| Site opens but menu empty / console errors | Wrong `VITE_SUPABASE_URL` or key → fix env vars → **Redeploy** |
+| "Anonymous sign-ins are disabled" | Step 5: turn on anonymous sign-ins |
+| "Signups not allowed for this instance" | Step 5: turn **Allow new users to sign up** back ON |
+| Admin: "Invalid credentials" | Check email/password; reset via Auth → Users → ⋯, or recreate user + `make_admin` |
+| Admin: "Email logins are disabled" | Auth → Sign In / Providers → Email → enable |
+| Admin: "This account is not an admin" | Run `select public.make_admin('exact@email');` |
+| Customer page shows "Signed in as admin" | That browser is logged in as admin: other device/Incognito, or tap "Log out admin" |
+| "Please sign in first" when ordering | Refresh, log in again with name + mobile |
+| "This table is currently occupied" | Another customer has an open bill there; Admin → Tables → **Free Table** if stale |
+| Orders only appear after refresh | Setup SQL incomplete: check Database → Publications → `supabase_realtime` has `orders` and `dining_tables` |
+| Image upload fails | Must be admin; < 5 MB; jpg/png/webp/gif |
+| Wrong tax on bills | Admin → Settings → Tax Configuration (new orders only) |
+| Supabase project "Paused" | Free projects pause after 7 idle days → open project → **Restore**; busy cafes → Pro |
+| Setup SQL: "already exists" | Already ran on this project; nothing to do |
+
+Still stuck: screenshot the screen + browser console (F12 → Console) and send it to Claude.
+
+## Updates & maintenance
+
+- **Website changes**: merge to `main` → every cafe's Vercel project rebuilds (~1 min).
+- **Database changes**: when a release adds a file to `supabase/migrations/`, run **only that file**
+  in each cafe's SQL Editor, or from the repo on your Mac (needs the DB password):
+  ```bash
+  git pull
+  npx supabase link --project-ref <ref>
+  npx supabase db push
+  ```
+  Then rebuild the phone guide so its setup SQL includes the new file:
+  `node scripts/build-setup-guide.mjs`.
+- **Monthly per cafe**: check Supabase usage (free: 500 MB database, 1 GB files); export orders as a
+  backup on the free plan (Pro has daily backups); optionally clean old anonymous logins:
+  ```sql
+  delete from auth.users
+   where is_anonymous
+     and created_at < now() - interval '90 days'
+     and id not in (select id from public.profiles where customer_id is not null);
+  ```
+
+## Turning on SMS OTP later
+
+Today customers log in with name + mobile only. The trade-off is that anyone typing someone else's number sees that
+person's history and points. To require OTP for a cafe:
+
+1. Get a 2factor.in API key.
+2. From the repo:
+   ```bash
+   npx supabase link --project-ref <ref>
+   npx supabase secrets set TWOFACTOR_API_KEY=<key>
+   npx supabase functions deploy phone-otp
+   ```
+3. SQL: `update public.settings set value = 'true' where key = 'otp_login_enabled';`
+4. Vercel: add `VITE_OTP_LOGIN` = `true` → Redeploy.
+
+## Costs & plans
+
+| Item | Free | Paid |
+|---|---|---|
+| Vercel (websites) | Hobby: non-commercial only | Pro ≈ $20/month per member, holds all cafes |
+| Supabase (database) | 2 free projects per account; pauses after 7 idle days; no automatic backups | Pro ≈ $25/month per organization (one project's compute included); each extra project ≈ $10/month |
+| Domain (optional) | — | ≈ ₹800–1,200/year (.in) |
+| SMS OTP (if enabled) | — | Prepaid per SMS |
+
+Prices change; check the providers' pricing pages before quoting a cafe.
 
 ## Local development
 
 ```bash
 npx supabase start            # local Supabase in Docker
 npx supabase db reset         # apply migrations
-cd frontend && cp .env.example .env.local   # use the local URL + publishable key printed by `supabase start`
+cd frontend && cp .env.example .env.local   # local URL + publishable key from `supabase start`
 npm install && npm run dev
 npm run test:db               # end-to-end database checks
 ```

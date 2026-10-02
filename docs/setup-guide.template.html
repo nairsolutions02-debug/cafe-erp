@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#C87316">
+<title>Cafe ERP Setup Guide</title>
+<style>
+:root {
+  --bg: #FFFAEF; --card: #FFFFFF; --text: #2B1D0E; --muted: #6E5B45; --line: #EADFCB;
+  --primary: #C87316; --primary-ink: #FFFFFF; --soft: #FFF1DC; --ok: #1E8E4E; --okbg: #E5F6EC;
+  --warn: #9A5B00; --warnbg: #FFF4D6; --bad: #B42318; --badbg: #FDECEA; --code: #2B1D0E; --codebg: #F6EEDF;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15110C; --card: #211A12; --text: #F4EADB; --muted: #BFAE97; --line: #3A2E21;
+    --primary: #E08A2E; --primary-ink: #1A1209; --soft: #2D2215; --ok: #4CC38A; --okbg: #12301F;
+    --warn: #F0B952; --warnbg: #33270F; --bad: #F2867B; --badbg: #3A1714; --code: #F4EADB; --codebg: #2B2117;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 64px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+a { color: var(--primary); font-weight: 600; word-break: break-word; }
+header.top { position: sticky; top: 0; z-index: 10; background: var(--primary); color: var(--primary-ink); padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+header.top h1 { font-size: 1.05rem; margin: 0; flex: 1; }
+header.top .prog { font-size: .85rem; font-weight: 700; background: rgba(0,0,0,.18); padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+main { max-width: 760px; margin: 0 auto; padding: 16px 16px 80px; }
+.hero { padding: 8px 0 4px; }
+.hero h2 { margin: 0 0 4px; font-size: 1.5rem; }
+.hero p { margin: 0; color: var(--muted); }
+nav.toc { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin: 16px 0; }
+nav.toc ol { margin: 0; padding-left: 22px; columns: 2; column-gap: 24px; }
+nav.toc li { margin: 2px 0; break-inside: avoid; }
+nav.toc a { font-weight: 500; text-decoration: none; }
+@media (max-width: 520px) { nav.toc ol { columns: 1; } }
+section.step { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 16px 0; }
+section.step > h3 { margin: 0 0 4px; font-size: 1.2rem; display: flex; gap: 10px; align-items: baseline; }
+.num { background: var(--primary); color: var(--primary-ink); border-radius: 99px; min-width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: .9rem; flex: none; }
+.time { color: var(--muted); font-size: .85rem; margin: 0 0 10px; }
+h4 { margin: 16px 0 6px; font-size: 1rem; }
+ul.check { list-style: none; padding: 0; margin: 8px 0; }
+ul.check li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px dashed var(--line); }
+ul.check li:first-child { border-top: 0; }
+ul.check input[type=checkbox] { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--ok); flex: none; }
+ul.check li.done > div { opacity: .55; text-decoration: line-through; text-decoration-color: var(--muted); }
+ul.check li > div { flex: 1; min-width: 0; }
+.note, .warn, .bad, .ok { border-radius: 12px; padding: 10px 12px; margin: 10px 0; font-size: .95rem; }
+.note { background: var(--soft); }
+.warn { background: var(--warnbg); color: var(--warn); }
+.bad { background: var(--badbg); color: var(--bad); }
+.ok { background: var(--okbg); color: var(--ok); }
+.warn strong, .bad strong, .ok strong { color: inherit; }
+code, kbd { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .88em; background: var(--codebg); color: var(--code); padding: 1px 6px; border-radius: 6px; word-break: break-word; }
+.copybox { position: relative; margin: 8px 0; }
+.copybox pre { margin: 0; background: var(--codebg); color: var(--code); border: 1px solid var(--line); border-radius: 12px; padding: 12px; padding-right: 76px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; max-height: 260px; overflow: auto; }
+.btn { appearance: none; border: 0; border-radius: 10px; background: var(--primary); color: var(--primary-ink); font: 600 .9rem system-ui, sans-serif; padding: 9px 14px; cursor: pointer; min-height: 40px; }
+.btn.ghost { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
+.btn.small { padding: 6px 10px; min-height: 32px; font-size: .8rem; }
+.copybox .btn { position: absolute; top: 8px; right: 8px; }
+.btn.copied { background: var(--ok); color: #fff; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.form label { display: flex; flex-direction: column; gap: 4px; font-size: .85rem; font-weight: 600; color: var(--muted); min-width: 0; }
+.form label.full { grid-column: 1 / -1; }
+.form input, .form textarea, .form select { font: 16px system-ui, sans-serif; color: var(--text); background: var(--bg); border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 10px; width: 100%; }
+.form textarea { min-height: 150px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 14px; }
+.form input:focus, .form textarea:focus { outline: 2px solid var(--primary); border-color: transparent; }
+.form .hint { font-weight: 400; font-size: .78rem; }
+@media (max-width: 520px) { .form { grid-template-columns: 1fr; } }
+table { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 8px 0; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
+.tablewrap { overflow-x: auto; }
+details { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 8px 0; background: var(--bg); }
+details summary { cursor: pointer; font-weight: 700; }
+.linkbtn { display: inline-flex; align-items: center; gap: 6px; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; margin: 4px 0; text-decoration: none; }
+.linkbtn::after { content: "↗"; font-weight: 700; }
+.muted { color: var(--muted); }
+footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 24px 0; }
+.status { font-size: .85rem; color: var(--muted); }
+.pill { display: inline-block; font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: var(--soft); color: var(--primary); }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>☕ Cafe ERP · Setup Guide</h1>
+  <span class="prog" id="progress">0%</span>
+</header>
+<main>
+
+<div class="hero">
+  <h2>Set up a new cafe in ~30 minutes</h2>
+  <p>Works offline on your phone. Fill <a href="#details">Cafe details</a> once: every link, Vercel setting and SQL below fills itself in, with a Copy button. Tick each step as you go.</p>
+</div>
+
+<nav class="toc">
+  <ol>
+    <li><a href="#onetime">One-time setup (only once ever)</a></li>
+    <li><a href="#collect">Collect from the cafe owner</a></li>
+    <li><a href="#details">Cafe details (fill this)</a></li>
+    <li><a href="#supabase">Create Supabase project</a></li>
+    <li><a href="#database">Load the database</a></li>
+    <li><a href="#auth">Login settings</a></li>
+    <li><a href="#admin">Owner's admin account</a></li>
+    <li><a href="#data">Bill details, menu &amp; tables</a></li>
+    <li><a href="#logo">Upload logo (optional)</a></li>
+    <li><a href="#vercel">Deploy the website</a></li>
+    <li><a href="#siteurl">Connect site URL</a></li>
+    <li><a href="#test">Test everything</a></li>
+    <li><a href="#qr">Print table QR codes</a></li>
+    <li><a href="#handover">Hand over to owner</a></li>
+    <li><a href="#domain">Custom domain (optional)</a></li>
+    <li><a href="#trouble">Troubleshooting</a></li>
+    <li><a href="#maintain">Updates &amp; maintenance</a></li>
+    <li><a href="#otp">Turning on OTP later</a></li>
+    <li><a href="#costs">Costs &amp; plans</a></li>
+  </ol>
+</nav>
+
+<div class="row">
+  <button class="btn ghost small" id="resetChecks">Reset ticks for a new cafe</button>
+  <button class="btn ghost small" id="clearDetails">Clear cafe details</button>
+</div>
+
+<!-- 1 -->
+<section class="step" id="onetime">
+  <h3><span class="num">1</span>One-time setup (only once ever)</h3>
+  <p class="time">Already done for your first cafe. Check this only if you're on a new laptop or account.</p>
+  <ul class="check" data-group="onetime">
+    <li><input type="checkbox"><div><strong>GitHub repo</strong>: <code>nairsolutions02-debug/cafe-erp</code> exists and has the latest code on <code>main</code>.<br><a class="linkbtn" href="https://github.com/nairsolutions02-debug/cafe-erp" target="_blank" rel="noopener">Open repo</a></div></li>
+    <li><input type="checkbox"><div><strong>Vercel can see the repo.</strong> The Vercel GitHub App must be installed on <code>nairsolutions02-debug</code> with access to <code>cafe-erp</code>. Signing in to Vercel with GitHub is <em>not</em> enough.<br><a class="linkbtn" href="https://github.com/settings/installations" target="_blank" rel="noopener">GitHub → Installed apps → Vercel → Configure</a></div></li>
+    <li><input type="checkbox"><div><strong>Supabase account</strong> (log in with GitHub or email).<br><a class="linkbtn" href="https://supabase.com/dashboard/projects" target="_blank" rel="noopener">Supabase dashboard</a></div></li>
+    <li><input type="checkbox"><div><strong>Vercel Pro</strong> before the first <em>paying</em> cafe (the free Hobby plan doesn't allow commercial use). One Pro team holds all cafes.<br><a class="linkbtn" href="https://vercel.com/dashboard" target="_blank" rel="noopener">Vercel dashboard</a></div></li>
+    <li><input type="checkbox"><div><strong>2-factor login</strong> on GitHub, Vercel and Supabase. These accounts control every cafe's data.</div></li>
+    <li><input type="checkbox"><div><strong>Password manager</strong> (Google Password Manager / Bitwarden) to save each cafe's Supabase DB password and owner login.</div></li>
+  </ul>
+</section>
+
+<!-- 2 -->
+<section class="step" id="collect">
+  <h3><span class="num">2</span>Collect from the cafe owner</h3>
+  <p class="time">Before or at the visit · 10 min of talking</p>
+  <ul class="check" data-group="collect">
+    <li><input type="checkbox"><div><strong>Cafe name</strong> exactly as on their board, plus a one-line <strong>tagline</strong>.</div></li>
+    <li><input type="checkbox"><div><strong>Owner's email</strong>: becomes the admin login. Must be one they can open.</div></li>
+    <li><input type="checkbox"><div><strong>Logo</strong>: square PNG/JPG, ideally 512×512 (WhatsApp it to yourself).</div></li>
+    <li><input type="checkbox"><div><strong>Brand colour</strong> (from logo/board). Pick the hex code e.g. <code>#2E7D32</code>.</div></li>
+    <li><input type="checkbox"><div><strong>Address</strong>, <strong>phone</strong>, <strong>opening hours</strong>, Instagram link.</div></li>
+    <li><input type="checkbox"><div><strong>GSTIN</strong> (if registered) and GST rate. Most cafes: <strong>5%</strong> (2.5% CGST + 2.5% SGST). Not registered: 0%.</div></li>
+    <li><input type="checkbox"><div><strong>Full menu with prices</strong>: photo of the menu card is enough. Note veg / non-veg.</div></li>
+    <li><input type="checkbox"><div><strong>Number of tables</strong> and how they're numbered (1, 2, 3… or A1, A2…).</div></li>
+    <li><input type="checkbox"><div>Photos of 5–10 bestsellers (optional; can be added later from admin).</div></li>
+  </ul>
+</section>
+
+<!-- 3 -->
+<section class="step" id="details">
+  <h3><span class="num">3</span>Cafe details</h3>
+  <p class="time">Fill this once; it's saved on this phone until you clear it. Everything below updates as you type.</p>
+  <div class="form">
+    <label>Cafe name<input id="f_name" placeholder="Chai Point"></label>
+    <label>Tagline<input id="f_tagline" placeholder="Bhilai's favourite chai"></label>
+    <label>Owner email (admin login)<input id="f_email" type="email" placeholder="owner@gmail.com"></label>
+    <label>Brand colour<input id="f_color" placeholder="#C87316"></label>
+    <label class="full">Address<input id="f_address" placeholder="Shop 4, Nehru Nagar, Bhilai"></label>
+    <label>Cafe phone<input id="f_phone" placeholder="+91 98xxxxxxxx"></label>
+    <label>Opening hours<input id="f_hours" placeholder="9:00 AM - 11:00 PM"></label>
+    <label>Instagram URL<input id="f_insta" placeholder="https://instagram.com/…"></label>
+    <label>GSTIN <span class="hint">(blank if not registered)</span><input id="f_gstin" placeholder="22ABCDE1234F1Z5"></label>
+    <label>GST % total<input id="f_gst" inputmode="decimal" placeholder="5"></label>
+    <label>Split GST as CGST + SGST?<select id="f_split"><option value="yes">Yes (2.5% + 2.5%)</option><option value="no">No (single GST line)</option></select></label>
+    <label>Number of tables<input id="f_tables" inputmode="numeric" placeholder="8"></label>
+    <label>Table numbering<select id="f_tabletype"><option value="num">1, 2, 3 …</option><option value="custom">Custom list (below)</option></select></label>
+    <label class="full" id="customTablesWrap" hidden>Custom table names <span class="hint">comma separated, e.g. A1, A2, Terrace 1</span><input id="f_tablelist"></label>
+    <label class="full">Supabase project URL <span class="hint">(after step 4, paste the Project URL or any dashboard link)</span><input id="f_sburl" placeholder="https://abcd1234.supabase.co"></label>
+    <label class="full">Supabase publishable key <span class="hint">(starts with sb_publishable_ · never the secret key)</span><input id="f_key" placeholder="sb_publishable_…"></label>
+    <label class="full">Logo URL <span class="hint">(after step 9, optional)</span><input id="f_logo" placeholder="https://….supabase.co/storage/v1/object/public/images/…"></label>
+    <label class="full">Website URL <span class="hint">(after step 10)</span><input id="f_site" placeholder="https://chai-point.vercel.app"></label>
+  </div>
+  <p class="status" id="detailStatus"></p>
+</section>
+
+<!-- 4 -->
+<section class="step" id="supabase">
+  <h3><span class="num">4</span>Create the Supabase project</h3>
+  <p class="time">3 min (+2 min waiting)</p>
+  <ul class="check" data-group="supabase">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" href="https://supabase.com/dashboard/new" target="_blank" rel="noopener">New project</a> and pick your organization.</div></li>
+    <li><input type="checkbox"><div><strong>Project name</strong>: <code data-bind="slug">cafe-name</code> (lowercase, dashes).</div></li>
+    <li><input type="checkbox"><div><strong>Database password</strong>: tap <em>Generate a password</em> → copy → save in your password manager as "<span data-bind="name">Cafe</span> Supabase DB". You won't need it day to day, but you can't see it again.</div></li>
+    <li><input type="checkbox"><div><strong>Region</strong>: <strong>South Asia (Mumbai)</strong>, fastest for Indian customers.</div></li>
+    <li><input type="checkbox"><div>Plan: Free to start (see <a href="#costs">Costs</a>, max 2 free projects per account). Tap <strong>Create new project</strong> and wait until the dashboard shows the project is ready (~2 min).</div></li>
+    <li><input type="checkbox"><div>Copy the <strong>Project URL</strong> and the <strong>Publishable key</strong> into <a href="#details">Cafe details</a>.<br><a class="linkbtn" data-href="project:/settings/api-keys" href="#details" target="_blank" rel="noopener">Settings → API Keys</a>
+      <div class="note">Project URL is on the project's home page (Connect button) and looks like <code>https://abcd1234.supabase.co</code>. Use the <strong>Publishable key</strong> (<code>sb_publishable_…</code>). <strong>Never</strong> copy the secret key (<code>sb_secret_…</code>) anywhere.</div></div></li>
+  </ul>
+</section>
+
+<!-- 5 -->
+<section class="step" id="database">
+  <h3><span class="num">5</span>Load the database</h3>
+  <p class="time">2 min</p>
+  <ul class="check" data-group="database">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" data-href="project:/sql/new" href="#details" target="_blank" rel="noopener">SQL Editor → New query</a></div></li>
+    <li><input type="checkbox"><div>Tap <strong>Copy setup SQL</strong>, paste it into the editor (long-press → Paste), tap <strong>Run</strong>.
+      <div class="row"><button class="btn" data-copy-src="sql-setup">Copy setup SQL</button><button class="btn ghost" data-download-src="sql-setup" data-filename="cafe-erp-setup.sql">Download .sql</button></div>
+      <details><summary>Preview setup SQL</summary><div class="copybox"><pre data-preview-src="sql-setup"></pre></div></details>
+      <div class="ok"><strong>Expected:</strong> "Success. No rows returned". A notice about <code>pgcrypto already exists</code> is fine.</div>
+      <div class="warn"><strong>Run it only once per project.</strong> Running again gives "already exists" errors. That's harmless, but means it was already done.</div></div></li>
+    <li><input type="checkbox"><div>Check: <a class="linkbtn" data-href="project:/editor" href="#details" target="_blank" rel="noopener">Table Editor</a> lists tables like <code>orders</code>, <code>menu_items</code>, <code>dining_tables</code>.</div></li>
+  </ul>
+</section>
+
+<!-- 6 -->
+<section class="step" id="auth">
+  <h3><span class="num">6</span>Login settings</h3>
+  <p class="time">1 min</p>
+  <ul class="check" data-group="auth">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" data-href="project:/auth/providers" href="#details" target="_blank" rel="noopener">Authentication → Sign In / Providers</a></div></li>
+    <li><input type="checkbox"><div>Turn <strong>ON</strong> "<strong>Allow anonymous sign-ins</strong>" → Save. This is how customers log in with just name + mobile.</div></li>
+    <li><input type="checkbox"><div>Leave "<strong>Allow new users to sign up</strong>" <strong>ON</strong>, and leave the <strong>Email</strong> provider <strong>enabled</strong>.
+      <div class="bad"><strong>Don't turn these off.</strong> Turning off sign-ups also blocks customer login, and turning off Email blocks the owner's admin login. This is safe: a stranger who signs up gets no admin access. Admin rights only come from the <code>make_admin</code> step below.</div></div></li>
+    <li><input type="checkbox"><div>"Confirm email" can stay on; you'll create the owner's account pre-confirmed in the next step.</div></li>
+  </ul>
+</section>
+
+<!-- 7 -->
+<section class="step" id="admin">
+  <h3><span class="num">7</span>Owner's admin account</h3>
+  <p class="time">2 min</p>
+  <ul class="check" data-group="admin">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" data-href="project:/auth/users" href="#details" target="_blank" rel="noopener">Authentication → Users</a> → <strong>Add user</strong> → <strong>Create new user</strong>.</div></li>
+    <li><input type="checkbox"><div>Email: <code data-bind="email">owner@email</code>. Password: make a strong one (12+ characters). Tick <strong>Auto Confirm User</strong> → Create.<br><span class="muted">Save it in your password manager; you'll give it to the owner in step 14.</span></div></li>
+    <li><input type="checkbox"><div>Make them admin: <a class="linkbtn" data-href="project:/sql/new" href="#details" target="_blank" rel="noopener">SQL Editor → New query</a>, paste and Run:
+      <div class="copybox"><pre id="out_makeadmin"></pre><button class="btn small" data-copy="out_makeadmin">Copy</button></div>
+      <div class="ok"><strong>Expected:</strong> one row: <code>ok</code>. "No user with email…" means the email doesn't match exactly.</div></div></li>
+  </ul>
+</section>
+
+<!-- 8 -->
+<section class="step" id="data">
+  <h3><span class="num">8</span>Bill details, menu &amp; tables</h3>
+  <p class="time">5–10 min (mostly typing the menu)</p>
+  <p>Do it all in one paste instead of tapping through admin screens. Everything can still be edited later in the admin panel.</p>
+
+  <h4>8a. Type the menu</h4>
+  <p class="muted">One item per line: <code>Category | Item | Price | veg/nonveg | description</code>. Only the first three are required. Lines starting with <code>#</code> are ignored.</p>
+  <div class="form"><label class="full">Menu<textarea id="f_menu" spellcheck="false" placeholder="Hot Beverages | Masala Chai | 30 | veg | Ginger &amp; cardamom
+Hot Beverages | Filter Coffee | 40
+Snacks | Veg Sandwich | 80
+Snacks | Chicken Puff | 50 | nonveg
+Cold Beverages | Water Bottle | 20"></textarea></label></div>
+  <p class="status" id="menuStatus"></p>
+  <div class="note">💡 Name one item exactly <strong>Water Bottle</strong>: the cart suggests it to every customer.</div>
+
+  <h4>8b. Run one SQL for bill details + menu + tables</h4>
+  <ul class="check" data-group="data">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" data-href="project:/sql/new" href="#details" target="_blank" rel="noopener">SQL Editor → New query</a>, paste and Run:
+      <div class="copybox"><pre id="out_cafesql"></pre><button class="btn small" data-copy="out_cafesql">Copy</button></div>
+      <div class="ok"><strong>Expected:</strong> "Success". Safe to run again after fixing the menu: existing items are skipped, not duplicated.</div></div></li>
+    <li><input type="checkbox"><div><em>Demo instead?</em> For a sales demo with no real menu, run the sample menu instead:
+      <div class="row"><button class="btn ghost small" data-copy-src="sql-sample">Copy sample menu SQL</button></div></div></li>
+  </ul>
+</section>
+
+<!-- 9 -->
+<section class="step" id="logo">
+  <h3><span class="num">9</span>Upload the logo (optional)</h3>
+  <p class="time">2 min · skip and a neutral cup logo is used</p>
+  <ul class="check" data-group="logo">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" data-href="project:/storage/buckets/images" href="#details" target="_blank" rel="noopener">Storage → images</a> → <strong>Upload file</strong> → choose the logo.</div></li>
+    <li><input type="checkbox"><div>Tap the uploaded file → <strong>Get URL</strong> → copy → paste into <em>Logo URL</em> in <a href="#details">Cafe details</a>.</div></li>
+    <li><input type="checkbox"><div>Optional: upload a wide food photo the same way for the home page banner and add it to the Vercel settings as <code>VITE_CAFE_HERO_IMAGE_URL</code> (default is a dosa photo).</div></li>
+  </ul>
+</section>
+
+<!-- 10 -->
+<section class="step" id="vercel">
+  <h3><span class="num">10</span>Deploy the website</h3>
+  <p class="time">4 min (+1 min build)</p>
+  <ul class="check" data-group="vercel">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" href="https://vercel.com/new" target="_blank" rel="noopener">Vercel → New Project</a>. In the GitHub dropdown pick <strong>nairsolutions02-debug</strong>, find <strong>cafe-erp</strong> → <strong>Import</strong>.
+      <div class="note">Don't see it? Dropdown → <strong>Add GitHub Scope</strong>, or give the Vercel app access to <code>cafe-erp</code> (step 1).</div></div></li>
+    <li><input type="checkbox"><div><strong>Vercel Team</strong>: your Pro team for paying cafes. <strong>Project Name</strong>: <code data-bind="slug">cafe-name</code>. This becomes <code data-bind="vercelurl">https://cafe-name.vercel.app</code> if it's free.</div></li>
+    <li><input type="checkbox"><div><strong>Root Directory</strong> → Edit → choose <code>frontend</code> → Continue. <strong>Framework</strong>: Vite (auto).
+      <div class="bad"><strong>Most common mistake:</strong> forgetting Root Directory = <code>frontend</code>. The build fails without it.</div></div></li>
+    <li><input type="checkbox"><div>Open <strong>Environment Variables</strong>. Copy the block below, then paste it into the first <strong>Key</strong> box (Vercel splits it into all variables automatically).
+      <div class="copybox"><pre id="out_env"></pre><button class="btn small" data-copy="out_env">Copy</button></div>
+      <p class="status" id="envStatus"></p></div></li>
+    <li><input type="checkbox"><div><strong>Don't</strong> click "Add" next to Supabase under Optional Integrations (it would create a second database). Tap <strong>Deploy</strong>.</div></li>
+    <li><input type="checkbox"><div>When it says <strong>Congratulations</strong>, copy the domain (e.g. <code>https://….vercel.app</code>) into <em>Website URL</em> in <a href="#details">Cafe details</a>.</div></li>
+  </ul>
+</section>
+
+<!-- 11 -->
+<section class="step" id="siteurl">
+  <h3><span class="num">11</span>Connect the site URL</h3>
+  <p class="time">1 min</p>
+  <ul class="check" data-group="siteurl">
+    <li><input type="checkbox"><div>Open <a class="linkbtn" data-href="project:/auth/url-configuration" href="#details" target="_blank" rel="noopener">Authentication → URL Configuration</a></div></li>
+    <li><input type="checkbox"><div><strong>Site URL</strong> = <code data-bind="site">https://….vercel.app</code> → Save.</div></li>
+  </ul>
+</section>
+
+<!-- 12 -->
+<section class="step" id="test">
+  <h3><span class="num">12</span>Test everything</h3>
+  <p class="time">5 min · use the owner's laptop/tablet for admin and your phone for customer</p>
+  <div class="warn"><strong>Admin and customer can't share one browser.</strong> Use two devices, or a normal + Incognito window. A browser logged in as admin shows "Signed in as admin" on customer pages.</div>
+  <ul class="check" data-group="test">
+    <li><input type="checkbox"><div><strong>Admin login</strong>: <a class="linkbtn" data-href="site:/admin/login" href="#details" target="_blank" rel="noopener">Open admin login</a> with the owner's email + password.</div></li>
+    <li><input type="checkbox"><div><strong>Admin → Settings</strong>: restaurant name, address, GSTIN and taxes show what you set. Fix anything and Save.</div></li>
+    <li><input type="checkbox"><div><strong>Admin → Menu</strong>: items are there. Add a photo to 1 item to test uploads.</div></li>
+    <li><input type="checkbox"><div>Leave <strong>Admin → Orders</strong> open.</div></li>
+    <li><input type="checkbox"><div><strong>Customer</strong> (phone): <a class="linkbtn" data-href="site:/?table=1" href="#details" target="_blank" rel="noopener">Open as Table 1</a> → enter name + mobile → straight in, no OTP.</div></li>
+    <li><input type="checkbox"><div>Add 2 items → Cart shows "<strong>Table 1 - Your table</strong>" → Place Order.</div></li>
+    <li><input type="checkbox"><div>Order appears on the admin screen <strong>within 1–2 seconds, without refreshing</strong>, with a sound.</div></li>
+    <li><input type="checkbox"><div>Admin: Confirm → Start Preparing → Mark Ready → Mark Served. The phone updates each time.</div></li>
+    <li><input type="checkbox"><div>Phone: <strong>Request Bill</strong> → Admin: <strong>Generate Bill</strong> (check name, GSTIN, tax lines) → <strong>Cash Paid</strong> → phone shows "Payment Received".</div></li>
+    <li><input type="checkbox"><div>Admin → Dashboard shows today's revenue. Then cancel/ignore the test order. It's fine to leave it in history.</div></li>
+  </ul>
+</section>
+
+<!-- 13 -->
+<section class="step" id="qr">
+  <h3><span class="num">13</span>Print table QR codes</h3>
+  <p class="time">3 min (+ printing)</p>
+  <ul class="check" data-group="qr">
+    <li><input type="checkbox"><div>Admin → <strong>Tables</strong> → check all tables are listed (add more with <strong>Add Multiple</strong>).</div></li>
+    <li><input type="checkbox"><div>Tap <strong>QR Codes</strong> → <strong>Print</strong>. On a phone choose "Save as PDF" and send it to a print shop. Laminated A6/A7 cards or table stands work well.</div></li>
+    <li><input type="checkbox"><div>Scan one printed QR with a phone camera before sticking them: it should open the menu with that table selected.</div></li>
+    <li><input type="checkbox"><div>Optional: one general QR for the counter/door (no table): <code data-bind="site">https://….vercel.app</code>.</div></li>
+  </ul>
+  <div class="note">QR codes contain only the website address + table number. If you later move to a custom domain, reprint them.</div>
+</section>
+
+<!-- 14 -->
+<section class="step" id="handover">
+  <h3><span class="num">14</span>Hand over to the owner</h3>
+  <p class="time">5 min</p>
+  <ul class="check" data-group="handover">
+    <li><input type="checkbox"><div>Send this to the owner on WhatsApp (send the password in a separate message, or tell them in person):
+      <div class="copybox"><pre id="out_owner"></pre><button class="btn small" data-copy="out_owner">Copy</button></div></div></li>
+    <li><input type="checkbox"><div>Show staff the order flow: <strong>Confirm → Preparing → Ready → Served → Generate Bill → Cash/Online Paid</strong>. Keep the Orders page open on the counter device with the volume up.</div></li>
+    <li><input type="checkbox"><div>Show the owner: marking an item <strong>out of stock</strong> (Menu → stock button), changing prices, adding a coupon.</div></li>
+    <li><input type="checkbox"><div>Save your own record for this cafe:
+      <div class="copybox"><pre id="out_record"></pre><button class="btn small" data-copy="out_record">Copy</button></div></div></li>
+  </ul>
+</section>
+
+<!-- 15 -->
+<section class="step" id="domain">
+  <h3><span class="num">15</span>Custom domain (optional)</h3>
+  <p class="time">10 min + DNS wait (minutes to a few hours)</p>
+  <ul class="check" data-group="domain">
+    <li><input type="checkbox"><div>Vercel → the cafe's project → <strong>Settings → Domains</strong> → Add, e.g. <code>order.chaipoint.in</code>.</div></li>
+    <li><input type="checkbox"><div>At the domain provider (GoDaddy/Hostinger…) add the DNS record Vercel shows (usually a <strong>CNAME</strong> to <code>cname.vercel-dns.com</code>).</div></li>
+    <li><input type="checkbox"><div>When Vercel shows "Valid Configuration", update Supabase <strong>Site URL</strong> (step 11) to the new domain and reprint QR codes.</div></li>
+  </ul>
+</section>
+
+<!-- 16 -->
+<section class="step" id="trouble">
+  <h3><span class="num">16</span>Troubleshooting</h3>
+  <div class="tablewrap"><table>
+    <tr><th>What you see</th><th>Fix</th></tr>
+    <tr><td>Vercel build fails / "No package.json"</td><td>Project → Settings → General → <strong>Root Directory</strong> = <code>frontend</code> → Redeploy.</td></tr>
+    <tr><td>cafe-erp missing in Vercel import list</td><td>Vercel GitHub App lacks access: <a href="https://github.com/settings/installations" target="_blank" rel="noopener">GitHub → Installed apps</a> → Vercel → Configure → add <code>cafe-erp</code>.</td></tr>
+    <tr><td>Site opens but menu empty, errors in console</td><td>Wrong <code>VITE_SUPABASE_URL</code> or key. Fix in Vercel → Settings → Environment Variables → then <strong>Deployments → ⋯ → Redeploy</strong> (env changes need a redeploy).</td></tr>
+    <tr><td>Customer login: "Anonymous sign-ins are disabled"</td><td>Step 6: turn on anonymous sign-ins.</td></tr>
+    <tr><td>Customer login: "Signups not allowed for this instance"</td><td>Step 6: turn "Allow new users to sign up" back <strong>ON</strong>.</td></tr>
+    <tr><td>Admin login: "Invalid credentials"</td><td>Check email/password; reset it in Authentication → Users → ⋯ → Send password recovery, or delete and recreate the user (then run make_admin again).</td></tr>
+    <tr><td>Admin login: "Email logins are disabled"</td><td>Authentication → Sign In / Providers → <strong>Email</strong> → enable.</td></tr>
+    <tr><td>Admin login: "This account is not an admin"</td><td>Run the make_admin SQL (step 7) with the exact email.</td></tr>
+    <tr><td>Customer page shows "Signed in as admin"</td><td>That browser is logged in as admin. Use another device/Incognito, or tap "Log out admin".</td></tr>
+    <tr><td>"Please sign in first" when ordering</td><td>Refresh the page and log in again with name + mobile.</td></tr>
+    <tr><td>"This table is currently occupied"</td><td>Another customer has an open bill on that table. Admin → Tables → <strong>Free Table</strong> if it's stale.</td></tr>
+    <tr><td>Orders only appear after refresh</td><td>Setup SQL didn't finish: re-run the last part, or check Database → Publications → <code>supabase_realtime</code> includes <code>orders</code> and <code>dining_tables</code>.</td></tr>
+    <tr><td>Image upload fails</td><td>Must be logged in as admin; image under 5 MB, jpg/png/webp/gif.</td></tr>
+    <tr><td>Wrong tax on bills</td><td>Admin → Settings → Tax Configuration. Applies to new orders only.</td></tr>
+    <tr><td>Supabase project "Paused"</td><td>Free projects pause after 7 days without use. Open the project → <strong>Restore</strong>. Move busy cafes to Pro.</td></tr>
+    <tr><td>Setup SQL: "already exists"</td><td>The setup was already run on this project. Nothing to do.</td></tr>
+  </table></div>
+  <div class="note">Still stuck: screenshot the screen + browser console (desktop: F12 → Console) and send it to Claude.</div>
+</section>
+
+<!-- 17 -->
+<section class="step" id="maintain">
+  <h3><span class="num">17</span>Updates &amp; maintenance</h3>
+  <h4>Website changes (all cafes at once)</h4>
+  <p>Merge to <code>main</code> on GitHub → every cafe's Vercel project rebuilds automatically in ~1 minute.</p>
+  <h4>Database changes (per cafe)</h4>
+  <p>When a release adds a new file in <code>supabase/migrations/</code>, run only that new file's SQL in each cafe's SQL Editor. Or from your Mac (needs the DB password):</p>
+  <div class="copybox"><pre id="out_dbpush"></pre><button class="btn small" data-copy="out_dbpush">Copy</button></div>
+  <h4>Monthly check per cafe (5 min)</h4>
+  <ul class="check" data-group="maintain">
+    <li><input type="checkbox"><div>Supabase → <strong>Reports / Usage</strong>: database &amp; storage well under plan limits (free: 500 MB DB, 1 GB files).</div></li>
+    <li><input type="checkbox"><div>Backup: free plan → Database → Backups isn't automatic; export data occasionally (Table Editor → export CSV for orders) or use Pro (daily backups).</div></li>
+    <li><input type="checkbox"><div>Clean up old anonymous logins (harmless, keeps the user list tidy). SQL Editor:
+      <div class="copybox"><pre>delete from auth.users
+ where is_anonymous
+   and created_at &lt; now() - interval '90 days'
+   and id not in (select id from public.profiles where customer_id is not null);</pre><button class="btn small" data-copy-text="delete from auth.users
+ where is_anonymous
+   and created_at &lt; now() - interval '90 days'
+   and id not in (select id from public.profiles where customer_id is not null);">Copy</button></div></div></li>
+  </ul>
+</section>
+
+<!-- 18 -->
+<section class="step" id="otp">
+  <h3><span class="num">18</span>Turning on SMS OTP later</h3>
+  <p>Customers log in with name + mobile only. The trade-off is that anyone typing someone else's number sees that person's history and points. To require OTP for a cafe:</p>
+  <ul class="check" data-group="otp">
+    <li><input type="checkbox"><div>Get a <a class="linkbtn" href="https://2factor.in" target="_blank" rel="noopener">2factor.in</a> API key (prepaid SMS credits).</div></li>
+    <li><input type="checkbox"><div>From the repo on your Mac:
+      <div class="copybox"><pre id="out_otp"></pre><button class="btn small" data-copy="out_otp">Copy</button></div></div></li>
+    <li><input type="checkbox"><div>SQL Editor: <code>update public.settings set value = 'true' where key = 'otp_login_enabled';</code></div></li>
+    <li><input type="checkbox"><div>Vercel → Environment Variables → add <code>VITE_OTP_LOGIN</code> = <code>true</code> → Redeploy.</div></li>
+  </ul>
+</section>
+
+<!-- 19 -->
+<section class="step" id="costs">
+  <h3><span class="num">19</span>Costs &amp; plans</h3>
+  <div class="tablewrap"><table>
+    <tr><th>Item</th><th>Free</th><th>Paid</th></tr>
+    <tr><td>Vercel (websites)</td><td>Hobby: personal / non-commercial only</td><td>Pro ≈ $20/month per member; holds all cafe projects</td></tr>
+    <tr><td>Supabase (database)</td><td>2 free projects per account; pauses after 7 idle days; no automatic backups</td><td>Pro ≈ $25/month per organization (includes one project's compute); each extra project ≈ $10/month</td></tr>
+    <tr><td>Domain (optional)</td><td>—</td><td>≈ ₹800–1,200/year (.in)</td></tr>
+    <tr><td>SMS OTP (only if enabled)</td><td>—</td><td>Prepaid per SMS</td></tr>
+  </table></div>
+  <p class="muted">Prices change; check the providers' pricing pages before quoting a cafe.</p>
+</section>
+
+<footer>Cafe ERP by N.A.I.R. Solutions · <span id="builtAt">BUILD_DATE</span></footer>
+</main>
+
+<script type="text/plain" id="sql-setup"><!--SETUP_SQL--></script>
+<script type="text/plain" id="sql-sample"><!--SAMPLE_SQL--></script>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem('cafeGuide:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem('cafeGuide:' + k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } },
+    del(k) { try { localStorage.removeItem('cafeGuide:' + k); } catch (e) { /* storage unavailable */ } },
+  };
+  const rawText = (id) => {
+    const t = $(id).textContent;
+    return t.replace(/^\n/, '');
+  };
+
+  // ---------- Form fields ----------
+  const FIELDS = ['name', 'tagline', 'email', 'color', 'address', 'phone', 'hours', 'insta', 'gstin', 'gst', 'split',
+    'tables', 'tabletype', 'tablelist', 'sburl', 'key', 'logo', 'site', 'menu'];
+  const details = store.get('details', {});
+  FIELDS.forEach((f) => {
+    const el = $('f_' + f);
+    if (!el) return;
+    if (details[f] != null) el.value = details[f];
+    el.addEventListener('input', () => { details[f] = el.value; store.set('details', details); render(); });
+    el.addEventListener('change', () => { details[f] = el.value; store.set('details', details); render(); });
+  });
+
+  const v = (f) => (($('f_' + f) || {}).value || '').trim();
+  const slugify = (s) => s.toLowerCase().replace(/['’`]/g, '').normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'cafe';
+  const sq = (s) => "'" + String(s).replace(/'/g, "''") + "'";
+  const envq = (s) => '"' + String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"';
+
+  function projectRef() {
+    const u = v('sburl');
+    let m = u.match(/https?:\/\/([a-z0-9]{15,})\.supabase\.co/i);
+    if (m) return m[1].toLowerCase();
+    m = u.match(/project\/([a-z0-9]{15,})/i);
+    if (m) return m[1].toLowerCase();
+    if (/^[a-z0-9]{15,}$/i.test(u)) return u.toLowerCase();
+    return '';
+  }
+  function siteUrl() {
+    const s = v('site').replace(/\/+$/, '');
+    if (!s) return '';
+    return /^https?:\/\//.test(s) ? s : 'https://' + s;
+  }
+  function tableNames() {
+    if (v('tabletype') === 'custom') {
+      return v('tablelist').split(',').map((s) => s.trim()).filter(Boolean);
+    }
+    const n = Math.min(parseInt(v('tables'), 10) || 0, 200);
+    return Array.from({ length: n }, (_, i) => String(i + 1));
+  }
+
+  function parseMenu() {
+    const items = []; const errors = [];
+    v('menu').split('\n').forEach((line, i) => {
+      const l = line.trim();
+      if (!l || l.startsWith('#')) return;
+      const parts = (l.includes('|') ? l.split('|') : l.split(',')).map((s) => s.trim());
+      const [category, name, priceRaw, vegRaw = '', ...desc] = parts;
+      const price = parseFloat(String(priceRaw || '').replace(/[₹,\s]/g, ''));
+      if (!category || !name || !(price >= 0)) { errors.push(`Line ${i + 1}: needs Category | Item | Price`); return; }
+      const veg = !/^(n|nv|non|nonveg|non-veg|non veg)$/i.test(vegRaw);
+      const description = /^(v|veg|n|nv|non|nonveg|non-veg|non veg)$/i.test(vegRaw) || vegRaw === '' ? desc.join(' | ') : [vegRaw, ...desc].join(' | ');
+      items.push({ category, name, price, veg, description });
+    });
+    return { items, errors };
+  }
+
+  function cafeSql() {
+    const out = ['-- Cafe ERP: bill details, menu and tables for ' + (v('name') || 'the cafe')];
+    const gst = v('gst') === '' ? 5 : Math.max(0, parseFloat(v('gst')) || 0);
+    const taxes = gst === 0 ? [] : (v('split') === 'no' ? [{ name: 'GST', rate: gst }] : [{ name: 'CGST', rate: gst / 2 }, { name: 'SGST', rate: gst / 2 }]);
+    const settings = [
+      ['restaurant_name', JSON.stringify(v('name') || 'Cafe')],
+      ['restaurant_address', JSON.stringify(v('address'))],
+      ['restaurant_phone', JSON.stringify(v('phone'))],
+      ['gst_number', JSON.stringify(v('gstin').toUpperCase())],
+      ['gst_rate', JSON.stringify(gst)],
+      ['tax_config', JSON.stringify(taxes)],
+    ];
+    out.push('insert into public.settings (key, value) values');
+    out.push(settings.map(([k, val]) => `    (${sq(k)}, ${sq(val)}::jsonb)`).join(',\n'));
+    out.push('on conflict (key) do update set value = excluded.value;');
+
+    const { items } = parseMenu();
+    if (items.length) {
+      const cats = [...new Set(items.map((i) => i.category))];
+      out.push('');
+      out.push('insert into public.categories (name, sort_order) values');
+      out.push(cats.map((c, i) => `    (${sq(c)}, ${i + 1})`).join(',\n'));
+      out.push('on conflict (name) do nothing;');
+      out.push('');
+      out.push('insert into public.menu_items (name, description, price, is_veg, is_upsell, category_id)');
+      out.push('select v.name, v.description, v.price, v.is_veg, v.is_upsell, c.id from (values');
+      out.push(items.map((it) => `    (${sq(it.name)}, ${sq(it.description)}, ${it.price}, ${it.veg}, ${/^water bottle$/i.test(it.name)}, ${sq(it.category)})`).join(',\n'));
+      out.push(') as v(name, description, price, is_veg, is_upsell, category)');
+      out.push('join public.categories c on c.name = v.category');
+      out.push('where not exists (select 1 from public.menu_items m where lower(m.name) = lower(v.name));');
+    }
+    const tables = tableNames();
+    if (tables.length) {
+      out.push('');
+      out.push('insert into public.dining_tables (table_number) values');
+      out.push(tables.map((t) => `    (${sq(t)})`).join(',\n'));
+      out.push('on conflict (table_number) do nothing;');
+    }
+    return out.join('\n');
+  }
+
+  function envBlock() {
+    const ref = projectRef();
+    const lines = [
+      ['VITE_SUPABASE_URL', ref ? `https://${ref}.supabase.co` : 'https://<project-ref>.supabase.co'],
+      ['VITE_SUPABASE_PUBLISHABLE_KEY', v('key') || 'sb_publishable_…'],
+      ['VITE_CAFE_NAME', v('name') || 'Cafe'],
+      ['VITE_CAFE_TAGLINE', v('tagline')],
+      ['VITE_CAFE_THEME_COLOR', v('color')],
+      ['VITE_CAFE_LOGO_URL', v('logo')],
+      ['VITE_CAFE_ADDRESS', v('address')],
+      ['VITE_CAFE_PHONE', v('phone')],
+      ['VITE_CAFE_HOURS_TIME', v('hours')],
+      ['VITE_CAFE_INSTAGRAM', v('insta')],
+    ].filter(([k, val], i) => i < 3 || val);
+    return lines.map(([k, val]) => `${k}=${envq(val)}`).join('\n');
+  }
+
+  function render() {
+    const name = v('name') || 'Cafe';
+    const slug = slugify(v('name') || 'cafe-name');
+    const ref = projectRef();
+    const site = siteUrl();
+    const email = v('email') || 'owner@email.com';
+
+    document.querySelectorAll('[data-bind]').forEach((el) => {
+      const b = el.dataset.bind;
+      el.textContent = b === 'slug' ? slug : b === 'name' ? name : b === 'email' ? email
+        : b === 'site' ? (site || 'https://….vercel.app') : b === 'vercelurl' ? `https://${slug}.vercel.app` : el.textContent;
+    });
+    document.querySelectorAll('[data-href]').forEach((el) => {
+      const [kind, path] = el.dataset.href.split(/:(.*)/s);
+      const base = kind === 'project' ? (ref ? `https://supabase.com/dashboard/project/${ref}` : '') : site;
+      if (base) { el.href = base + path; el.target = '_blank'; el.style.opacity = 1; el.title = ''; }
+      else { el.href = '#details'; el.removeAttribute('target'); el.style.opacity = .6; el.title = 'Fill Cafe details first'; }
+    });
+
+    $('out_makeadmin').textContent = `select public.make_admin(${sq(email)});`;
+    $('out_cafesql').textContent = cafeSql();
+    $('out_env').textContent = envBlock();
+    $('out_dbpush').textContent = `cd cafe-erp && git pull\nnpx supabase link --project-ref ${ref || '<project-ref>'}\nnpx supabase db push`;
+    $('out_otp').textContent = `npx supabase link --project-ref ${ref || '<project-ref>'}\nnpx supabase secrets set TWOFACTOR_API_KEY=<2factor-key>\nnpx supabase functions deploy phone-otp`;
+    $('out_owner').textContent =
+`${name}: your ordering system is live ✅
+
+Customer menu (also on the table QR codes):
+${site || 'https://….vercel.app'}
+
+Admin panel (orders, menu, bills, reports):
+${site ? site + '/admin/login' : 'https://….vercel.app/admin/login'}
+Login: ${email}
+Password: (sent separately)
+
+Keep the Orders page open on the counter device. New orders ring automatically.
+Support: N.A.I.R. Solutions`;
+    $('out_record').textContent =
+`Cafe: ${name}
+Website: ${site || '-'}
+Supabase project: ${ref ? 'https://supabase.com/dashboard/project/' + ref : '-'}
+Vercel project: ${slug}
+Owner/admin email: ${email}
+Tables: ${tableNames().length}
+Set up on: ${new Date().toLocaleDateString('en-IN')}`;
+
+    const { items, errors } = parseMenu();
+    const cats = new Set(items.map((i) => i.category)).size;
+    $('menuStatus').textContent = items.length || errors.length
+      ? `${items.length} items in ${cats} categories${errors.length ? ' · ⚠ ' + errors.join('; ') : ''}`
+      : 'No menu yet: the SQL will set bill details and tables only.';
+    $('customTablesWrap').hidden = v('tabletype') !== 'custom';
+
+    const warn = [];
+    if (v('sburl') && !ref) warn.push('Supabase URL not recognised. Paste the Project URL (https://….supabase.co).');
+    if (/^sb_secret_/i.test(v('key'))) warn.push('⚠ That is the SECRET key. Use the publishable key (sb_publishable_…).');
+    else if (v('key') && !/^sb_publishable_|^eyJ/.test(v('key'))) warn.push('Key should start with sb_publishable_.');
+    if (v('color') && !/^#[0-9a-f]{6}$/i.test(v('color'))) warn.push('Colour should look like #2E7D32.');
+    $('detailStatus').textContent = warn.join(' ');
+    $('envStatus').textContent = (!ref || !v('key')) ? 'Fill the Supabase URL and publishable key in Cafe details first.' : '';
+  }
+
+  // ---------- Copy / download ----------
+  async function copyText(text, btn) {
+    try { await navigator.clipboard.writeText(text); }
+    catch (e) {
+      const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = 0;
+      document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove();
+    }
+    const old = btn.textContent; btn.textContent = 'Copied ✓'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = old; btn.classList.remove('copied'); }, 1500);
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.copy) copyText($(b.dataset.copy).textContent, b);
+    if (b.dataset.copySrc) copyText(rawText(b.dataset.copySrc), b);
+    if (b.dataset.copyText) copyText(b.dataset.copyText, b);
+    if (b.dataset.downloadSrc) {
+      const blob = new Blob([rawText(b.dataset.downloadSrc)], { type: 'text/plain' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = b.dataset.filename; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }
+  });
+  document.querySelectorAll('[data-preview-src]').forEach((pre) => { pre.textContent = rawText(pre.dataset.previewSrc); });
+
+  // ---------- Checklists ----------
+  const checks = store.get('checks', {});
+  const boxes = [...document.querySelectorAll('ul.check input[type=checkbox]')];
+  boxes.forEach((cb, i) => {
+    const id = cb.closest('ul').dataset.group + ':' + i;
+    cb.checked = !!checks[id];
+    cb.closest('li').classList.toggle('done', cb.checked);
+    cb.addEventListener('change', () => {
+      checks[id] = cb.checked; store.set('checks', checks);
+      cb.closest('li').classList.toggle('done', cb.checked); progress();
+    });
+  });
+  function progress() {
+    const counted = boxes.filter((cb) => !['onetime', 'domain', 'maintain', 'otp'].includes(cb.closest('ul').dataset.group));
+    const done = counted.filter((cb) => cb.checked).length;
+    $('progress').textContent = Math.round((done / counted.length) * 100) + '%';
+  }
+  $('resetChecks').addEventListener('click', () => {
+    if (!confirm('Untick all steps (except one-time setup) for a new cafe?')) return;
+    boxes.forEach((cb, i) => {
+      const g = cb.closest('ul').dataset.group;
+      if (g === 'onetime') return;
+      cb.checked = false; delete checks[g + ':' + i]; cb.closest('li').classList.remove('done');
+    });
+    store.set('checks', checks); progress();
+  });
+  $('clearDetails').addEventListener('click', () => {
+    if (!confirm('Clear all cafe details (name, keys, menu…)?')) return;
+    FIELDS.forEach((f) => { const el = $('f_' + f); if (el) el.value = el.tagName === 'SELECT' ? el.options[0].value : ''; });
+    Object.keys(details).forEach((k) => delete details[k]); store.del('details'); render();
+  });
+
+  render(); progress();
+})();
+</script>
+</body>
+</html>
