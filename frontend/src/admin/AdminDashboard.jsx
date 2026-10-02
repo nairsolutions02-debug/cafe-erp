@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FiShoppingBag, FiDollarSign, FiAlertCircle, FiTrendingUp, FiSettings, FiUsers } from 'react-icons/fi';
-import { getDashboardStats, getActiveOrders, getLowStock, getGstRate, updateGstRate, getUserAnalytics } from '../utils/api';
+import { getDashboardStats, getActiveOrders, getInventoryAlerts, getGstRate, updateGstRate, getUserAnalytics } from '../utils/api';
+import { fmtMoney, fmtQty } from './inventory/shared';
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
-    const { socket } = useAuth();
+    const { socket, hasPerm } = useAuth();
     const [stats, setStats] = useState(null);
     const [activeOrders, setActiveOrders] = useState([]);
-    const [lowStock, setLowStock] = useState([]);
+    const [stockAlerts, setStockAlerts] = useState(null);
     const [userStats, setUserStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [gstRate, setGstRate] = useState(5);
@@ -41,12 +42,12 @@ const AdminDashboard = () => {
             const [statsRes, ordersRes, stockRes, userRes] = await Promise.all([
                 getDashboardStats(),
                 getActiveOrders(),
-                getLowStock(),
+                hasPerm('inventory.view') ? getInventoryAlerts().catch(() => ({ data: null })) : Promise.resolve({ data: null }),
                 getUserAnalytics('month')
             ]);
             setStats(statsRes.data);
             setActiveOrders(ordersRes.data);
-            setLowStock(stockRes.data);
+            setStockAlerts(stockRes.data);
             setUserStats(userRes.data);
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -173,25 +174,43 @@ const AdminDashboard = () => {
             </div>
 
             <div className="dashboard-grid">
-                {/* Low Stock */}
-                <div className="dashboard-card">
-                    <div className="card-header">
-                        <h2>Low Stock Alert</h2>
-                        <Link to="/admin/inventory" className="view-all">View All</Link>
+                {/* Stock: what to reorder and where stock went missing this week */}
+                {stockAlerts && (
+                    <div className="dashboard-card">
+                        <div className="card-header">
+                            <h2>Stock alerts{stockAlerts.reorderCount > 0 ? ` (${stockAlerts.reorderCount})` : ''}</h2>
+                            <Link to="/admin/inventory" className="view-all">Inventory</Link>
+                        </div>
+                        <div className="stock-list">
+                            {stockAlerts.reorder.length === 0 ? (
+                                <p className="no-data">Nothing to reorder</p>
+                            ) : (
+                                stockAlerts.reorder.map(item => (
+                                    <div key={item.id} className="stock-item">
+                                        <span className="stock-name">{item.name}</span>
+                                        <span className="stock-qty low">
+                                            {fmtQty(item.totalQuantity, item.unit)}{item.daysLeft != null ? ` · ${item.daysLeft} days left` : ''}
+                                        </span>
+                                    </div>
+                                ))
+                            )}
+                            {stockAlerts.leaks.length > 0 && (
+                                <>
+                                    <h3 className="mini-title">Top leaks this week</h3>
+                                    {stockAlerts.leaks.map(l => (
+                                        <div key={l.itemId} className="stock-item">
+                                            <span className="stock-name">{l.item}</span>
+                                            <span className="stock-qty low">{l.lostValue != null ? fmtMoney(l.lostValue, 0) : fmtQty(l.countVariance - l.wastage, l.unit)}</span>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+                            {stockAlerts.negative > 0 && (
+                                <p className="mini-text">{stockAlerts.negative} item(s) below zero: a purchase or recipe is probably missing.</p>
+                            )}
+                        </div>
                     </div>
-                    <div className="stock-list">
-                        {lowStock.length === 0 ? (
-                            <p className="no-data">All stock levels normal</p>
-                        ) : (
-                            lowStock.slice(0, 5).map(item => (
-                                <div key={item._id} className="stock-item">
-                                    <span className="stock-name">{item.name}</span>
-                                    <span className="stock-qty low">{item.currentStock} {item.unit}</span>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
+                )}
 
                 {/* Quick Settings Link */}
                 <div className="dashboard-card">

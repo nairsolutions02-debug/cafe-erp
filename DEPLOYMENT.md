@@ -286,8 +286,9 @@ Still stuck: screenshot the screen + browser console (F12 → Console) and send 
 - **Release notes**: every push to `main` is listed in `RELEASES.md` with what changed, deploy steps and
   a test checklist. Tick through that checklist on the live site after each release.
 - **Database changes**: when a release ships an upgrade file in `supabase/upgrades/` (e.g.
-  `2026-10-phase0.sql`), paste **that one file** into each cafe's SQL Editor → Run. It runs in one
-  transaction (all or nothing). Otherwise run only the new `supabase/migrations/` file, or from the repo
+  `2026-10-phase0.sql`, then `2026-10-phase1.sql`), paste **that one file** into each cafe's SQL Editor →
+  Run. Run each upgrade once, oldest first. It runs in one transaction (all or nothing). A brand-new
+  project doesn't need upgrades: the setup SQL already contains every migration. Otherwise run only the new `supabase/migrations/` file, or from the repo
   on your Mac (needs the DB password):
   ```bash
   git pull

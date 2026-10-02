@@ -33,6 +33,7 @@ import AdminCustomers from './admin/AdminCustomers';
 import AdminStaff from './admin/AdminStaff';
 import AdminCatalogue from './admin/AdminCatalogue';
 import AdminAudit from './admin/AdminAudit';
+import AdminRecipes from './admin/AdminRecipes';
 import AdminGate from './admin/AdminGate';
 import Superadmin from './superadmin/Superadmin';
 import { ADMIN_NAV, firstAllowedPath } from './admin/adminNav';
@@ -117,6 +118,7 @@ function AppRoutes() {
         <Route path="collections" element={<RequirePerm path="/admin/collections"><AdminCollections /></RequirePerm>} />
         <Route path="coupons" element={<RequirePerm path="/admin/coupons"><AdminCoupons /></RequirePerm>} />
         <Route path="inventory" element={<RequirePerm path="/admin/inventory"><AdminInventory /></RequirePerm>} />
+        <Route path="recipes" element={<RequirePerm path="/admin/recipes"><AdminRecipes /></RequirePerm>} />
         <Route path="employees" element={<RequirePerm path="/admin/employees"><AdminEmployees /></RequirePerm>} />
         <Route path="tables" element={<RequirePerm path="/admin/tables"><AdminTables /></RequirePerm>} />
         <Route path="analytics" element={<RequirePerm path="/admin/analytics"><AdminAnalytics /></RequirePerm>} />

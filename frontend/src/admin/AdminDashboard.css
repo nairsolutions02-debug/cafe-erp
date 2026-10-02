@@ -296,3 +296,10 @@
         grid-template-columns: 1fr;
     }
 }
+.mini-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--text-muted);
+    margin: 12px 0 4px;
+}

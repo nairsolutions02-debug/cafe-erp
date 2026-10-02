@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
-import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../utils/api';
+import { getAllCategories, createCategory, updateCategory, deleteCategory, getStockLocations } from '../utils/api';
 import { getImageUrl } from '../utils/config';
 import { useAuth } from '../context/AuthContext';
 import './AdminCategories.css';
@@ -11,10 +11,14 @@ const AdminCategories = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState(null);
-    const [formData, setFormData] = useState({ name: '', description: '', order: 1, parentId: '' });
+    const [formData, setFormData] = useState({ name: '', description: '', order: 1, parentId: '', stockLocationId: '' });
     const [image, setImage] = useState(null);
+    const [locations, setLocations] = useState([]);
 
     useEffect(() => { fetchData(); }, []);
+    useEffect(() => {
+        if (hasPerm('inventory.view')) getStockLocations().then(r => setLocations(r.data)).catch(() => {});
+    }, [hasPerm]);
 
     const fetchData = async () => {
         try {
@@ -60,13 +64,14 @@ const AdminCategories = () => {
 
     const openEdit = (item) => {
         setEditItem(item);
-        setFormData({ name: item.name, description: item.description || '', order: item.order || 1, parentId: item.parentId || '' });
+        setFormData({ name: item.name, description: item.description || '', order: item.order || 1, parentId: item.parentId || '',
+            stockLocationId: item.stockLocationId || '' });
         setShowModal(true);
     };
 
     const resetForm = () => {
         setEditItem(null);
-        setFormData({ name: '', description: '', order: 1, parentId: '' });
+        setFormData({ name: '', description: '', order: 1, parentId: '', stockLocationId: '' });
         setImage(null);
     };
 
@@ -131,6 +136,16 @@ const AdminCategories = () => {
                                             .map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                                     </select>
                                 </div>
+                                {locations.length > 0 && (
+                                    <div className="input-group">
+                                        <label>Sales take stock from</label>
+                                        <select className="input" value={formData.stockLocationId} aria-label="Stock location"
+                                            onChange={e => setFormData({ ...formData, stockLocationId: e.target.value })}>
+                                            <option value="">{formData.parentId ? 'Same as parent category' : 'Cafe sales location'}</option>
+                                            {locations.filter(l => l.isActive).map(l => <option key={l._id} value={l._id}>{l.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div className="input-group">
                                     <label>Description</label>
                                     <textarea className="input" value={formData.description}

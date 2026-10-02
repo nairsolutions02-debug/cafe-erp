@@ -4,6 +4,69 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phase 1 — Inventory and recipes (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Stock ledger | Every stock change is one entry in Inventory → **Movements** (purchase, sale, cancelled order, transfer, wastage, staff meal, complimentary, correction, count). Entries can't be edited or deleted; mistakes are fixed with a correcting entry. |
+| Locations | Main store, Kitchen and Kiosk are created for every cafe (add more under **Locations**). Purchases arrive at the purchase location; sales take stock from the sales location, or from the location set on the item's category or recipe (e.g. the Kiosk category sells from the Kiosk). |
+| Stock items | Ingredients, resale products and packaging with a base unit (g, ml, pc) and pack units (Litre = 1000 ml, Crate = 24 pc), reorder level, usual vendor, how often to count, shelf order. |
+| Vendors | Phone/WhatsApp, GSTIN, lead time, order cycle, payment terms, amount still to pay. |
+| Purchases | Enter a supplier bill in pack units with GST, paid now or later, bill photo. Stock goes up and each item's **average cost** updates: (old stock × old cost + bill amount) ÷ (old + new quantity). A **price alert** shows when an item costs 10%+ more than its average. Unpaid bills can be paid later; a wrong entry can be undone. |
+| Recipes & Costing | New page: ingredients × quantity (+ waste %) per menu item, live cost per portion, **food cost %** and **margin** (owner/manager only). Resale items (Coke, cigarettes) get a 1-piece recipe with one click. |
+| Automatic deduction | Every order deducts its recipes from the right location the moment it's placed; cancelling the order puts the stock back. Each order line stores its cost at the time of sale (for profit reports later). |
+| Wastage & meals | Record wastage (with reason and photo), staff meals and complimentary items per item and location. |
+| Transfers | Move stock between locations, several items at once. |
+| Counts & leaks | Start a count per location (daily items, daily + weekly, or everything). Blind count by default; expected is taken when each line is saved, so sales during the count don't show as loss. Posting corrects stock and records the variance in ₹. **Where stock went missing** lists count shortfall + wastage per item. |
+| Reorder | Daily use (last 14 days), days left, reorder flag (at reorder level, or days left ≤ vendor lead time + 1) and suggested order in packs. **Reorder list** groups by vendor with a **Send on WhatsApp** button. |
+| Dashboard | "Low stock" card replaced by **Stock alerts**: items to reorder and top leaks this week. |
+| Search | Global search also finds stock items and vendors. |
+| Permissions | Costs and stock value need "See cost prices"; margins and food cost % need "See profit". Wastage/counts need Inventory: Create; posting counts, transfers and corrections need Inventory: Edit; undoing purchases needs Inventory: Delete. The database enforces this. |
+| Superadmin fix | **Owner PIN** now works for a cafe that had no PIN login (like the migrated `default` cafe): it creates the owner's PIN login from the owner name and mobile in **Edit cafe**. |
+| Phone layout | Admin pages no longer scroll sideways on phones; wide tables scroll inside their box. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste **`supabase/upgrades/2026-10-phase1.sql`** → Run. Expected: *Success*. (Phase 0 must already be applied.)
+2. Vercel redeploys from `main` automatically (~1 minute). Until step 1 runs, the Inventory page shows errors; everything else works.
+
+**Test checklist** (owner login unless noted)
+
+- [ ] Superadmin: Edit cafe → owner mobile filled → **Owner PIN** → set 4 digits → owner can log in with *Phone + PIN*
+- [ ] Inventory → **Locations**: Main store (purchases), Kitchen (sales), Kiosk
+- [ ] **Vendors** → Add vendor (e.g. Amul, phone, lead time 1, orders every 2 days)
+- [ ] **Stock** → Add item *Milk*, unit `ml`, pack unit *Litre = 1000*, vendor Amul, count Daily
+- [ ] Add item *Coffee beans*, unit `g`, cost ₹/kg, opening stock 1000
+- [ ] **Purchases** → New purchase: Amul, Milk 5 Litre × ₹60 → stock shows 5 L at Main store, avg ₹60/L
+- [ ] Second purchase at ₹75 → **price alert** appears; avg becomes ₹67.5/L
+- [ ] Purchase with *Paid in full* unticked → shows under "To pay vendors" → **Record payment** clears it
+- [ ] Stock → **Transfer** 3 Litre milk Main store → Kitchen → row shows "Main store 7 L · Kitchen 3 L"
+- [ ] **Recipes & Costing** → a coffee → add Milk 150 ml + beans 10 g (5% waste) → cost, food cost %, margin show → Save
+- [ ] Customer orders 2 of that coffee → Kitchen milk drops by 300 ml; beans by 21 g
+- [ ] Cancel that order (Orders) → the stock comes back (Movements shows *Order cancelled*)
+- [ ] Stock → **Wastage** on milk 100 ml (reason, optional photo) → Kitchen drops 100 ml
+- [ ] **Where it went** (pie icon) on milk → shows the coffee and Wastage with %
+- [ ] Kiosk item: Categories → Kiosk category → *Sales take stock from* = Kiosk; Recipes → a resale item → **Track it as its own stock item**; Purchases → buy 24 pc of it, *Received at* Kiosk; sell one → Kiosk stock drops by 1
+- [ ] **Counts & leaks** → Start count → Kitchen, Daily items → type a lower milk quantity → **Post count** → variance in ₹ shows; *Where stock went missing* lists milk
+- [ ] Stock → set milk reorder level above its stock → **Reorder** status + Reorder list with suggested Litres and **Send on WhatsApp**
+- [ ] Dashboard → **Stock alerts** card shows the reorder item and the leak
+- [ ] Search bar → vendor name and a stock item open the right tab
+- [ ] Chef (Staff & Roles → Chef role: tick Inventory *Create*) → sees stock without costs, can record wastage and count, can't post a count
+- [ ] Cashier → no Inventory or Recipes in the sidebar
+- [ ] Phone: admin pages don't scroll sideways
+
+**Known limits in this release**
+
+- Variants and add-ons (Small/Large, extra shot) don't have their own recipes yet; give each size its own menu item for now.
+- Counting works online only; the offline counter arrives with Phase 2.
+- Selling a whole pack (e.g. a pack of 10 cigarettes as one line) comes with the kiosk (Phase 3); until then sell the pack as its own menu item with a 10-piece recipe.
+- Vendor payments are tracked on the bill; they move into the money ledger and payables in Phase 2.
+- Packaging bought in bulk: set *Track quantity* off; its cost per order is estimated in Phase 4 unit economics.
+
+---
+
 ## Phase 0 — Foundation (2026-10-04)
 
 **What's new**
