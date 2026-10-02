@@ -5,7 +5,7 @@ import './AdminLogin.css';
 import brand from '../brand';
 
 const AdminLogin = () => {
-    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -19,7 +19,7 @@ const AdminLogin = () => {
         setError('');
 
         try {
-            await adminLogin(phone, password);
+            await adminLogin(email, password);
             navigate('/admin');
         } catch (err) {
             setError(err.response?.data?.message || 'Invalid credentials');
@@ -39,12 +39,13 @@ const AdminLogin = () => {
 
                 <form onSubmit={handleSubmit}>
                     <div className="input-group">
-                        <label>Phone Number</label>
+                        <label>Email</label>
                         <input
-                            type="tel"
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="Enter admin phone"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Enter admin email"
+                            autoComplete="username"
                             className="input"
                             required
                         />

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
 import brand from '../brand';
+import QuickLoginForm from '../components/QuickLoginForm';
+import { OTP_LOGIN_ENABLED } from '../lib/supabase';
 
 const Login = () => {
     const [step, setStep] = useState('phone'); // phone, otp, profile
@@ -19,13 +21,15 @@ const Login = () => {
 
     const { sendOTP, verifyOTP, isAuthenticated } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const returnTo = location.state?.from || '/';
 
     // Redirect if already logged in
     useEffect(() => {
         if (isAuthenticated) {
-            navigate('/');
+            navigate(returnTo);
         }
-    }, [isAuthenticated, navigate]);
+    }, [isAuthenticated, navigate, returnTo]);
 
     // Resend timer countdown
     useEffect(() => {
@@ -110,7 +114,7 @@ const Login = () => {
 
         try {
             await verifyOTP(phone, otpToVerify, name.trim(), email.trim());
-            navigate('/');
+            navigate(returnTo);
         } catch (err) {
             if (err.response?.data?.requiresProfile) {
                 setStep('profile');
@@ -132,6 +136,7 @@ const Login = () => {
             </div>
 
             <div className="login-card">
+                {!OTP_LOGIN_ENABLED ? <QuickLoginForm title="Welcome!" titleClassName="login-title" subtitleClassName="login-subtitle" /> : (<>
                 {step === 'phone' && (
                     <form onSubmit={handleSendOTP}>
                         <h2>Welcome!</h2>
@@ -258,6 +263,7 @@ const Login = () => {
                         </button>
                     </form>
                 )}
+                </>)}
             </div>
 
             <p className="login-footer">

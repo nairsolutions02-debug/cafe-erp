@@ -194,6 +194,17 @@ test('attendance on a holiday is marked holiday', async () => {
     assert.equal(data.status, 'holiday');
 });
 
+test('turning on OTP login blocks the no-OTP sign in', async () => {
+    await must(admin.from('settings').update({ value: true }).eq('key', 'otp_login_enabled'));
+    try {
+        const c = client();
+        await c.auth.signInAnonymously();
+        await assert.rejects(rpc(c, 'customer_sign_in', { p_name: 'X', p_phone: phone(8) }), /OTP verification required/);
+    } finally {
+        await must(admin.from('settings').update({ value: false }).eq('key', 'otp_login_enabled'));
+    }
+});
+
 test('customer receives live order updates', async () => {
     const c = await customer('Live', 7);
     const id = await rpc(c, 'place_order', { p_items: [{ menuItem: latte.id, quantity: 1 }] });

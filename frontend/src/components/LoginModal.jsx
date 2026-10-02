@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './LoginModal.css';
 import brand from '../brand';
+import QuickLoginForm from './QuickLoginForm';
+import { OTP_LOGIN_ENABLED } from '../lib/supabase';
 
 const LoginModal = () => {
     const [step, setStep] = useState('phone'); // phone, otp, profile
@@ -118,6 +120,7 @@ const LoginModal = () => {
                 </div>
 
                 <div className="login-modal-content">
+                    {!OTP_LOGIN_ENABLED ? <QuickLoginForm /> : (<>
                     {step === 'phone' && (
                         <form onSubmit={handleSendOTP}>
                             <p className="modal-title">Welcome! 👋</p>
@@ -246,6 +249,7 @@ const LoginModal = () => {
                             </button>
                         </form>
                     )}
+                    </>)}
                 </div>
 
                 <p className="modal-footer">
