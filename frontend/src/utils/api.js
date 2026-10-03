@@ -817,3 +817,50 @@ export const setQuietHours = async (person, from, to) => ok(await rpc('set_quiet
 export const getMyNotificationPrefs = async () => ok(await rpc('my_notification_prefs'));
 export const savePushSubscription = async (endpoint, keys, platform = 'web') =>
     ok(await rpc('save_push_subscription', { p_endpoint: endpoint, p_keys: keys, p_platform: platform }));
+
+// ---------------------------------------------------------------------------
+// Phase 6: rewards, customer portal, Instagram, feedback, groups, incentives
+// ---------------------------------------------------------------------------
+export const getRewardRules = async () => ok(await rpc('list_reward_rules'));
+export const saveRewardRule = async (rule) => ok(await rpc('save_reward_rule', { p: rule }));
+export const deleteRewardRule = async (id) => ok(await rpc('delete_reward_rule', { p_id: id }));
+export const giveReward = async (ruleId, customerId, note = '') => ok(await rpc('give_reward', { p_rule: ruleId, p_customer: customerId, p_note: note }));
+export const getRewardTodo = async (status = 'pending') => ok(await rpc('reward_todo', { p_status: status }));
+export const markRewardSent = async (id, status = 'sent') => ok(await rpc('mark_reward_sent', { p_grant: id, p_status: status }));
+export const getCustomerRewards = async (customerId) => ok(await rpc('customer_rewards', { p_customer: customerId }));
+export const runRewardChecks = async () => ok(await rpc('run_reward_checks'));
+export const getPortalConfig = async () => ok(await rpc('portal_config'));
+export const getMyRewards = async () => ok(await rpc('my_rewards'));
+export const setMyDates = async (birthday, anniversary) => ok(await rpc('set_my_dates', { p_birthday: birthday || null, p_anniversary: anniversary || null }));
+export const uploadCustomerSelfie = async (file, tenantId, customerId) => {
+    const body = await shrinkImage(file);
+    const path = `${tenantId}/${customerId}/ig-${Date.now()}.webp`;
+    unwrap(await supabase.storage.from('customer-private').upload(path, body, { contentType: body.type }));
+    return path;
+};
+export const customerPhotoUrl = async (path) => {
+    if (!path) return null;
+    const { data } = await supabase.storage.from('customer-private').createSignedUrl(path, 600);
+    return data?.signedUrl || null;
+};
+export const submitInstagramClaim = async (handle, kind, selfiePath) =>
+    ok(await rpc('submit_instagram_claim', { p_handle: handle, p_kind: kind, p_selfie_path: selfiePath }));
+export const getInstagramQueue = async (status = 'pending') => ok(await rpc('instagram_queue', { p_status: status }));
+export const decideInstagram = async (id, approve, reason = '') => ok(await rpc('decide_instagram', { p_claim: id, p_approve: approve, p_reason: reason }));
+// Selfies older than 30 days: delete the files, then mark them gone
+export const purgeOldSelfies = async () => {
+    const list = await rpc('expired_instagram_selfies');
+    if (!list.length) return 0;
+    await supabase.storage.from('customer-private').remove(list.map(x => x.path));
+    await rpc('mark_selfies_purged', { p_ids: list.map(x => x.id) });
+    return list.length;
+};
+export const getFeedbackForm = async (orderId) => ok(await rpc('order_feedback_form', { p_order: orderId }));
+export const submitDishFeedback = async (orderId, ratings) => ok(await rpc('submit_dish_feedback', { p_order: orderId, p_ratings: ratings }));
+export const getFeedbackOverview = async (from, to) => ok(await rpc('feedback_overview', { p_from: from, p_to: to }));
+export const moderateFeedback = async (id, reply, hidden) => ok(await rpc('moderate_feedback', { p_id: id, p_reply: reply, p_hidden: hidden }));
+export const getCustomerGroups = async (group = null) => ok(await rpc('customer_groups', { p_group: group }));
+export const getIncentiveReport = async (from, to) => ok(await rpc('incentive_report', { p_from: from, p_to: to }));
+export const saveIncentiveRule = async (rule) => ok(await rpc('save_incentive_rule', { p: rule }));
+export const deleteIncentiveRule = async (id) => ok(await rpc('delete_incentive_rule', { p_id: id }));
+export const getMyIncentives = async () => ok(await rpc('my_incentives'));

@@ -1,0 +1,9 @@
+.dish-feedback { margin: 16px; display: flex; flex-direction: column; gap: 12px; }
+.dish-feedback section { background: var(--bg-card); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 10px; }
+.dish-feedback h3 { margin: 0; font-size: 1rem; }
+.df-row { display: flex; flex-direction: column; gap: 6px; border-bottom: 1px solid var(--bg-secondary); padding-bottom: 8px; }
+.df-stars { display: flex; gap: 4px; }
+.df-stars button { border: 0; background: none; font-size: 1.6rem; color: #d6cdbd; cursor: pointer; padding: 2px; }
+.df-stars button.on { color: #f5a623; }
+.df-stars button.on svg { fill: #f5a623; }
+.df-reply { margin: 0; font-size: 0.85rem; color: var(--text-secondary); background: var(--bg-secondary); padding: 6px 10px; border-radius: var(--radius-sm); }

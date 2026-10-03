@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiClock, FiUser, FiGrid } from 'react-icons/fi';
+import { FiHome, FiClock, FiUser, FiGrid, FiGift } from 'react-icons/fi';
 import './BottomNav.css';
 
 const BottomNav = () => {
@@ -9,6 +9,7 @@ const BottomNav = () => {
     const navItems = [
         { path: '/', icon: FiHome, label: 'Home' },
         { path: '/categories', icon: FiGrid, label: 'Menu' },
+        { path: '/rewards', icon: FiGift, label: 'Rewards' },
         { path: '/history', icon: FiClock, label: 'History' },
         { path: '/profile', icon: FiUser, label: 'Profile' },
     ];

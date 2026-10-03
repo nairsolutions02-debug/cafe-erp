@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FiCamera, FiLogIn, FiLogOut, FiCoffee, FiMapPin, FiBell } from 'react-icons/fi';
-import { getMyDay, staffCheckIn, staffCheckOut, staffBreak, myLeaveRequest, uploadPrivatePhoto } from '../../utils/api';
+import { getMyDay, staffCheckIn, staffCheckOut, staffBreak, myLeaveRequest, uploadPrivatePhoto, getMyIncentives } from '../../utils/api';
 import { getPosition } from '../../lib/geo';
 import { enablePush, pushStatus } from '../../lib/push';
 import { isNativeApp } from '../../lib/geo';
@@ -19,6 +19,8 @@ const MyDay = () => {
     const [preview, setPreview] = useState('');
     const [leave, setLeave] = useState({ typeId: '', from: '', to: '', reason: '' });
     const [push, setPush] = useState(pushStatus());
+    const [inc, setInc] = useState(null);
+    useEffect(() => { getMyIncentives().then(r => setInc(r.data)).catch(() => {}); }, []);
     const fileRef = useRef(null);
 
     const load = useCallback(async () => {
@@ -133,6 +135,17 @@ const MyDay = () => {
                     <span><strong>{d.month.leave}</strong> leave</span><span><strong>{d.month.late}</strong> late</span>
                 </div>
             </section>
+
+            {inc && (Number(inc.month) > 0 || inc.hints.length > 0) && (
+                <section className="day-card">
+                    <h2>My incentives</h2>
+                    <div className="month-row">
+                        <span><strong>₹{Number(inc.week).toLocaleString('en-IN')}</strong> this week</span>
+                        <span><strong>₹{Number(inc.month).toLocaleString('en-IN')}</strong> this month</span>
+                    </div>
+                    {inc.hints.map(h => <p key={h} className="small">💡 {h}</p>)}
+                </section>
+            )}
 
             <section className="day-card">
                 <h2>Ask for leave</h2>

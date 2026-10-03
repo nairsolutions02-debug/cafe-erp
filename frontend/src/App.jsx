@@ -11,9 +11,11 @@ import Cart from './pages/Cart';
 import OrderDetails from './pages/OrderDetails';
 import History from './pages/History';
 import Profile from './pages/Profile';
+import Rewards from './pages/Rewards';
 import AdminAttendance from './admin/staffapp/AdminAttendance';
 import AdminAlerts from './admin/staffapp/AdminAlerts';
 import MyDay from './admin/staffapp/MyDay';
+import AdminRewards from './admin/rewards/AdminRewards';
 import BottomNav from './components/BottomNav';
 
 // Admin Pages
@@ -113,6 +115,7 @@ function AppRoutes() {
       <Route path="/order/:id" element={<UserLayout><OrderDetails /></UserLayout>} />
       <Route path="/history" element={<UserLayout><History /></UserLayout>} />
       <Route path="/profile" element={<UserLayout><Profile /></UserLayout>} />
+      <Route path="/rewards" element={<UserLayout><Rewards /></UserLayout>} />
 
       {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -149,6 +152,7 @@ function AppRoutes() {
         <Route path="attendance" element={<RequirePerm path="/admin/attendance"><AdminAttendance /></RequirePerm>} />
         <Route path="alerts" element={<RequirePerm path="/admin/alerts"><AdminAlerts /></RequirePerm>} />
         <Route path="me" element={<MyDay />} />
+        <Route path="rewards" element={<RequirePerm path="/admin/rewards"><AdminRewards /></RequirePerm>} />
         <Route path="audit" element={<RequirePerm path="/admin/audit"><AdminAudit /></RequirePerm>} />
       </Route>
 

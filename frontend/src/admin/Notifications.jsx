@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiBell } from 'react-icons/fi';
-import { getMyNotifications, ackNotification, runDailyReminders, getMyNotificationPrefs } from '../utils/api';
+import { getMyNotifications, ackNotification, runDailyReminders, getMyNotificationPrefs, runRewardChecks } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './pos/POS.css';
 
@@ -84,7 +84,7 @@ const Notifications = () => {
     }, []);
 
     useEffect(() => {
-        runDailyReminders().catch(() => {}).finally(load);
+        runDailyReminders().catch(() => {}).then(() => runRewardChecks().catch(() => {})).finally(load);
         const t = setInterval(load, 60000);
         return () => clearInterval(t);
     }, [load]);

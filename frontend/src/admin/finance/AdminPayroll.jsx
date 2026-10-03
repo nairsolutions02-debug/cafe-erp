@@ -13,6 +13,8 @@ import '../AdminCatalogue.css';
 import '../inventory/Inventory.css';
 import '../pos/POS.css';
 import './Reports.css';
+import '../rewards/Rewards.css';
+import IncentivesTab from './IncentivesTab';
 
 const errorText = (err) => err?.response?.data?.message || err?.message || 'Something went wrong';
 const firstOfMonth = (offset = 0) => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + offset, 1).toLocaleDateString('en-CA'); };
@@ -222,7 +224,7 @@ const MoneyTab = ({ employees }) => {
     );
 };
 
-const TABS = [['payroll', 'Payroll'], ['leave', 'Leave'], ['money', 'Advances & penalties']];
+const TABS = [['payroll', 'Payroll'], ['leave', 'Leave'], ['money', 'Advances & penalties'], ['incentives', 'Incentives']];
 
 const AdminPayroll = () => {
     const [params, setParams] = useSearchParams();
@@ -239,6 +241,7 @@ const AdminPayroll = () => {
             {tab === 'payroll' && <PayrollTab />}
             {tab === 'leave' && <LeaveTab employees={employees} />}
             {tab === 'money' && <MoneyTab employees={employees} />}
+            {tab === 'incentives' && <IncentivesTab />}
         </div>
     );
 };

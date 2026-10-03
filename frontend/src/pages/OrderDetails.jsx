@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { FiFileText, FiCheckCircle } from 'react-icons/fi';
 import Header from '../components/Header';
 import OrderStatus from '../components/OrderStatus';
+import DishFeedback from '../components/DishFeedback';
 import { useAuth } from '../context/AuthContext';
 import { getOrder, requestBill, requestPayment } from '../utils/api';
 import './OrderDetails.css';
@@ -194,6 +195,8 @@ const OrderDetails = () => {
                     </div>
                 )}
             </div>
+
+            {order.status === 'paid' && <DishFeedback orderId={order._id || order.id} />}
 
             {/* Order Info */}
             <div className="order-info-section">

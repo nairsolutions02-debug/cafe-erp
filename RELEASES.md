@@ -4,6 +4,51 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phase 6 — Rewards, customer portal, feedback and incentives (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Reward rule builder (`/admin/rewards`) | Each rule = **When** (every Nth order, spend crosses ₹X all-time or per month, first order, visit streak, birthday, anniversary, not visited for X days, customer moves into a group, Instagram verified, given by staff) + **If** (minimum bill, items/categories, days, time window, channel, customer group — restricted items never count) + **Give** (points, ₹ coupon, % coupon with a cap, free item, points multiplier for X days, custom text) + **Limits** (per customer per ever/year/month/week, max per month, monthly ₹ budget, coupon expiry, minimum gap) + **Tell** (show to the customer, WhatsApp message template, who sends it). Each rule shows its **cost per reward, estimated cost per month** and this month's count/cost. |
+| Guardrails | A rule **pauses itself** with an alert when its monthly budget is used (restarts on the 1st). Optional: hold the rule while the week is behind the profit target. |
+| WhatsApp to-do | When a rule fires, the owner/assigned staff get a *Reward* alert; the to-do card has **Send on WhatsApp** (opens WhatsApp with the customer's number and the filled-in message) → *Sent by Ravi at 7:42 pm*. Unsent cards are reminded daily. Only assigned people (and people allowed to see phone numbers) get the button. |
+| Coupons from rewards | Unique code per reward (e.g. `R4F9A21`), usable **only by that customer**, once, before expiry; shown in their portal and marked *used* when redeemed. Free-item rewards take that item off the bill. |
+| Customer portal (`/rewards`, new tab in the bottom bar) | Points and their ₹ value, **progress bar** to the next reward ("2 more orders away from ₹40 off"), coupons with copy button, upcoming rewards (birthday, Instagram…), offers to spend points on, history, birthday/anniversary entry (saved once). |
+| Slogans and switches | Rewards → Customer portal: every heading and message is editable with a preview; each block (points, progress, upcoming, offers, Instagram, ratings, Google review) can be hidden. |
+| Instagram verification | Customer taps **I tagged you** → username + **selfie at the cafe** (private) → verifier queue with the selfie and a profile link → Approve (gives the Instagram rule's reward, within its limits, e.g. once a week) or Reject with a reason the customer sees. Selfies are deleted after 30 days. |
+| Dish feedback | After paying, the customer rates each dish 1–5★ with an optional comment (on the order page). Rewards → Feedback: average per dish (lowest first), comments to **reply** to (shown on their order) or hide; 1–2★ ratings send an alert. Feedback stays inside the cafe. |
+| Google review | A **Google review** button for every customer after paying (set the link in Customer portal). It isn't tied to the rating — Google bans showing it only to happy customers. |
+| Customer groups (automatic) | New · Regular (3+ orders in 30 days) · VIP (top 10% by spend) · Slipping (no visit in 2× their usual gap) · Lost (60+ days) · Occasional. Updated after every paid order and daily. Rewards → Groups lists each group with a one-tap WhatsApp message; rules can trigger on "moves into Slipping". |
+| Incentives (Payroll → Incentives) | Rules: **per item** (₹5 per dessert), **add-on**, **sales target** bonus, **team pool** (% of profit above the weekly target, split by hours worked), **ratings** bonus. Option to pay only in weeks that made the profit target, and a cap as % of gross profit. Earnings per person with the working shown; **added to the payslip** when payroll is run. Staff see "₹145 this week" and hints on **My day**. |
+| Alerts | New alert type *Low dish rating* in the Alerts grid. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-phase6.sql`** → Run → *Success*.
+2. Vercel redeploys from `main`.
+
+**Test checklist**
+
+- [ ] Rewards → Rules: two example rules are there (off). Edit *Every 10th order* → set 2 for testing → Rule is on → Save; the card shows cost per reward and estimate
+- [ ] Counter: two sales to the same customer phone → bell *Reward* alert → Rewards → **WhatsApp to-do** → **Send on WhatsApp** opens WhatsApp with the message and code → card shows *sent by you*
+- [ ] Customer phone → bottom bar **Rewards** → coupon with code and expiry, progress bar; use the code on the next order → to-do shows *used*; another customer's order with that code is refused
+- [ ] Rewards → Customer portal → change the heading, hide *Offers*, add the Google review link and the cafe's Instagram username → Save → the customer page changes
+- [ ] Rules → new *Instagram verified* rule (50 points, once a week) → customer: **I tagged you** + selfie → Rewards → Instagram → selfie and @handle → **Approve** → points added; try again same week → approved but no reward (limit)
+- [ ] QR order → paid → order page: rate dishes, one 2★ with a comment → bell *Low dish rating* → Rewards → Feedback → **Reply** → customer sees the reply on their order; Google review button shown
+- [ ] Rewards → Groups → counts per group; WhatsApp icon opens a message for a Slipping customer
+- [ ] Rule with *Monthly budget* ₹100 and ₹50 coupons → after 2 rewards it shows *Monthly budget used up*
+- [ ] Payroll → **Incentives** → *₹5 per dessert* for everyone → sell desserts from a cashier login → the table shows the cashier's ₹ with the working → My day (cashier) shows it → run payroll → payslip *Incentives* line
+- [ ] Customer → Rewards → birthday = today → next day's first owner login (or a Birthday rule + the daily check) creates the birthday reward
+
+**Known limits in this release**
+
+- WhatsApp is sent by hand (one tap): automatic sending needs the paid WhatsApp Business API.
+- Sales for incentives count for the person who rang up the order (counter/kiosk); QR orders by customers have no staff attached.
+- Birthday, anniversary, inactive and group rules run once a day when the owner or a manager opens the app.
+
+---
+
 ## Phase 5 — Staff app, attendance and alerts (2026-10-03)
 
 **What's new**
