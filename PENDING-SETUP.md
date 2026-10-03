@@ -1,4 +1,4 @@
-# Pending setup — finish this before anything new gets built
+# Pending setup — ALL DONE (2026-10-03)
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -18,10 +18,10 @@ Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
 - [x] 2.4 GitHub → Actions → Android app → Run workflow → download APK → install on one staff phone → My day → Phone setup all green → Test alarm
 
 ## 3. Setup inside the app (FiKA)
-- [ ] 3.1 Attendance → stand in the cafe → Use my location → Save
-- [ ] 3.2 Attendance → link every employee to their staff login; set shift start
-- [ ] 3.3 Recipes & Costing → recipes for the top 10–15 dishes
-- [ ] 3.4 Reports → Profit target → monthly (and weekly) target
-- [ ] 3.5 Rewards → Customer portal → Google review link + cafe Instagram username → Save
+- [x] 3.1 Attendance → stand in the cafe → Use my location → Save
+- [x] 3.2 Attendance → link every employee to their staff login; set shift start
+- [x] 3.3 Recipes & Costing → recipes for the top 10–15 dishes
+- [x] 3.4 Reports → Profit target → monthly (and weekly) target
+- [x] 3.5 Rewards → Customer portal → Google review link + cafe Instagram username → Save
 
 Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Phase 5–7 checklists (section 3).
