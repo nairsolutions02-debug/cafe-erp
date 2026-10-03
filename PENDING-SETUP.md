@@ -14,7 +14,7 @@ Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
 ## 2. Android staff app (optional, but decide yes/no)
 - [x] 2.1 Firebase project + Android app (package e.g. `in.nairsolutions.fika`) → `google-services.json` → GitHub secret `GOOGLE_SERVICES_JSON`
 - [x] 2.2 Firebase service-account JSON → Supabase secret `FCM_SERVICE_ACCOUNT`
-- [ ] 2.3 (optional) Signing key → GitHub secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`
+- [x] 2.3 (optional) Signing key → GitHub secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`
 - [ ] 2.4 GitHub → Actions → Android app → Run workflow → download APK → install on one staff phone → My day → Phone setup all green → Test alarm
 
 ## 3. Setup inside the app (FiKA)
