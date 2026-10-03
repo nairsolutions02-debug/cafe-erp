@@ -367,3 +367,32 @@
     flex: 1;
     min-width: 0;
 }
+
+/* Where the item is sold: main shop and/or kiosk (one tap to switch) */
+.sold-at {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 6px 0 8px;
+}
+
+.sold-chip {
+    border: 1px solid var(--accent-light);
+    background: white;
+    color: var(--text-muted);
+    border-radius: var(--radius-full);
+    padding: 3px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sold-chip.on {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.sold-chip:disabled {
+    cursor: default;
+}

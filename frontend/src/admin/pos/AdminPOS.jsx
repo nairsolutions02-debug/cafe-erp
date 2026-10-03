@@ -140,7 +140,7 @@ const AdminPOS = () => {
         getCurrentShifts().then(r => setShift(r.data.open.find(s => s.drawer === 'cash_counter') || null)).catch(() => setShift(undefined));
     }, [online, loadCatalogue]);
 
-    const items = useMemo(() => (cat?.items || []).filter(i => i.is_available), [cat]);
+    const items = useMemo(() => (cat?.items || []).filter(i => i.is_available && i.sold_in_shop !== false), [cat]);
     const topCats = useMemo(() => (cat?.categories || []).filter(c => c.is_active && !c.parent_id), [cat]);
     const inCategory = (i) => {
         if (category === 'all') return true;

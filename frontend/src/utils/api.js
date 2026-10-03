@@ -151,6 +151,7 @@ const MENU = {
     brand: ['brand_id', 'uuid'], itemType: ['item_type', 'text'], unit: ['unit', 'text'], mrp: ['mrp', 'numOrNull'],
     priceIncludesTax: ['price_includes_tax', 'bool'], taxGroup: ['tax_group_id', 'uuid'],
     isRestricted: ['is_restricted', 'bool'], sku: ['sku', 'text'], hsnCode: ['hsn_code', 'text'],
+    soldInShop: ['sold_in_shop', 'bool'], soldAtKiosk: ['sold_at_kiosk', 'bool'],
 };
 
 const menuToClient = (row) => {
@@ -164,7 +165,7 @@ const menuToClient = (row) => {
 const menuList = (rows) => (rows || []).map(menuToClient);
 
 export const getMenuItems = async (params = {}) => {
-    let q = supabase.from('menu_items').select(MENU_SELECT).eq('is_available', true).order('name');
+    let q = supabase.from('menu_items').select(MENU_SELECT).eq('is_available', true).eq('sold_in_shop', true).order('name');
     if (params.category) {
         const children = unwrap(await supabase.from('categories').select('id').eq('parent_id', params.category));
         q = q.in('category_id', [params.category, ...children.map(c => c.id)]);
@@ -179,9 +180,9 @@ export const getMenuItems = async (params = {}) => {
 export const getAllMenuItems = async () =>
     ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).order('name'))));
 export const getBestsellers = async () =>
-    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_best_seller', true).eq('is_available', true).limit(10))));
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_best_seller', true).eq('is_available', true).eq('sold_in_shop', true).limit(10))));
 export const getNewItems = async () =>
-    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_new_item', true).eq('is_available', true).limit(10))));
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_new_item', true).eq('is_available', true).eq('sold_in_shop', true).limit(10))));
 export const getRecommended = async () =>
     ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_recommended', true).eq('is_available', true))));
 
@@ -200,6 +201,11 @@ export const updateMenuItem = async (id, data) => {
 };
 export const updateStock = async (id, data) => {
     const row = toDb(data, { isAvailable: MENU.isAvailable, stockQuantity: MENU.stockQuantity });
+    return ok(menuToClient(unwrap(await supabase.from('menu_items').update(row).eq('id', id).select(MENU_SELECT).single())));
+};
+// Where an item is sold: main shop (counter + customer menu) and/or kiosk
+export const setSoldAt = async (id, data) => {
+    const row = toDb(data, { soldInShop: MENU.soldInShop, soldAtKiosk: MENU.soldAtKiosk });
     return ok(menuToClient(unwrap(await supabase.from('menu_items').update(row).eq('id', id).select(MENU_SELECT).single())));
 };
 export const deleteMenuItem = async (id) => {
@@ -464,11 +470,11 @@ const collectionToClient = async (row) => {
     delete col.collectionItems;
     col.products = (row.collection_items || [])
         .sort((a, b) => a.position - b.position)
-        .map(ci => ci.menu_items).filter(Boolean).map(menuToClient);
+        .map(ci => ci.menu_items).filter(m => m && m.sold_in_shop !== false).map(menuToClient);
     // System collections with no hand-picked items show items with the matching flag
     if (col.products.length === 0 && SYSTEM_FLAGS[row.type]) {
         col.products = menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT)
-            .eq(SYSTEM_FLAGS[row.type], true).eq('is_available', true).limit(10)));
+            .eq(SYSTEM_FLAGS[row.type], true).eq('is_available', true).eq('sold_in_shop', true).limit(10)));
     }
     return col;
 };
@@ -680,7 +686,7 @@ export const saSavePlan = async (plan) => {
 // Everything the counter needs to work offline: menu with pack units, categories, tables
 export const getPosCatalogue = async () => {
     const [items, cats, tables] = await Promise.all([
-        supabase.from('menu_items').select('id, name, price, mrp, image, is_veg, is_available, is_restricted, item_type, category_id, brand_id, tax_group_id, price_includes_tax, item_units(id, name, factor, sale_price)').order('name'),
+        supabase.from('menu_items').select('id, name, price, mrp, image, is_veg, is_available, is_restricted, sold_in_shop, item_type, category_id, brand_id, tax_group_id, price_includes_tax, item_units(id, name, factor, sale_price)').order('name'),
         supabase.from('categories').select('id, name, parent_id, sort_order, is_active').order('sort_order'),
         supabase.from('dining_tables').select('id, table_number, status').order('table_number'),
     ]);

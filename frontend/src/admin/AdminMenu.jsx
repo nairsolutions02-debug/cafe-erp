@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FiPlus, FiEdit2, FiTrash2, FiImage, FiSearch } from 'react-icons/fi';
 import {
-    getAllMenuItems, getAllCategories, createMenuItem, updateMenuItem, deleteMenuItem, updateStock,
+    getAllMenuItems, getAllCategories, createMenuItem, updateMenuItem, deleteMenuItem, updateStock, setSoldAt,
     getBrands, getTaxGroups, getItemUnits, createItemUnit, deleteItemUnit,
 } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +13,7 @@ const EMPTY_FORM = {
         name: '', description: '', price: '', category: '',
         isVeg: true, isBestSeller: false, isNewItem: false, isRecommended: false, isUpsell: false,
         preparationTime: 15, stockQuantity: -1,
-        itemType: 'dish', brand: '', taxGroup: '', mrp: '', priceIncludesTax: false, isRestricted: false, unit: 'pc', sku: ''
+        itemType: 'dish', brand: '', taxGroup: '', mrp: '', priceIncludesTax: false, isRestricted: false, unit: 'pc', sku: '', soldInShop: true, soldAtKiosk: true
     };
 
 // "Beverages › Cold Drinks" for sub-categories
@@ -27,6 +27,7 @@ const AdminMenu = () => {
     const [searchParams] = useSearchParams();
     const [query, setQuery] = useState(searchParams.get('q') || '');
     const [categoryFilter, setCategoryFilter] = useState('');
+    const [placeFilter, setPlaceFilter] = useState('');
     const [brands, setBrands] = useState([]);
     const [taxGroups, setTaxGroups] = useState([]);
     const [units, setUnits] = useState([]);
@@ -89,6 +90,22 @@ const AdminMenu = () => {
         }
     };
 
+    // One tap on the card: switch where the item is sold (at least one place stays on)
+    const handleSoldAt = async (item, key) => {
+        const next = { soldInShop: item.soldInShop !== false, soldAtKiosk: item.soldAtKiosk !== false };
+        next[key] = !next[key];
+        if (!next.soldInShop && !next.soldAtKiosk) {
+            alert('An item must be sold somewhere. To stop selling it everywhere, mark it Out of Stock.');
+            return;
+        }
+        try {
+            await setSoldAt(item._id, next);
+            fetchData();
+        } catch (error) {
+            alert(error?.response?.data?.message || 'Failed to update');
+        }
+    };
+
     const handleStockToggle = async (item) => {
         try {
             await updateStock(item._id, { isAvailable: !item.isAvailable });
@@ -107,7 +124,8 @@ const AdminMenu = () => {
             preparationTime: item.preparationTime, stockQuantity: item.stockQuantity,
             itemType: item.itemType || 'dish', brand: item.brand?._id || '', taxGroup: item.taxGroup || '',
             mrp: item.mrp ?? '', priceIncludesTax: !!item.priceIncludesTax, isRestricted: !!item.isRestricted,
-            unit: item.unit || 'pc', sku: item.sku || '', hsnCode: item.hsnCode || ''
+            unit: item.unit || 'pc', sku: item.sku || '', hsnCode: item.hsnCode || '',
+            soldInShop: item.soldInShop !== false, soldAtKiosk: item.soldAtKiosk !== false
         });
         setShowModal(true);
         try {
@@ -144,7 +162,12 @@ const AdminMenu = () => {
     const visibleItems = items.filter(item =>
         (!q || item.name.toLowerCase().includes(q) || (item.brand?.name || '').toLowerCase().includes(q))
         && (!categoryFilter || item.category?._id === categoryFilter
-            || categories.find(c => c._id === item.category?._id)?.parentId === categoryFilter));
+            || categories.find(c => c._id === item.category?._id)?.parentId === categoryFilter)
+        && (!placeFilter
+            || (placeFilter === 'kiosk' && item.soldAtKiosk !== false)
+            || (placeFilter === 'shop' && item.soldInShop !== false)
+            || (placeFilter === 'kiosk-only' && item.soldInShop === false)
+            || (placeFilter === 'shop-only' && item.soldAtKiosk === false)));
     const sortedCategories = [...categories].sort((a, b) =>
         categoryLabel(a, categories).localeCompare(categoryLabel(b, categories)));
 
@@ -169,6 +192,13 @@ const AdminMenu = () => {
                 <select className="input" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
                     <option value="">All categories</option>
                     {sortedCategories.map(c => <option key={c._id} value={c._id}>{categoryLabel(c, categories)}</option>)}
+                </select>
+                <select className="input" value={placeFilter} onChange={e => setPlaceFilter(e.target.value)} aria-label="Where sold">
+                    <option value="">Shop and kiosk</option>
+                    <option value="shop">Sold in the main shop</option>
+                    <option value="kiosk">Sold at the kiosk</option>
+                    <option value="shop-only">Main shop only</option>
+                    <option value="kiosk-only">Kiosk only</option>
                 </select>
                 <span className="menu-count">{visibleItems.length} of {items.length}</span>
             </div>
@@ -195,6 +225,14 @@ const AdminMenu = () => {
                                 {[item.category?.name, item.brand?.name].filter(Boolean).join(' · ')}
                                 {item.mrp ? ` · MRP ₹${item.mrp}` : ''}
                             </p>
+                            <div className="sold-at" role="group" aria-label={`Where ${item.name} is sold`}>
+                                <button type="button" disabled={!hasPerm('menu.edit')} aria-pressed={item.soldInShop !== false}
+                                    className={`sold-chip${item.soldInShop !== false ? ' on' : ''}`} onClick={() => handleSoldAt(item, 'soldInShop')}>
+                                    {item.soldInShop !== false ? '✓ ' : ''}Main shop</button>
+                                <button type="button" disabled={!hasPerm('menu.edit')} aria-pressed={item.soldAtKiosk !== false}
+                                    className={`sold-chip${item.soldAtKiosk !== false ? ' on' : ''}`} onClick={() => handleSoldAt(item, 'soldAtKiosk')}>
+                                    {item.soldAtKiosk !== false ? '✓ ' : ''}Kiosk</button>
+                            </div>
                             <div className="item-footer">
                                 <span className="item-price">₹{item.price}</span>
                                 <div className="item-actions">
@@ -346,6 +384,13 @@ const AdminMenu = () => {
                                             onChange={e => setFormData({ ...formData, priceIncludesTax: e.target.checked })} /> Price includes tax (MRP items)</label>
                                         <label><input type="checkbox" checked={formData.isRestricted}
                                             onChange={e => setFormData({ ...formData, isRestricted: e.target.checked })} /> Restricted (tobacco etc.: no rewards, coupons or promotions)</label>
+                                    </div>
+                                    <div className="checkbox-group">
+                                        <span className="toggle-label">Sold at</span>
+                                        <label><input type="checkbox" checked={formData.soldInShop}
+                                            onChange={e => setFormData({ ...formData, soldInShop: e.target.checked || !formData.soldAtKiosk })} /> Main shop (counter and customer menu)</label>
+                                        <label><input type="checkbox" checked={formData.soldAtKiosk}
+                                            onChange={e => setFormData({ ...formData, soldAtKiosk: e.target.checked || !formData.soldInShop })} /> Kiosk</label>
                                     </div>
                                     {editItem && (
                                         <div className="units-editor">

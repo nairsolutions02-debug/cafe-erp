@@ -4,6 +4,31 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Kiosk menu — choose what sells at the main shop and at the kiosk (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Menu | Every item has two switches: **Main shop** (counter, dine-in, takeaway and the customer QR menu) and **Kiosk**. Both are on for every existing item, so nothing changes until you switch something off. One tap on the chips on each item card, or in the item's edit form under *Sold at*. An item must stay on in at least one place (to stop selling it everywhere, mark it Out of Stock). |
+| Filter | Menu → new **Where sold** filter: sold in the main shop, sold at the kiosk, main shop only, kiosk only — handy for setting up the kiosk list. |
+| Kiosk screen | Shows only items switched on for the kiosk. |
+| Counter and customer menu | Show only items switched on for the main shop (customer menu, homepage sections, bestsellers too). |
+| Safety | The server refuses an order line for an item that isn't sold at that place (e.g. a kiosk-only cigarette on a QR order), with a clear message. Swiggy/Zomato imports are not affected. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-kiosk-menu.sql`** → Run → *Success*.
+2. Vercel redeploys from `main`. No new app build needed.
+
+**Test checklist**
+- [ ] Menu → a food item (e.g. Masala Dosa) → tap **Kiosk** to switch it off → Kiosk screen no longer shows it
+- [ ] Menu → cigarettes / pan items → tap **Main shop** to switch them off → Counter and the customer menu no longer show them; the Kiosk still does
+- [ ] Menu → Where sold → **Kiosk only** lists exactly the kiosk-only items
+- [ ] Try to switch both off on one item → the app says it must be sold somewhere
+
+---
+
 ## Fix — phone layout (2026-10-03)
 
 **What changed**

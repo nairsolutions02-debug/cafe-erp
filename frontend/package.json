@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test:db": "node --test tests/db-flow.test.mjs tests/phase0.test.mjs tests/phase1.test.mjs tests/phase2.test.mjs tests/phase3.test.mjs tests/phase4.test.mjs tests/phase5.test.mjs tests/phase6.test.mjs tests/phase7.test.mjs"
+    "test:db": "node --test tests/db-flow.test.mjs tests/phase0.test.mjs tests/phase1.test.mjs tests/phase2.test.mjs tests/phase3.test.mjs tests/phase4.test.mjs tests/phase5.test.mjs tests/phase6.test.mjs tests/phase7.test.mjs tests/kiosk-menu.test.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.2",
