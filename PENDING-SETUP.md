@@ -9,7 +9,7 @@ Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
 - [x] 1.3 Supabase → Edge Functions → Secrets: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:nairsolutions02@gmail.com`), `PUSH_WEBHOOK_SECRET` (Windows PowerShell: `[guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')`; Mac: `openssl rand -hex 24`)
 - [x] 1.4 Deploy: `git pull` → `npx supabase login` → `npx supabase functions deploy push-notify --project-ref <ref> --no-verify-jwt`
 - [x] 1.5 Supabase → Database → Webhooks → `push` on `notification_events` INSERT → Edge Function `push-notify`, header `x-webhook-secret`
-- [ ] 1.6 Test: My day → Turn on alerts → close the browser → QR order from another phone → notification arrives
+- [x] 1.6 Test: My day → Turn on alerts → close the browser → QR order from another phone → notification arrives
 
 ## 2. Android staff app (optional, but decide yes/no)
 - [ ] 2.1 Firebase project + Android app (package e.g. `in.nairsolutions.fika`) → `google-services.json` → GitHub secret `GOOGLE_SERVICES_JSON`
