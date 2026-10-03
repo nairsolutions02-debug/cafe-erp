@@ -80,11 +80,20 @@ const MyDay = () => {
     };
 
     if (!d) return <div className="myday">{error || 'Loading…'}</div>;
+    // Phone alerts are for everyone, linked to an employee record or not (e.g. the owner's email login)
+    const alertsCard = isNativeApp() ? <PhoneSetup /> : (
+        <section className="day-card">
+            <h2><FiBell /> Phone alerts</h2>
+            <p className="muted small">{push.message}</p>
+            {push.canEnable && <button className="btn btn-secondary" onClick={async () => setPush(await enablePush())}>Turn on alerts on this phone</button>}
+        </section>
+    );
     if (!d.linked) {
         return (
             <div className="myday">
                 <h1>My day</h1>
-                <p className="muted">Your login isn't linked to an employee record yet. Ask the owner: <strong>Attendance → App login</strong>.</p>
+                <p className="muted">Attendance needs your login linked to an employee record (owner: <strong>Attendance → App login</strong>).</p>
+                {alertsCard}
             </div>
         );
     }
@@ -161,13 +170,7 @@ const MyDay = () => {
                 {d.requests.map((r, i) => <p key={i} className="small">{r.type} {r.from}{r.to !== r.from ? ` → ${r.to}` : ''} · <span className={`pill ${r.status === 'approved' ? 'ok' : r.status === 'pending' ? 'warn' : 'muted'}`}>{r.status}</span></p>)}
             </section>
 
-            {isNativeApp() ? <PhoneSetup /> : (
-                <section className="day-card">
-                    <h2><FiBell /> Phone alerts</h2>
-                    <p className="muted small">{push.message}</p>
-                    {push.canEnable && <button className="btn btn-secondary" onClick={async () => setPush(await enablePush())}>Turn on alerts on this phone</button>}
-                </section>
-            )}
+            {alertsCard}
         </div>
     );
 };

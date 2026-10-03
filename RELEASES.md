@@ -4,6 +4,18 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Fix — phone alerts button for every login (2026-10-03)
+
+**What changed:** *My day* now shows **Turn on alerts on this phone** (or *Phone setup* in the Android app) for logins that aren't linked to an employee record — for example the owner's email login. Before, those logins saw only "not linked" and couldn't turn alerts on.
+
+**Deploy:** nothing to run; Vercel redeploys from `main`.
+
+**Test checklist**
+- [ ] Owner email login on a phone → menu **My day** → the *Phone alerts* card is there → Turn on alerts → Allow
+- [ ] A staff login linked to an employee still sees check-in, breaks, leave and the alerts card
+
+---
+
 ## Phase 7 — Profit advisor, menu matrix and Swiggy/Zomato import (2026-10-03)
 
 **What's new**
