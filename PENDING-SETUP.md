@@ -27,5 +27,5 @@ Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
 Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Phase 5–7 checklists (section 3).
 
 ## 4. Kiosk menu (2026-10-03)
-- [ ] 4.1 Supabase → SQL Editor → paste `supabase/upgrades/2026-10-kiosk-menu.sql` → Run → Success
+- [x] 4.1 Supabase → SQL Editor → paste `supabase/upgrades/2026-10-kiosk-menu.sql` → Run → Success
 - [ ] 4.2 Menu → switch off **Kiosk** on items the kiosk doesn't sell and **Main shop** on kiosk-only items (use the Where sold filter to check)
