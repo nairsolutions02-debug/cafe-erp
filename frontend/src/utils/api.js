@@ -864,3 +864,16 @@ export const getIncentiveReport = async (from, to) => ok(await rpc('incentive_re
 export const saveIncentiveRule = async (rule) => ok(await rpc('save_incentive_rule', { p: rule }));
 export const deleteIncentiveRule = async (id) => ok(await rpc('delete_incentive_rule', { p_id: id }));
 export const getMyIncentives = async () => ok(await rpc('my_incentives'));
+
+// ---------------------------------------------------------------------------
+// Phase 7: profit engine, menu matrix, aggregator import
+// ---------------------------------------------------------------------------
+export const runProfitChecks = async () => ok(await rpc('run_profit_checks'));
+export const getProfitSuggestions = async (status = 'open') => ok(await rpc('profit_suggestions', { p_status: status }));
+export const decideSuggestion = async (id, decision, reason = '', days = 14) =>
+    ok(await rpc('decide_suggestion', { p_id: id, p_decision: decision, p_reason: reason, p_days: days }));
+export const applySuggestionPrice = async (id, price) => ok(await rpc('apply_suggestion_price', { p_id: id, p_price: price }));
+export const getMenuMatrix = async (from, to) => ok(await rpc('menu_matrix', { p_from: from, p_to: to }));
+export const matchAggregatorItems = async (platform, names) => ok(await rpc('aggregator_match', { p_platform: platform, p_names: names }));
+export const importAggregator = async (payload) => ok(await rpc('import_aggregator', { p: payload }));
+export const getAggregatorImports = async () => ok(await rpc('list_aggregator_imports'));

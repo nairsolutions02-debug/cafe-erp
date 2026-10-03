@@ -13,3 +13,32 @@ export function downloadCsv(filename, header, rows) {
     a.click();
     setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
 }
+
+// Read CSV text into rows of cells (quotes, commas and new lines inside quotes; ; or tab separated files too)
+export function parseCsv(text) {
+    const src = String(text || '').replace(/^﻿/, '');
+    const first = src.split(/\r?\n/, 1)[0] || '';
+    const sep = [',', ';', '\t'].reduce((best, s) => (first.split(s).length > first.split(best).length ? s : best), ',');
+    const rows = [];
+    let row = [];
+    let cell = '';
+    let quoted = false;
+    for (let i = 0; i < src.length; i++) {
+        const ch = src[i];
+        if (quoted) {
+            if (ch === '"' && src[i + 1] === '"') { cell += '"'; i++; }
+            else if (ch === '"') quoted = false;
+            else cell += ch;
+        } else if (ch === '"') quoted = true;
+        else if (ch === sep) { row.push(cell.trim()); cell = ''; }
+        else if (ch === '\n' || ch === '\r') {
+            if (ch === '\r' && src[i + 1] === '\n') i++;
+            row.push(cell.trim()); cell = '';
+            if (row.some(c => c !== '')) rows.push(row);
+            row = [];
+        } else cell += ch;
+    }
+    row.push(cell.trim());
+    if (row.some(c => c !== '')) rows.push(row);
+    return rows;
+}

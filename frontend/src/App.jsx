@@ -16,6 +16,7 @@ import AdminAttendance from './admin/staffapp/AdminAttendance';
 import AdminAlerts from './admin/staffapp/AdminAlerts';
 import MyDay from './admin/staffapp/MyDay';
 import AdminRewards from './admin/rewards/AdminRewards';
+import AdminProfit from './admin/profit/AdminProfit';
 import BottomNav from './components/BottomNav';
 
 // Admin Pages
@@ -152,6 +153,7 @@ function AppRoutes() {
         <Route path="attendance" element={<RequirePerm path="/admin/attendance"><AdminAttendance /></RequirePerm>} />
         <Route path="alerts" element={<RequirePerm path="/admin/alerts"><AdminAlerts /></RequirePerm>} />
         <Route path="me" element={<MyDay />} />
+        <Route path="profit" element={<RequirePerm path="/admin/profit"><AdminProfit /></RequirePerm>} />
         <Route path="rewards" element={<RequirePerm path="/admin/rewards"><AdminRewards /></RequirePerm>} />
         <Route path="audit" element={<RequirePerm path="/admin/audit"><AdminAudit /></RequirePerm>} />
       </Route>

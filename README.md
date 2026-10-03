@@ -34,6 +34,7 @@ Each cafe runs on its own **Vercel** site and **Supabase** project. There is no 
 - **Employees**, attendance and holidays
 - **Rewards**: rule builder (when / if / give / limits / tell) with budgets, WhatsApp to-do, customer portal with editable slogans, Instagram verification, dish ratings, Google review link, automatic customer groups
 - **Incentives** for staff (per item, add-on, target, team pool, ratings) on payslips
+- **Profit advisor**: ~18 checks with ₹ impact and the working (Why?), one-tap price change, results after 4 weeks; **menu matrix**; Swiggy/Zomato/Petpooja CSV import
 - **Customers** and **analytics** (revenue, categories, top items, growth)
 - **Settings**: restaurant details, FSSAI and taxes printed on bills
 - **Staff & Roles**: staff log in with mobile + PIN; editable roles and a permission grid enforced by the

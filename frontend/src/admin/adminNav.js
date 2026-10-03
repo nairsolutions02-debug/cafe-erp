@@ -1,6 +1,6 @@
 import {
     FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage, FiUsers, FiBarChart2, FiLayout, FiActivity,
-    FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase, FiZap, FiBook, FiPieChart, FiCreditCard, FiClock, FiBell, FiSun, FiGift,
+    FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase, FiZap, FiBook, FiPieChart, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp,
 } from 'react-icons/fi';
 
 // Admin sections and the permission each needs (sidebar + route guards)
@@ -28,6 +28,7 @@ export const ADMIN_NAV = [
     { path: '/admin/rewards', icon: FiGift, label: 'Rewards', perm: 'customers.view' },
     { path: '/admin/khata', icon: FiBook, label: 'Khata', perm: 'customers.view' },
     { path: '/admin/finance', icon: FiDollarSign, label: 'Finance', perm: 'finance.view' },
+    { path: '/admin/profit', icon: FiTrendingUp, label: 'Profit advisor', perm: 'finance.view' },
     { path: '/admin/reports', icon: FiPieChart, label: 'Reports', perm: 'finance.view' },
     { path: '/admin/analytics', icon: FiBarChart2, label: 'Analytics', perm: 'reports.view' },
     { path: '/admin/staff', icon: FiShield, label: 'Staff & Roles', perm: 'staff.view' },

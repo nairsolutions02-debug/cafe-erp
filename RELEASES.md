@@ -4,6 +4,45 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phase 7 — Profit advisor, menu matrix and Swiggy/Zomato import (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Profit advisor (`/admin/profit`) | ~18 checks on the cafe's own data, run twice a day when the owner opens it (or **Check now**). Each suggestion shows the **₹ impact a month**, and **Why?** opens the inputs, the formula and the assumption. Ranked: *do today* first, then by impact. Plain arithmetic — no outside AI, no cost per use, same answer every time. |
+| The checks | **Menu**: matrix position (raise price / promote / rework), food cost % above target (`target_food_cost_pct`, default 32%), low-rated dishes with falling sales. **Inventory**: reorder today, slow stock (nothing used in 21 days), leaks (counts + wastage), vendor price creep (+10% vs 1–3 months ago). **Costs**: expense category 25%+ above its 3-month average, staff cost above 35% of sales. **Sales**: weakest 3 hours, average bill falling. **Customers**: slipping regulars, new customers not returning. **Marketing**: reward rules that cost more than they bring, rewards over budget (`reward_budget_pct`, default 5% of gross profit). **Profit**: month forecast vs target with the 3 biggest actions. **Cash**: repeated shift mismatches by one person. **Kiosk**: packs vs loose margin. |
+| Actions | **Change price** (one tap, for price suggestions), links to the recipe, stock, rewards etc., **Mark done**, **Remind me in 2 weeks**, **Dismiss** (with a reason). The engine never changes anything by itself. |
+| Results | *Decisions & results* tab: 4 weeks after each decision the advisor shows what happened, e.g. "Done; 4 weeks later: sales −2%, profit +₹3,700/month". |
+| Menu matrix | Kasavana & Smith menu engineering: each dish by units sold × profit per unit, split at the menu averages into **Star / Plowhorse / Puzzle / Dog**, with a chart, what to do with each group, and a table. Items without a recipe or cost are left out (and counted). |
+| Swiggy / Zomato / Petpooja import | Upload the weekly order CSV → pick which column is which (guessed automatically) → match report item names to menu items (remembered for next week, close names suggested) → enter commission + fees → **Import**. Orders appear as the *Aggregator* channel in P&L and item profit (no GST — the platform pays it), recipes take stock off, the payout goes into Bank/UPI, the commission is an *Aggregator commission* expense. Re-uploading the same file skips orders already imported. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-phase7.sql`** → Run → *Success*.
+   (Coming from Phase 1? Paste **`supabase/upgrades/2026-10-phase2-to-7.sql`** once instead of the six files.)
+2. Vercel redeploys from `main`.
+
+**Test checklist**
+
+- [ ] Recipes & Costing: make sure your top 10 dishes have recipes (the advisor needs costs)
+- [ ] Reports → Profit target: set a monthly target
+- [ ] Profit advisor → suggestions load (first visit runs the checks) → open **Why?** on two of them and check the numbers against your own
+- [ ] A *Raise … price* card → **Change price to ₹…** → Menu shows the new price; the card moves to *Decisions & results*
+- [ ] Dismiss one with a reason; *Remind me in 2 weeks* on another → both leave the list
+- [ ] Menu matrix → last 30 days → your dishes in four groups; hover a dot; the table matches Reports → Item profit
+- [ ] Swiggy partner dashboard → download last week's orders CSV → Profit advisor → **Swiggy / Zomato import** → check the columns → match items → commission from the payout statement → Import → Reports → P&L shows the *aggregator* channel and the commission expense; Finance → Bank shows the payout
+- [ ] Upload the same file again → "0 imported, N already imported"
+- [ ] Cashier login → no Profit advisor; Accountant → can import but sees no suggestions without *See profit*
+
+**Known limits in this release**
+
+- Suggestions need recipes/costs and a few weeks of sales to be specific; with little data the list is short.
+- Staff cost by hour (who was on shift vs sales each hour) isn't checked yet; staff cost is checked as a share of sales.
+- Report formats differ by platform and change over time; the column picker handles that, but a report with only order totals (no item lines) can't be mapped to dishes.
+
+---
+
 ## Phase 6 — Rewards, customer portal, feedback and incentives (2026-10-03)
 
 **What's new**
