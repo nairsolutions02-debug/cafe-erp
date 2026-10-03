@@ -229,7 +229,7 @@ const AdminCustomers = () => {
                                     </div>
                                 </div>
 
-                                <div className="stats-grid">
+                                <div className="cust-stats">
                                     <div className="stat">
                                         <span className="value">₹{customerDetail.stats.totalSpent.toLocaleString()}</span>
                                         <span className="label">Total Spent</span>

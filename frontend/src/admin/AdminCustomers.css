@@ -347,7 +347,7 @@
     gap: 6px;
 }
 
-.stats-grid {
+.cust-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
@@ -355,18 +355,18 @@
     background: var(--bg-secondary);
 }
 
-.stats-grid .stat {
+.cust-stats .stat {
     text-align: center;
 }
 
-.stats-grid .stat .value {
+.cust-stats .stat .value {
     display: block;
     font-size: 1.3rem;
     font-weight: 700;
     color: var(--text-primary);
 }
 
-.stats-grid .stat .label {
+.cust-stats .stat .label {
     font-size: 0.8rem;
     color: var(--text-muted);
 }
