@@ -4,6 +4,30 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Fix — phone layout (2026-10-03)
+
+**What changed**
+
+| Area | Change |
+| --- | --- |
+| Dashboard on phones | The four tiles are a compact 2 × 2 grid (icon above the number) instead of two squeezed columns that pushed the page off the screen. Top Spenders rows are left-aligned and say "1 order" / "2 orders". |
+| Cause | Some pages reused the same style names (`.stats-grid` in the Customers popup, `.settings-grid` in Loyalty, `.customer-info`), and because every page's styles load together, one page's rules broke another's phone layout. The Customers popup now has its own name, and a phone "safety net" in the admin layout outranks page styles so nothing can widen the page. |
+| Other pages fixed at phone width | History, Homepage Sections, Tables, Analytics, Settings, Categories and Employees: header buttons and tab rows wrap or scroll sideways inside their own row. All 31 admin pages were checked at 320 px and 360 px wide with no sideways scrolling. |
+| Android app | Text stays at 100% even when the phone's system font size is set large, so cards keep their shape. Needs the new app build (installs over the old one — no uninstall). |
+
+**Deploy**
+
+1. Nothing to run in Supabase. Vercel redeploys from `main` — the website and the current app pick up the layout fix after a refresh.
+2. For the font-size fix: GitHub → Actions → **Android app** → Run workflow (same three values) → install the new APK over the old one.
+
+**Test checklist**
+- [ ] Phone → Dashboard: four tiles in 2 × 2, nothing cut off on the left or right, no sideways scrolling
+- [ ] Phone → History, Analytics, Settings, Tables: the title, buttons and tabs fit; tab rows scroll sideways inside themselves
+- [ ] Laptop → Dashboard still shows the four tiles in one row
+- [ ] New app installed over the old one (no uninstall needed) → with the phone's font size set large, the dashboard still fits
+
+---
+
 ## Fix — phone alerts button for every login (2026-10-03)
 
 **What changed:** *My day* now shows **Turn on alerts on this phone** (or *Phone setup* in the Android app) for logins that aren't linked to an employee record — for example the owner's email login. Before, those logins saw only "not linked" and couldn't turn alerts on.

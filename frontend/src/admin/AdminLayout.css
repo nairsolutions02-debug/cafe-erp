@@ -298,6 +298,14 @@
         max-width: 100%;
     }
 
+    /* Page titles: the action button drops below the title instead of off the screen */
+    .admin-content .page-header,
+    .admin-content .section-header,
+    .admin-content .settings-header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
     .admin-content .header-main,
     .admin-content .header-actions {
         flex-wrap: wrap;
