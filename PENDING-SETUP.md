@@ -4,7 +4,7 @@ Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA)
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
 
 ## 1. Phone alerts when the app is closed
-- [ ] 1.1 Generate push keys (Windows: PowerShell; Mac: Terminal): `npx web-push generate-vapid-keys` (keep the private key secret — never paste it in chat)
+- [x] 1.1 Generate push keys (Windows: PowerShell; Mac: Terminal): `npx web-push generate-vapid-keys` (keep the private key secret — never paste it in chat)
 - [ ] 1.2 Vercel → FiKA project → Settings → Environment Variables → `VITE_VAPID_PUBLIC_KEY` = public key → Redeploy
 - [ ] 1.3 Supabase → Edge Functions → Secrets: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:nairsolutions02@gmail.com`), `PUSH_WEBHOOK_SECRET` (Windows PowerShell: `[guid]::NewGuid().ToString('N') + [guid]::NewGuid().ToString('N')`; Mac: `openssl rand -hex 24`)
 - [ ] 1.4 Deploy: `git pull` → `npx supabase login` → `npx supabase functions deploy push-notify --project-ref <ref> --no-verify-jwt`
