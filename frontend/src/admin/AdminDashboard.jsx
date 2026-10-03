@@ -138,7 +138,7 @@ const AdminDashboard = () => {
                                 <div key={customer._id} className="customer-item">
                                     <div className="customer-info">
                                         <span className="customer-name">{customer.name}</span>
-                                        <span className="customer-orders">{customer.orderCount} orders</span>
+                                        <span className="customer-orders">{customer.orderCount} {customer.orderCount === 1 ? "order" : "orders"}</span>
                                     </div>
                                     <span className="customer-spent">₹{customer.totalSpent.toFixed(0)}</span>
                                 </div>

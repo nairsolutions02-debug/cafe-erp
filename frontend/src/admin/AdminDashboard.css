@@ -303,3 +303,24 @@
     color: var(--text-muted);
     margin: 12px 0 4px;
 }
+
+/* Top spenders: left-aligned name and order count (".customer-info" is also used by the Customers popup) */
+.admin-dashboard .customer-item .customer-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+}
+
+.admin-dashboard .customer-item .customer-name {
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+}
+
+.admin-dashboard .customer-item .customer-spent {
+    flex-shrink: 0;
+    margin-left: 12px;
+}
