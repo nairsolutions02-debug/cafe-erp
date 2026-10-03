@@ -111,7 +111,7 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 3. **Push keys** (once, on your Mac): `npx web-push generate-vapid-keys` → it prints a *Public Key* and a *Private Key*.
    - Vercel → the cafe project → Settings → Environment Variables → `VITE_VAPID_PUBLIC_KEY` = the public key → Redeploy.
    - Supabase → Edge Functions → Secrets → add `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (= `mailto:nairsolutions02@gmail.com`) and `PUSH_WEBHOOK_SECRET` (any long random text, e.g. from `openssl rand -hex 24`).
-4. **Deploy the function** (Mac terminal, in the repo): `npx supabase login` → `npx supabase functions deploy push-notify --project-ref <your project ref>`.
+4. **Deploy the function** (Mac terminal, in the repo): `npx supabase login` → `npx supabase functions deploy push-notify --project-ref <your project ref> --no-verify-jwt`.
 5. **Database webhook**: Supabase → Database → Webhooks → *Create* → name `push`, table `notification_events`, event **Insert**, type **Supabase Edge Functions** → `push-notify`, method POST, add HTTP header `x-webhook-secret` = the same `PUSH_WEBHOOK_SECRET` → Create.
 6. **Android app** (optional, for lock-screen alarms):
    - Firebase console → Add project → Add app → Android → package name e.g. `in.nairsolutions.fika` → download `google-services.json`. Project settings → Service accounts → *Generate new private key* (a JSON file).
