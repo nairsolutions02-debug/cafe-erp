@@ -821,3 +821,17 @@
     min-width: 0;
     overflow-x: auto;
 }
+
+.alarm-snooze {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.alarm-overlay .alarm-snooze button {
+    font-size: 0.95rem;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}

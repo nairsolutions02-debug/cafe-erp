@@ -4,6 +4,7 @@ import { FiLogOut, FiMenu, FiX } from 'react-icons/fi';
 import { ADMIN_NAV } from './adminNav';
 import GlobalSearch from './GlobalSearch';
 import Notifications from './Notifications';
+import Presence from './staffapp/Presence';
 import { useAuth } from '../context/AuthContext';
 import './AdminLayout.css';
 import brand from '../brand';
@@ -44,7 +45,7 @@ const AdminLayout = () => {
         navigate('/admin/login');
     };
 
-    const menuItems = ADMIN_NAV.filter(item => hasPerm(item.perm));
+    const menuItems = ADMIN_NAV.filter(item => !item.perm || hasPerm(item.perm));
 
     const isActive = (path, exact) => {
         if (exact) return location.pathname === path;
@@ -130,6 +131,7 @@ const AdminLayout = () => {
                     </div>
                 )}
 
+                <Presence />
                 <main className="admin-content">
                     <Outlet />
                 </main>

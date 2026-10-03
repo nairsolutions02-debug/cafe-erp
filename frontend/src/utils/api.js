@@ -783,3 +783,37 @@ export const requestLeave = async (employeeId, typeId, from, to, halfDay, reason
     ok(await rpc('request_leave', { p_employee: employeeId, p_type: typeId, p_from: from, p_to: to, p_half: halfDay, p_reason: reason }));
 export const decideLeave = async (id, approve) => ok(await rpc('decide_leave', { p_id: id, p_approve: approve }));
 export const getLeaveOverview = async () => ok(await rpc('leave_overview', {}));
+
+// ---------------------------------------------------------------------------
+// Staff app, attendance and alerts (Phase 5)
+// ---------------------------------------------------------------------------
+export const getMyDay = async () => ok(await rpc('my_day'));
+export const staffCheckIn = async (lat, lng, accuracy, selfie) =>
+    ok(await rpc('staff_check_in', { p_lat: lat, p_lng: lng, p_accuracy: accuracy, p_selfie: selfie }));
+export const staffCheckOut = async (lat, lng, accuracy, selfie) =>
+    ok(await rpc('staff_check_out', { p_lat: lat, p_lng: lng, p_accuracy: accuracy, p_selfie: selfie }));
+export const staffPing = async (lat, lng, accuracy) => ok(await rpc('staff_ping', { p_lat: lat, p_lng: lng, p_accuracy: accuracy }));
+export const staffBreak = async (minutes, reason) => ok(await rpc('staff_break', { p_minutes: minutes, p_reason: reason }));
+export const myLeaveRequest = async (typeId, from, to, reason) =>
+    ok(await rpc('my_leave_request', { p_type: typeId, p_from: from, p_to: to || from, p_reason: reason }));
+export const uploadPrivatePhoto = async (file, path) => {
+    const body = await shrinkImage(file);
+    unwrap(await supabase.storage.from('staff-private').upload(path, body, { contentType: body.type, upsert: true }));
+    return path;
+};
+export const privatePhotoUrl = async (path) => {
+    if (!path) return null;
+    const { data } = await supabase.storage.from('staff-private').createSignedUrl(path, 600);
+    return data?.signedUrl || null;
+};
+export const getAttendanceBoard = async (date) => ok(await rpc('attendance_board', { p_date: date || null }));
+export const getLocationTrail = async (attendanceId) => ok(await rpc('location_trail', { p_attendance: attendanceId }));
+export const linkEmployeeLogin = async (employeeId, staffId, track = null, shiftStart = null) =>
+    ok(await rpc('link_employee_login', { p_employee: employeeId, p_staff: staffId || null, p_track: track, p_shift_start: shiftStart }));
+export const checkPresence = async () => ok(await rpc('check_presence'));
+export const getNotificationMatrix = async () => ok(await rpc('notification_matrix'));
+export const setNotificationPref = async (person, kind, style) => ok(await rpc('set_notification_pref', { p_person: person, p_kind: kind, p_style: style }));
+export const setQuietHours = async (person, from, to) => ok(await rpc('set_quiet_hours', { p_person: person, p_from: from || null, p_to: to || null }));
+export const getMyNotificationPrefs = async () => ok(await rpc('my_notification_prefs'));
+export const savePushSubscription = async (endpoint, keys, platform = 'web') =>
+    ok(await rpc('save_push_subscription', { p_endpoint: endpoint, p_keys: keys, p_platform: platform }));

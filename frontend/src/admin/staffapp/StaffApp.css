@@ -1,0 +1,140 @@
+.myday {
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.myday h1 { margin: 0; }
+
+.day-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.day-card h2 {
+    font-size: 1.05rem;
+    margin: 0;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.day-card.in { border-left: 6px solid var(--success); }
+.day-card.done { border-left: 6px solid var(--text-muted); }
+
+.day-status { font-size: 1.1rem; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.selfie-btn {
+    align-self: center;
+    width: 128px;
+    height: 128px;
+    border-radius: 50%;
+    border: 3px dashed var(--primary);
+    background: var(--bg-secondary);
+    color: var(--primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    overflow: hidden;
+    padding: 0;
+    font-weight: 700;
+}
+
+.selfie-btn img { width: 100%; height: 100%; object-fit: cover; }
+
+.big-act {
+    font-size: 1.3rem;
+    font-weight: 800;
+    padding: 18px;
+    border-radius: var(--radius-full);
+    border: 0;
+    color: white;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.big-act.in { background: var(--success); }
+.big-act.out { background: var(--primary); }
+.big-act:disabled { opacity: 0.6; cursor: wait; }
+
+.break-row, .month-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.month-row span {
+    flex: 1 1 70px;
+    text-align: center;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    padding: 8px;
+}
+
+.month-row strong { display: block; font-size: 1.4rem; }
+
+.leave-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.leave-form select, .leave-form input[placeholder], .leave-form button { grid-column: 1 / -1; }
+
+.outside-banner {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--warning);
+    color: #3a2400;
+    padding: 10px 14px;
+    font-weight: 700;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.outside-banner button {
+    border: 0;
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.selfies { white-space: nowrap; }
+
+.selfie-thumb {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 4px;
+}
+
+.attendance-page td .check { display: flex; gap: 4px; align-items: center; margin: 4px 0; }
+
+.alerts-matrix th, .alerts-matrix td { min-width: 140px; }
+.alerts-matrix td:first-child, .alerts-matrix th:first-child { min-width: 200px; }
+.quiet-cell { display: flex; gap: 4px; }
+
+.setup-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.setup-steps li { display: flex; gap: 8px; align-items: center; }
+.setup-steps li span { flex: 1; }
+.setup-steps li.ok svg { color: var(--success); }
+.setup-steps li.todo svg { color: var(--warning); }

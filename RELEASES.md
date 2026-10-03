@@ -4,6 +4,60 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phase 5 — Staff app, attendance and alerts (2026-10-03)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| My day (`/admin/me`) | Every staff login gets a phone screen: **Check in / Check out** with a **selfie** and GPS, only inside the cafe's radius; late minutes against the shift start; **Break 15 / 30 / Delivery 60** buttons; this month's present / half / leave / late; **Ask for leave** (goes to Payroll → Leave for approval); **Turn on alerts on this phone**. |
+| Attendance (`/admin/attendance`) | Owner/manager board for any day: in, out, late, auto check-out, **now inside / outside / on break / stopped reporting**, breaks taken, both selfies (private, opened through short-lived links). Map-pin button = today's location points (inside/outside, distance, Google Maps link). Per employee: **link to their app login**, location tracking on/off, shift start. **Cafe location**: stand in the cafe and tap *Use my location*, radius, alert-after minutes, ping interval. |
+| On-premises check | While checked in and the app is open, the phone reports location every 10 min (setting). Outside the radius → a yellow banner on the staff phone ("Back in 5 min?" / *Going for a break*); still outside after 10 min → **alarm to the owner/manager**: "Ravi left the cafe 12 min ago". A phone that stops reporting shows *stopped reporting* (loud alert), not absent. Forgot to check out → closed the next day at check-in + shift hours and flagged *auto*. Location points are deleted after 30 days. |
+| Consent | Staff terms **version 2** explain the location and selfie use in plain words; every staff member accepts again on next login. Owners can switch tracking off per person. |
+| Alerts (`/admin/alerts`) | A grid of **people × alert types** (new order, payment request, staff left, phone silent, escalation, low stock, cash mismatch, void, approvals, reward, Instagram, khata due, GST due, subscription) with **Alarm / Loud / Normal / Off** per person, plus **quiet hours** (only order and payment alarms ring then). People only get alerts their role can see. New QR orders now ring as an alarm. |
+| Alarm screen | Full-screen alarm now has **Snooze 5 / 10 / 15 min**; it rings again if nobody acknowledged. Unanswered alarms escalate to the owner after 5 min. |
+| Install as an app | The website is now installable (**Add to Home screen** on Android Chrome and iPhone Safari) with the cafe's name, icon and colour, and opens offline to the last screen. With the push key set (below), alerts arrive **even when the app is closed**. |
+| Android app (APK) | `frontend/android` + GitHub Actions workflow **Android app**: builds an APK per cafe that opens the cafe's live site at *My day*, so website updates reach phones without reinstalling. Inside the app: **full-screen alarm over the lock screen** (rings until opened, snooze 5 min), a **Phone setup** checklist (notifications, full-screen alarms, battery unrestricted, Xiaomi/Oppo/Vivo autostart hint, **Test alarm**) and a "new version available" note. |
+| Push function | `supabase/functions/push-notify`: sends each new alert to the right phones (browser push and Android), in each person's chosen style, and removes phones that turned alerts off. |
+
+**Deploy (needs you)**
+
+1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-phase5.sql`** → Run → *Success*.
+2. Vercel redeploys from `main`. The app works from here; steps 3–6 add alerts while the app is closed.
+3. **Push keys** (once, on your Mac): `npx web-push generate-vapid-keys` → it prints a *Public Key* and a *Private Key*.
+   - Vercel → the cafe project → Settings → Environment Variables → `VITE_VAPID_PUBLIC_KEY` = the public key → Redeploy.
+   - Supabase → Edge Functions → Secrets → add `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (= `mailto:nairsolutions02@gmail.com`) and `PUSH_WEBHOOK_SECRET` (any long random text, e.g. from `openssl rand -hex 24`).
+4. **Deploy the function** (Mac terminal, in the repo): `npx supabase login` → `npx supabase functions deploy push-notify --project-ref <your project ref>`.
+5. **Database webhook**: Supabase → Database → Webhooks → *Create* → name `push`, table `notification_events`, event **Insert**, type **Supabase Edge Functions** → `push-notify`, method POST, add HTTP header `x-webhook-secret` = the same `PUSH_WEBHOOK_SECRET` → Create.
+6. **Android app** (optional, for lock-screen alarms):
+   - Firebase console → Add project → Add app → Android → package name e.g. `in.nairsolutions.fika` → download `google-services.json`. Project settings → Service accounts → *Generate new private key* (a JSON file).
+   - GitHub → repo → Settings → Secrets and variables → Actions → New secret `GOOGLE_SERVICES_JSON` = contents of google-services.json.
+   - Supabase → Edge Functions → Secrets → `FCM_SERVICE_ACCOUNT` = contents of the service-account JSON.
+   - Optional signing key, so updates install over the old app: `keytool -genkey -v -keystore fika.jks -alias fika -keyalg RSA -keysize 2048 -validity 10000` → `base64 -i fika.jks | pbcopy` → secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (= fika), `ANDROID_KEY_PASSWORD`. Keep the .jks file safe — losing it means reinstalling the app on every phone.
+   - GitHub → Actions → **Android app** → Run workflow → cafe URL, app name (e.g. *FiKA Staff*), app id (same package name as Firebase) → download the APK from the run's *Artifacts* → send it to staff phones (allow "install unknown apps").
+
+**Test checklist**
+
+- [ ] Attendance → stand in the cafe → *Use my location* → Save → *Check on map* shows the cafe
+- [ ] Attendance → each employee row → **App login** = their staff login; set shift start
+- [ ] Staff phone: log in with PIN → accept the new terms (location consent) → menu **My day** → Selfie → **Check in** → green "Checked in at …"
+- [ ] Owner: Attendance shows *inside* and the selfie; tap the map pin → location points
+- [ ] Staff walks ~100 m away and opens the app → yellow "You are outside the cafe" banner; after 10 min the owner's phone rings *Ravi left the cafe*
+- [ ] Staff → *Break 15 min* → board shows *break till …*; no alarm while on break
+- [ ] Alerts → set *New order* = Off for a cashier, quiet hours 23:00–08:00 for yourself
+- [ ] Customer QR order → owner screen rings full-screen → **Snooze 5 min** → rings again after 5 min → Acknowledge
+- [ ] (after steps 3–5) My day → **Turn on alerts on this phone** → close the browser → place a QR order → phone notification arrives
+- [ ] (after step 6) Install the APK → My day → **Phone setup** all green → **Test alarm** rings over the lock screen
+- [ ] Staff checks out with a selfie; a staff member who forgets shows *auto* next day, closed at check-in + shift hours
+
+**Known limits in this release**
+
+- Location is checked only while the app (or browser tab) is open; when the phone is locked for long, Android may pause it — the board then shows *stopped reporting*. Background tracking would need a Play Store review.
+- iPhone: alerts while closed work only from the home-screen app (iOS 16.4+), and iPhones never show a full-screen alarm.
+- The APK isn't on the Play Store; staff install it directly. If no signing key is set, uninstall the old app before installing a new build.
+
+---
+
 ## Phase 4 — Reports and payroll (2026-10-03)
 
 **What's new**

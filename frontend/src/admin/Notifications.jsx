@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiBell } from 'react-icons/fi';
-import { getMyNotifications, ackNotification, runDailyReminders } from '../utils/api';
+import { getMyNotifications, ackNotification, runDailyReminders, getMyNotificationPrefs } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './pos/POS.css';
 
@@ -54,7 +54,24 @@ const Notifications = () => {
     const [items, setItems] = useState([]);
     const [open, setOpen] = useState(false);
     const [alarm, setAlarm] = useState(null);
+    const [prefs, setPrefs] = useState(null);
+    const snoozed = useRef({});
     const tone = useAlarmTone();
+
+    useEffect(() => {
+        const loadPrefs = () => getMyNotificationPrefs().then(r => setPrefs(r.data)).catch(() => {});
+        loadPrefs();
+        const t = setInterval(loadPrefs, 5 * 60000);
+        return () => clearInterval(t);
+    }, []);
+
+    // This person's style for an alert kind: alarm / loud / normal / off. Quiet hours turn
+    // everything down to silent except order and payment alarms.
+    const styleFor = useCallback((n) => {
+        let style = prefs?.styles?.[n.kind] || n.priority || 'normal';
+        if (prefs?.quietNow && !['new_order', 'payment_request', 'escalation'].includes(n.kind)) style = style === 'off' ? 'off' : 'normal';
+        return style;
+    }, [prefs]);
 
     const load = useCallback(async () => {
         try {
@@ -77,19 +94,34 @@ const Notifications = () => {
         const onNew = async (row) => {
             const list = await load();
             const n = list.find(x => x.id === row.id);
-            if (n && n.priority === 'alarm' && !n.acknowledgedAt) {
+            if (!n) return;
+            const style = styleFor(n);
+            if (style === 'alarm' && !n.acknowledgedAt) {
                 setAlarm(n);
                 tone.start();
-            } else if (n && n.priority === 'loud') {
+            } else if (style === 'loud') {
                 tone.start();
                 setTimeout(tone.stop, 3000);
             }
         };
         socket.on('notification', onNew);
         return () => socket.off('notification', onNew);
-    }, [socket, load, tone]);
+    }, [socket, load, tone, styleFor]);
 
-    const unread = items.filter(n => !n.acknowledgedAt && Date.now() - new Date(n.createdAt).getTime() < 864e5).length;
+    // Snoozed alarms ring again if nobody has acknowledged them
+    const snooze = (minutes) => {
+        tone.stop();
+        const n = alarm;
+        setAlarm(null);
+        snoozed.current[n.id] = setTimeout(async () => {
+            const list = await load();
+            const again = list.find(x => x.id === n.id);
+            if (again && !again.acknowledgedAt) { setAlarm(again); tone.start(); }
+        }, minutes * 60000);
+    };
+    useEffect(() => () => Object.values(snoozed.current).forEach(clearTimeout), []);
+
+    const unread = items.filter(n => styleFor(n) !== 'off' && !n.acknowledgedAt && Date.now() - new Date(n.createdAt).getTime() < 864e5).length;
 
     const openItem = async (n) => {
         setOpen(false);
@@ -129,6 +161,9 @@ const Notifications = () => {
                     <h2>{alarm.title}</h2>
                     {alarm.body && <p>{alarm.body}</p>}
                     <button onClick={acknowledge}>Acknowledge</button>
+                    <div className="alarm-snooze">
+                        {[5, 10, 15].map(m => <button key={m} onClick={() => snooze(m)}>Snooze {m} min</button>)}
+                    </div>
                 </div>
             )}
         </div>

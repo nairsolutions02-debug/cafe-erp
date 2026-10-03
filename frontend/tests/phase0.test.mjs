@@ -207,7 +207,7 @@ test('staff must accept terms once; the acceptance is stored', async () => {
     await rpc(c, 'accept_terms', { p_kind: 'staff', p_version: me.pendingTerms.version, p_user_agent: 'test' });
     assert.equal((await rpc(c, 'me')).pendingTerms, null);
     const staff = (await rpc(ownerA, 'list_staff')).staff.find(s => s.phone === ph(15));
-    assert.equal(staff.acceptedTerms.version, 1);
+    assert.equal(staff.acceptedTerms.version, me.pendingTerms.version);
 });
 
 test('unpaid cafe locks: staff blocked, ordering paused; payment unlocks', async () => {

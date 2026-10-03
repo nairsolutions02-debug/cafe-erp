@@ -16,6 +16,11 @@ if (import.meta.env.VITE_CAFE_THEME_COLOR) {
   root.setProperty('--primary-light', `color-mix(in srgb, ${color} 80%, white)`)
 }
 
+// Offline shell + phone alerts while the app is closed (not inside the Android app, which has its own)
+if ('serviceWorker' in navigator && import.meta.env.PROD && !globalThis.Capacitor?.isNativePlatform?.()) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}))
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />

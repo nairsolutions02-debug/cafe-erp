@@ -1,0 +1,93 @@
+# Builds the staff Android app (APK) for one cafe. Run it from GitHub → Actions → "Android app" → Run workflow.
+# The app opens the cafe's live website, so website updates reach phones without a new APK.
+# Optional repository secrets (Settings → Secrets and variables → Actions):
+#   GOOGLE_SERVICES_JSON     contents of google-services.json from Firebase (needed for alerts when the app is closed)
+#   ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#                            your signing key, so new versions install over old ones (without it a debug-signed APK is built)
+name: Android app
+
+on:
+  workflow_dispatch:
+    inputs:
+      cafe_url:
+        description: "Cafe website, e.g. https://fika.vercel.app"
+        required: true
+      app_name:
+        description: "Name on the phone, e.g. FiKA Staff"
+        required: true
+        default: "Cafe Staff"
+      app_id:
+        description: "Unique app id (letters, dots), e.g. in.nairsolutions.fika"
+        required: true
+        default: "in.nairsolutions.cafe"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install
+        run: npm ci
+      - name: Web shell (shown only if the website can't load)
+        run: npm run build
+      - name: Point the app at the cafe website
+        env:
+          CAFE_APP_URL: ${{ inputs.cafe_url }}
+          CAFE_APP_ID: ${{ inputs.app_id }}
+          CAFE_APP_NAME: ${{ inputs.app_name }}
+        run: npx cap sync android
+      - name: Firebase file
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+            echo "Firebase alerts: on"
+          else
+            echo "::warning::GOOGLE_SERVICES_JSON secret not set - the app works, but alerts only ring while it is open"
+          fi
+      - name: Signing key
+        env:
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE" ]; then
+            echo "$KEYSTORE" | base64 -d > android/app/release.jks
+            echo "SIGNED=1" >> "$GITHUB_ENV"
+          else
+            echo "::warning::No signing key secret - building a debug-signed APK (uninstall the old app before installing a new build)"
+          fi
+      - name: Build APK
+        working-directory: frontend/android
+        env:
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          APP_ID: ${{ inputs.app_id }}
+          APP_NAME: ${{ inputs.app_name }}
+          RUN: ${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          PROPS=("-PcafeAppId=$APP_ID" "-PcafeAppName=$APP_NAME" "-PcafeVersionCode=$RUN" "-PcafeVersionName=1.$RUN")
+          if [ "$SIGNED" = "1" ]; then
+            ./gradlew assembleRelease "${PROPS[@]}" -PcafeKeystore=release.jks
+            cp app/build/outputs/apk/release/app-release.apk ../cafe-staff.apk
+          else
+            ./gradlew assembleDebug "${PROPS[@]}"
+            cp app/build/outputs/apk/debug/app-debug.apk ../cafe-staff.apk
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.app_name }} v1.${{ github.run_number }} (version code ${{ github.run_number }})
+          path: frontend/cafe-staff.apk

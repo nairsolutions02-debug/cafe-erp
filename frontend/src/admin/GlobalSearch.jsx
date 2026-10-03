@@ -49,7 +49,7 @@ const GlobalSearch = () => {
     useEffect(() => {
         const q = query.trim();
         if (q.length < 2) { setResults({}); return undefined; }
-        const pages = ADMIN_NAV.filter(n => hasPerm(n.perm) && n.label.toLowerCase().includes(q.toLowerCase()))
+        const pages = ADMIN_NAV.filter(n => (!n.perm || hasPerm(n.perm)) && n.label.toLowerCase().includes(q.toLowerCase()))
             .map(n => ({ id: n.path, title: n.label, path: n.path }));
         setResults(r => ({ ...r, pages }));
         const timer = setTimeout(async () => {
