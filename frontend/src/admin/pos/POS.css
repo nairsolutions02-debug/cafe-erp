@@ -508,6 +508,62 @@
 }
 
 /* Kitchen display: oldest ticket first, coloured top edge (green, orange after 8 min, red after 15) */
+/* Kitchen colours: light by default; .theme-dark (Kitchen theme Auto on a dark phone, or Dark) swaps them */
+.kds {
+    --k-card: #FFFFFF;
+    --k-line: #E6D9C6;
+    --k-row: #F8F4EC;
+    --k-soft: #F1E8DA;
+    --k-ink: #3E2A14;
+    --k-ink-2: #5A4228;
+    --k-muted: #7A6548;
+    --k-ok: #157F3D;
+    --k-ok-soft: #E7F5EC;
+    --k-ok-ink: #4C7A5E;
+    --k-warn: #D97706;
+    --k-warn-ink: #B45309;
+    --k-warn-soft: #FCEBD2;
+    --k-cook: #FFF4DC;
+    --k-late: #B42318;
+    --k-late-soft: #FBE2DE;
+    --k-note-bg: #FCEBD2;
+    --k-note-ink: #8A4B06;
+    --k-chip-on-bg: #3E2A14;
+    --k-chip-on-ink: #FFFFFF;
+    color: var(--k-ink);
+}
+
+.theme-dark .kds {
+    --k-card: #1F1A15;
+    --k-line: #3A3027;
+    --k-row: #2A231C;
+    --k-soft: #3A3027;
+    --k-ink: #F5EBDD;
+    --k-ink-2: #CDBBA2;
+    --k-muted: #A8957B;
+    --k-ok: #4ADE80;
+    --k-ok-soft: #14301F;
+    --k-ok-ink: #8BD9A8;
+    --k-warn: #F59E0B;
+    --k-warn-ink: #F6B867;
+    --k-warn-soft: #3D2A12;
+    --k-cook: #33260F;
+    --k-late: #F87171;
+    --k-late-soft: #3D1714;
+    --k-note-bg: #3D2A12;
+    --k-note-ink: #F7C589;
+    --k-chip-on-bg: #F5EBDD;
+    --k-chip-on-ink: #1A140F;
+}
+
+.theme-dark .ticket {
+    box-shadow: none;
+}
+
+.theme-dark .ticket-item.ready .ti-check {
+    color: #0B1A10;
+}
+
 .kds {
     min-height: 60vh;
 }
@@ -527,7 +583,7 @@
 
 .kds-sum {
     flex: 1;
-    color: var(--text-muted);
+    color: var(--k-muted);
     font-size: 0.9rem;
     font-variant-numeric: tabular-nums;
 }
@@ -538,19 +594,19 @@
     gap: 6px;
     height: 38px;
     padding: 0 12px;
-    border: 1.5px solid #E6D9C6;
+    border: 1.5px solid var(--k-line);
     border-radius: 99px;
-    background: white;
+    background: var(--k-card);
     font: inherit;
     font-size: 0.82rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--k-ink-2);
     cursor: pointer;
 }
 
 .kds-icon.on {
-    border-color: #157F3D;
-    color: #157F3D;
+    border-color: var(--k-ok);
+    color: var(--k-ok);
 }
 
 .kds-chips {
@@ -572,30 +628,30 @@
     gap: 6px;
     height: 38px;
     padding: 0 14px;
-    border: 1.5px solid #E6D9C6;
+    border: 1.5px solid var(--k-line);
     border-radius: 99px;
-    background: white;
+    background: var(--k-card);
     font: inherit;
     font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--k-ink-2);
     cursor: pointer;
 }
 
 .kds-chips button span {
     font-size: 0.72rem;
     font-weight: 700;
-    background: #F1E8DA;
-    color: var(--text-primary);
+    background: var(--k-soft);
+    color: var(--k-ink);
     border-radius: 99px;
     padding: 1px 7px;
     font-variant-numeric: tabular-nums;
 }
 
 .kds-chips button[aria-pressed="true"] {
-    background: var(--text-primary);
-    border-color: var(--text-primary);
-    color: white;
+    background: var(--k-chip-on-bg);
+    border-color: var(--k-chip-on-bg);
+    color: var(--k-chip-on-ink);
 }
 
 .kds-chips button[aria-pressed="true"] span {
@@ -611,9 +667,9 @@
 }
 
 .ticket {
-    background: white;
+    background: var(--k-card);
     border-radius: 16px;
-    border-top: 6px solid #157F3D;
+    border-top: 6px solid var(--k-ok);
     padding: 10px 12px 12px;
     display: flex;
     flex-direction: column;
@@ -622,15 +678,15 @@
 }
 
 .ticket.warn {
-    border-top-color: #D97706;
+    border-top-color: var(--k-warn);
 }
 
 .ticket.late {
-    border-top-color: #B42318;
+    border-top-color: var(--k-late);
 }
 
 .ticket.ready {
-    border-top-color: #157F3D;
+    border-top-color: var(--k-ok);
     opacity: 0.8;
 }
 
@@ -653,13 +709,13 @@
     display: flex;
     flex-direction: column;
     font-size: 0.8rem;
-    color: var(--text-muted);
+    color: var(--k-muted);
     line-height: 1.25;
     overflow-wrap: anywhere;
 }
 
 .ticket-who b {
-    color: var(--text-primary);
+    color: var(--k-ink);
     font-size: 0.92rem;
     text-transform: capitalize;
 }
@@ -669,19 +725,19 @@
     font-weight: 700;
     padding: 2px 8px;
     border-radius: 99px;
-    background: #F1E8DA;
-    color: var(--text-secondary);
+    background: var(--k-soft);
+    color: var(--k-ink-2);
     font-variant-numeric: tabular-nums;
 }
 
 .ticket-age.warn {
-    background: #FCEBD2;
-    color: #B45309;
+    background: var(--k-warn-soft);
+    color: var(--k-warn-ink);
 }
 
 .ticket-age.late {
-    background: #FBE2DE;
-    color: #B42318;
+    background: var(--k-late-soft);
+    color: var(--k-late);
 }
 
 .ticket-items {
@@ -699,14 +755,14 @@
     align-items: center;
     gap: 10px;
     border: 0;
-    background: #F8F4EC;
+    background: var(--k-row);
     border-radius: 10px;
     padding: 8px 10px;
     min-height: 48px;
     font: inherit;
     text-align: left;
     cursor: pointer;
-    color: var(--text-primary);
+    color: var(--k-ink);
 }
 
 .ticket-item:disabled {
@@ -717,7 +773,7 @@
     width: 30px;
     height: 30px;
     border-radius: 9px;
-    background: white;
+    background: var(--k-card);
     display: grid;
     place-items: center;
     font-weight: 800;
@@ -736,7 +792,7 @@
     display: block;
     font-weight: 500;
     font-size: 0.78rem;
-    color: #B45309;
+    color: var(--k-warn-ink);
 }
 
 .ti-st {
@@ -744,50 +800,50 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--k-muted);
 }
 
 .ti-check {
     width: 26px;
     height: 26px;
     border-radius: 50%;
-    border: 2px solid #E6D9C6;
+    border: 2px solid var(--k-line);
     display: grid;
     place-items: center;
     font-size: 0.7rem;
     font-weight: 800;
     flex: none;
-    background: white;
+    background: var(--k-card);
 }
 
 .ticket-item.preparing {
-    background: #FFF4DC;
+    background: var(--k-cook);
 }
 
 .ticket-item.preparing .ti-check {
-    border-color: #D97706;
-    color: #B45309;
+    border-color: var(--k-warn);
+    color: var(--k-warn-ink);
 }
 
 .ticket-item.ready {
-    background: #E7F5EC;
+    background: var(--k-ok-soft);
 }
 
 .ticket-item.ready .ti-name {
     text-decoration: line-through;
-    color: #4C7A5E;
+    color: var(--k-ok-ink);
 }
 
 .ticket-item.ready .ti-check {
-    background: #157F3D;
-    border-color: #157F3D;
+    background: var(--k-ok);
+    border-color: var(--k-ok);
     color: white;
     font-size: 0.85rem;
 }
 
 .ticket-note {
-    background: #FCEBD2;
-    color: #8A4B06;
+    background: var(--k-note-bg);
+    color: var(--k-note-ink);
     padding: 6px 9px;
     border-radius: 9px;
     font-size: 0.85rem;
@@ -807,7 +863,7 @@
 }
 
 .kds-empty {
-    color: var(--text-muted);
+    color: var(--k-muted);
     padding: 30px 0;
 }
 

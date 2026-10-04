@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FiMaximize, FiPrinter, FiVolume2 } from 'react-icons/fi';
+import { FiMaximize, FiPrinter, FiVolume2, FiMoon, FiSun } from 'react-icons/fi';
 import { getKitchenOrders, setKitchenStatus } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { printKot } from '../../lib/print';
 import useMenuLang, { tableToken } from '../mobile/useMenuLang';
 import { W } from '../mobile/staffText';
+import { readKdsTheme, setKdsTheme } from '../mobile/useAdminTheme';
 import './POS.css';
 
 const NEXT = { queued: 'preparing', preparing: 'ready', ready: 'queued' };
@@ -23,6 +24,12 @@ const AdminKitchen = () => {
     const [sound, setSound] = useState(() => localStorage.getItem('kds-sound') !== '0');
     const [station, setStation] = useState(readStation);
     const { t } = useMenuLang();
+    const [theme, setTheme] = useState(readKdsTheme);
+    const nextTheme = () => {
+        const v = { auto: 'dark', dark: 'light', light: 'auto' }[theme] || 'auto';
+        setTheme(v);
+        setKdsTheme(v);
+    };
     const known = useRef(null);
     const canEdit = hasPerm('orders.edit');
 
@@ -94,6 +101,8 @@ const AdminKitchen = () => {
                 <span className="kds-sum">{tickets.length} {t(W.tickets)}{tickets.length > 0 ? ` · ${t(W.oldest)} ${age(tickets[0].o)} min` : ''}</span>
                 <button type="button" className={`kds-icon${sound ? ' on' : ''}`} aria-pressed={sound} aria-label="Sound for new orders"
                     onClick={() => { setSound(!sound); localStorage.setItem('kds-sound', sound ? '0' : '1'); }}><FiVolume2 /> <span>{t(sound ? W.soundOn : W.soundOff)}</span></button>
+                <button type="button" className="kds-icon" onClick={nextTheme} aria-label={`${t(W.themeLabel)}: ${t(W[`theme${theme[0].toUpperCase()}${theme.slice(1)}`])}`}
+                    title={t(W.themeLabel)}>{theme === 'light' ? <FiSun /> : <FiMoon />} <span>{t(W[`theme${theme[0].toUpperCase()}${theme.slice(1)}`])}</span></button>
                 <button type="button" className="kds-icon kds-full" onClick={() => document.documentElement.requestFullscreen?.()}><FiMaximize /> <span>{t(W.fullScreen)}</span></button>
             </div>
             {used.length > 1 && (

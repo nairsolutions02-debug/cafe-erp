@@ -4,6 +4,32 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Dark mode, step 1: the Kitchen screen (2026-10-04)
+
+First step of dark mode. The Kitchen screen can now be dark; every other page stays light until its colours are converted in the next steps. No SQL.
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Kitchen theme switch | A moon / sun button next to Sound on the Kitchen screen. Tap to cycle **Auto → Dark → Light**. Auto follows the phone or tablet's own dark setting. The choice is saved on that device, so the kitchen tablet can stay dark while the counter phone stays light. |
+| Dark kitchen | Dark tickets with the same meaning in colour: green edge on time, orange after 8 minutes, red after 15; cooking dishes amber, ready dishes green with ✓. Cook notes stay highlighted. |
+| Dark frame | While the Kitchen is dark, the header, section tabs, bottom bar, alerts list and the search screen are dark too. Leaving the Kitchen brings the light pages back. |
+| Languages | Auto / Dark / Light follow English / हिन्दी / Hinglish. |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Kitchen tablet or phone with the system dark mode on: Kitchen opens dark (Auto)
+- [ ] Tap the moon button: Dark → Light → Auto; reload the page: the choice stays
+- [ ] Dark Kitchen: a ticket older than 15 minutes has a red top edge; tap a dish: amber •••, tap again: green ✓
+- [ ] Open Orders from the bottom bar: it is light again
+- [ ] Bell and search on the dark Kitchen are readable
+
+---
+
 ## Phone app redesign, part 4: every other page (2026-10-04)
 
 Last of the four parts of the approved mobile redesign. Phones only (up to 768 px); laptop and tablet look the same as before. No SQL.

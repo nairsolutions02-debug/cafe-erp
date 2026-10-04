@@ -640,3 +640,117 @@
         margin: -10px -6px;
     }
 }
+
+/* Dark mode, step 1: the app frame around a dark page (today only the Kitchen) */
+.admin-layout.theme-dark {
+    --text-primary: #F5EBDD;
+    --text-secondary: #CDBBA2;
+    --text-muted: #A8957B;
+    --bg-secondary: #15110D;
+    --bg-card: #1F1A15;
+    background: #15110D;
+    color: #F5EBDD;
+    color-scheme: dark;
+}
+
+.theme-dark .admin-main,
+.theme-dark .admin-content {
+    background: #15110D;
+}
+
+.theme-dark .admin-header {
+    background: #1A1511;
+    border-bottom-color: #2E261F;
+    box-shadow: none;
+}
+
+.theme-dark .admin-header .bell-btn,
+.theme-dark .header-search,
+.theme-dark .header-help,
+.theme-dark .menu-toggle,
+.theme-dark .admin-name {
+    color: #F5EBDD;
+}
+
+.theme-dark .admin-header .bell-count {
+    border-color: #1A1511;
+}
+
+.theme-dark .global-search input {
+    background: #241E18;
+    border-color: #3A3027;
+    color: #F5EBDD;
+}
+
+.theme-dark .gs-results {
+    background: #1F1A15;
+}
+
+.theme-dark .gs-item.active {
+    background: #33281D;
+}
+
+.theme-dark .section-tab {
+    background: #1F1A15;
+    border-color: #3A3027;
+    color: #CDBBA2;
+}
+
+.theme-dark .section-tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #FFFFFF;
+}
+
+.theme-dark .quick-bar {
+    background: #1A1511;
+    border-top-color: #2E261F;
+}
+
+.theme-dark .quick-link {
+    color: #A8957B;
+}
+
+.theme-dark .quick-bar .quick-link.active {
+    color: #F5EBDD;
+}
+
+.theme-dark .quick-link.active .ql-pill {
+    background: #3B2611;
+    color: #F2A14E;
+}
+
+.theme-dark .net-pill {
+    background: #3D2A12;
+    color: #F6B867;
+}
+
+.theme-dark .net-pill.sending {
+    background: #14263B;
+    color: #7DB3F0;
+}
+
+.theme-dark .ptr-dot {
+    border-color: #3A3027;
+    border-top-color: var(--primary);
+}
+
+.theme-dark .billing-banner {
+    background: #3D2A12;
+    color: #F6B867;
+}
+
+.theme-dark .bell-list,
+.theme-dark .bell-item {
+    background: #1F1A15;
+    color: #F5EBDD;
+    border-color: #3A3027;
+}
+
+.theme-dark .bell-item.unread {
+    background: #2E2216;
+}
+
+.theme-dark .lang-switch button.on {
+    color: #3E2A14;
+}

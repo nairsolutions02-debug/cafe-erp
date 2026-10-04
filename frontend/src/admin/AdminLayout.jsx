@@ -8,6 +8,7 @@ import Presence from './staffapp/Presence';
 import { useAuth } from '../context/AuthContext';
 import { useOutbox } from '../lib/outbox';
 import usePullToRefresh from './mobile/usePullToRefresh';
+import useAdminTheme from './mobile/useAdminTheme';
 import { SHELL } from './mobile/shellText';
 import './mobile/mobile.css';
 import './AdminLayout.css';
@@ -34,6 +35,7 @@ const AdminLayout = () => {
     const [searchOpen, setSearchOpen] = useState(false);
     const [refreshKey, setRefreshKey] = useState(0);
     const { online, pending } = useOutbox();
+    const dark = useAdminTheme(location.pathname);
     const { pull, busy, ready } = usePullToRefresh(REFRESHABLE.includes(location.pathname), () => setRefreshKey(k => k + 1));
     const current = sectionFor(location.pathname);
     const [openSection, setOpenSection] = useState(current?.section.key || 'home');
@@ -104,7 +106,7 @@ const AdminLayout = () => {
     const pageTitle = location.pathname === '/admin/more' ? tr(SHELL.more, lang) : current ? tr(current.item.label, lang) : brand.name;
 
     return (
-        <div className="admin-layout">
+        <div className={`admin-layout${dark ? ' theme-dark' : ''}`}>
             {/* Sidebar */}
             <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
