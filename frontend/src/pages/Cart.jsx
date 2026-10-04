@@ -18,6 +18,7 @@ import {
     getLoyaltyOffers,
     quoteOrder,
     getCheckoutInfo,
+    getMyRewards,
 } from '../utils/api';
 import { useQrTable, clearQrTable } from '../lib/qrTable';
 import { usePortal } from '../context/PortalContext';
@@ -39,6 +40,7 @@ const Cart = () => {
     const tableMode = cfg?.tables?.mode || 'qr';
     const qrTable = useQrTable();
     const [checkoutInfo, setCheckoutInfo] = useState(null);
+    const [myCoupons, setMyCoupons] = useState([]);
     // One id per checkout: a double tap or a retry places the order only once
     const clientId = useRef(globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`);
 
@@ -133,6 +135,7 @@ const Cart = () => {
         fetchLoyaltyPoints();
         fetchLoyaltyOffers();
         getCheckoutInfo().then(r => setCheckoutInfo(r.data)).catch(() => {});
+        getMyRewards().then(r => setMyCoupons(r.data?.coupons || [])).catch(() => {});
     }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchRecommendations = async () => {
@@ -197,11 +200,13 @@ const Cart = () => {
         }
     };
 
-    const handleApplyCoupon = async () => {
-        if (!couponCode.trim()) return;
+    const handleApplyCoupon = async (codeArg) => {
+        const code = typeof codeArg === 'string' ? codeArg : couponCode;
+        if (!code.trim()) return;
+        if (code !== couponCode) setCouponCode(code);
 
         try {
-            const res = await validateCoupon(couponCode, getCartTotal);
+            const res = await validateCoupon(code, getCartTotal);
             setCouponApplied(res.data);
             setDiscount(res.data.discount);
             setError('');
@@ -435,6 +440,18 @@ const Cart = () => {
                             <button onClick={removeCoupon} className="remove-coupon-btn">Remove</button>
                         </div>
                     ) : (
+                        <>
+                        {myCoupons.length > 0 && (
+                            <div className="my-gifts">
+                                {myCoupons.slice(0, 3).map(c => (
+                                    <button key={c.code} type="button" className="my-gift" onClick={() => handleApplyCoupon(c.code)}>
+                                        <span>{/birthday/i.test(c.title) ? '🎂' : '🎁'}</span>
+                                        <span className="my-gift-text"><b>{c.reward}</b><small>{c.title}</small></span>
+                                        <span className="my-gift-apply">Apply</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                         <div className="coupon-input-row">
                             <input
                                 type="text"
@@ -447,6 +464,7 @@ const Cart = () => {
                                 Apply
                             </button>
                         </div>
+                        </>
                     )}
                 </div>
 
@@ -618,6 +636,13 @@ const Cart = () => {
                         <div className="bill-row points-row">
                             <span><FiAward /> Points ({pointsUsed} pts)</span>
                             <span>-₹{(quote ? quote.offerDiscount : pointsDiscount).toFixed(2)}</span>
+                        </div>
+                    )}
+                    {quote?.clubDiscount > 0 && (
+                        <div className="bill-row discount-row">
+                            <span>{[quote.club?.tierAmount > 0 && `${quote.club.tier} ${quote.club.tierPct}%`,
+                                quote.club?.memberAmount > 0 && `${quote.club.member} member ${quote.club.memberPct}%`].filter(Boolean).join(' + ') || 'Club discount'}</span>
+                            <span>-₹{Number(quote.clubDiscount).toFixed(2)}</span>
                         </div>
                     )}
                     {quote ? quote.taxDetails.map(t => (

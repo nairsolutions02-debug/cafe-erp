@@ -265,7 +265,7 @@ const LoginModal = () => {
                 </div>
 
                 <p className="modal-footer">
-                    By continuing, you agree to our Terms of Service
+                    By continuing, you agree to our Terms of Service and to the cafe saving your name, number and birthday (if given) for orders and rewards. You can ask to delete them anytime.
                 </p>
             </div>
         </div>

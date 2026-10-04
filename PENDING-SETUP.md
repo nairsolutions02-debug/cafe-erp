@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-04)
+# Pending setup (FiKA Club added 2026-10-04)
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -39,3 +39,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 ## 6. Pickup screen (2026-10-04)
 - [x] 6.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-pickup-screen.sql` → Run → Success
 - [x] 6.2 Admin → Sell → Pickup screen → Add screen → open the link on the cafe TV → tap once → TV sleep off
+
+## 7. FiKA Club (2026-10-04)
+- [ ] 7.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-club-rewards.sql` → Run → Success
+- [ ] 7.2 Admin → Customers → FiKA Club → check monthly tiers, milestones, Club levels and prices, birthday gift → Save

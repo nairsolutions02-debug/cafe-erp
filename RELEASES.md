@@ -4,6 +4,43 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## FiKA Club: birthdays, monthly tiers, Members Club, owner leaderboard (2026-10-04)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Birthday at sign-in | The sign-in box has an optional "🎁 Get a surprise on your birthday" step (day and month only). It shows the real gift, e.g. "₹150 off coupon + 100 points". Customers who skip can add it later on the Rewards page. |
+| Locked birthday | Saved once. "Wrong date? Ask the cafe to fix it" sends a request with a reason. Admin → Customers → **FiKA Club → Requests**: approve after checking an ID, or reject. One approved change per 12 months; every decision is logged. Same name and birthday on two numbers is flagged. |
+| Birthday gift | Opens 3 days before and stays valid until 7 days after. Needs 1 paid order and an account at least 30 days old before the birthday. Given **once a year** even if the date is changed. 29 Feb falls on 28 Feb in other years. Shown on the customer's Rewards page and checkout ("Apply"). At the counter, a **🎂 Apply birthday gift** chip appears next to the customer. |
+| Monthly tiers | Bronze 0 · Silver 4 · Gold 8 · Platinum 15 paid orders **this month**. Everyone goes back to Bronze on the 1st. Perks: Silver 1.25× points; Gold 1.5× points + 5% off; Platinum 2× points + 10% off. They start the moment a tier is reached. Orders under ₹100 don't count. Optional switch: keep this month's tier through next month. |
+| Monthly milestones | 3rd order this month: 20 points · 5th: ₹30 coupon · 10th: ₹50 coupon · 15th: 100 points. Each once per month; a cancelled order voids its unused milestone coupon. Edit them in FiKA Club → Monthly tiers. |
+| Members Club (12 months) | Two levels, on paid orders in the last 12 calendar months: **Club** at 60 orders (₹199/month: 10% off up to ₹50 a bill, 2× points) and **Club Elite** at 120 (₹349/month: 15% off up to ₹80, 3× points). The member discount works on one bill a day. Customers see a 12-month chart and "Join". Staff take the fee at the counter → **Paid · Activate**. The fee is its own bill with CGST 9% + SGST 9% and goes into the drawer and reports. Renew, cancel, grace days (3), and a reminder 3 days before it ends. Every number is editable, and levels can be added or removed (up to 3). |
+| Discount cap | Tier %, member % and coupons together are capped at **25% of the bill**. A coupon keeps its own value; the tier/member % is reduced to stay within the cap. Tobacco items are never discounted. |
+| Owner leaderboard | FiKA Club → **Leaderboard**: this month or last 12 months, with tier, Club level, member, spend, group (VIP, regular, slipping…) and last visit. Customers never see it, and staff phone numbers are left out. Tick customers (or "Pick top 10") → **Give reward**: points, ₹ or % coupon, or a free item; logged, with WhatsApp messages in the to-do list. **Export CSV**. |
+| Customer Rewards page | New cards at the top: this month's tier (with "resets in N days"), this month's milestones, Members Club level with the 12-month chart, and Birthday. No ranking anywhere. |
+| Counter | The customer search shows tier, 👑 member and a ready birthday gift. The bill shows the club discount line ("Gold 5% + Club 10%"). |
+
+**Heads-up: switched on by default (as approved).** Monthly milestones, the birthday gift, tier discounts and point multipliers start working the moment the SQL runs. Paid orders already placed this month count towards this month's tier. To change any number first, open Admin → Customers → FiKA Club right after the SQL.
+
+**Deploy**
+
+1. Supabase → SQL Editor → **New query** → paste **`supabase/upgrades/2026-10-club-rewards.sql`** → Run → *Success*.
+2. Vercel redeploys from `main` by itself. No new APK is needed. Until step 1 runs, the new cards simply don't show.
+3. Admin → Customers → **FiKA Club**: check the tiers, Club levels, prices and birthday gift.
+
+**Test checklist**
+- [ ] New phone → sign in → birthday box shows the gift → pick day and month → Rewards page shows the date as 🔒 Locked
+- [ ] Rewards → "Wrong date?" → send request → FiKA Club → Requests → Approve → customer sees the new date; a second request is refused for 12 months
+- [ ] A customer whose birthday is within 3 days, with an order and an account over 30 days old → Rewards shows "Happy birthday" with a code → checkout "Apply" → discount; the counter shows 🎂 Apply birthday gift
+- [ ] Counter: sell 4 orders of ₹100+ to one phone → their Rewards page shows Silver; the 3rd order gave 20 points
+- [ ] At Gold (8 orders) → the next bill shows "Gold 5%" on the counter and the QR checkout
+- [ ] FiKA Club → Members Club → set Club to a low number (e.g. 5) → customer taps Join → staff "Paid · Activate" (cash) → the fee bill shows in Orders history and today's cash; the customer's next bill has 10% off, the second bill that day doesn't
+- [ ] FiKA Club → Leaderboard → this month / 12 months → tick 2 → Give reward → coupons appear in their Rewards page and the WhatsApp to-do list
+- [ ] Customer app: no leaderboard or rank anywhere
+
+---
+
 ## Pickup screen: a big TV that shows "Preparing" and "Ready to collect" (2026-10-04)
 
 **Why:** in a rush, people crowd the counter asking "is mine ready?". A TV that everyone can read from their seat (5–10 m away) shows which orders are cooking and which are ready, so customers wait seated and staff hand over orders faster.

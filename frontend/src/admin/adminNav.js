@@ -1,7 +1,7 @@
 import {
     FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage, FiUsers, FiBarChart2, FiLayout, FiActivity,
     FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase, FiZap, FiBook,
-    FiPieChart, FiSmartphone, FiTv, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck,
+    FiPieChart, FiSmartphone, FiTv, FiAward, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck,
 } from 'react-icons/fi';
 
 // Menu labels in English, Hindi and Hinglish: [en, hi, hinglish]
@@ -57,6 +57,7 @@ export const NAV_SECTIONS = [
         items: [
             { path: '/admin/customers', icon: FiUsers, label: L('Customers', 'ग्राहक', 'Grahak'), perm: 'customers.view' },
             { path: '/admin/khata', icon: FiBook, label: L('Khata', 'खाता', 'Khata'), perm: 'customers.view' },
+            { path: '/admin/club', icon: FiAward, label: L('FiKA Club', 'फ़ीका क्लब', 'FiKA Club'), perm: 'customers.view' },
             { path: '/admin/rewards', icon: FiGift, label: L('Rewards', 'इनाम', 'Inaam'), perm: 'customers.view' },
             { path: '/admin/loyalty', icon: FiStar, label: L('Points', 'पॉइंट्स', 'Points'), perm: 'rewards.view', tab: true },
             { path: '/admin/coupons', icon: FiTag, label: L('Coupons', 'कूपन', 'Coupon'), perm: 'coupons.view' },

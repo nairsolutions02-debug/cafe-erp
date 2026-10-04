@@ -57,6 +57,11 @@ await rpc(sa, 'sa_create_tenant', {
     p_owner_name: 'Owner B', p_owner_phone: ph(2), p_owner_pin: '2222' });
 const owner = await staffLogin(slugA, ph(1), '1111');
 const ownerB = await staffLogin(slugB, ph(2), '2222');
+// These checks predate the FiKA Club: neutral club rules so its tiers and monthly milestones don't add points here
+await rpc(owner, 'save_club_config', { p: { tiers: [{ name: 'Member', color: '#888888', orders: 0, multiplier: 1, pct: 0 }], levels: [],
+    birthday: { askAtSignin: true, before: 0, after: 7, minOrders: 0, minAccountDays: 0, bonusPoints: 0 } } });
+await must(service.from('reward_rules').update({ is_active: false }).eq('trigger_kind', 'month_milestone')
+    .eq('tenant_id', (await must(service.from('tenants').select('id').eq('slug', slugA).single())).id));
 const roles = await must(owner.from('roles').select('id, name'));
 const role = (n) => roles.find(r => r.name === n).id;
 const cashierStaff = await rpc(owner, 'create_staff', { p_name: 'Cashier Ravi', p_phone: ph(10), p_role_id: role('Cashier'), p_pin: '1010' });
@@ -250,7 +255,10 @@ test('portal texts and switches; birthday rule via the daily check; groups', asy
     const g2 = await rpc(cashier, 'customer_groups', { p_group: 'new' });
     assert.ok(g2.customers.every(c => !c.canWhatsapp));
     // isolation
-    assert.equal((await rpc(ownerB, 'list_reward_rules', {})).filter(r => r.isActive).length, 0);
+    // (every cafe starts with the FiKA Club milestone and birthday rules; cafe A's own rules never show in cafe B)
+    const rulesB = await rpc(ownerB, 'list_reward_rules', {});
+    assert.ok(!rulesB.some(r => r.id === bday));
+    assert.ok(rulesB.filter(r => r.isActive).every(r => ['month_milestone', 'birthday'].includes(r.triggerKind)));
     assert.equal((await rpc(ownerB, 'reward_todo', {})).length, 0);
 });
 

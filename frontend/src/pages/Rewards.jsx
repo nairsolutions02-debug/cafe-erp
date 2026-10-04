@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import { getMyRewards, getPortalConfig, setMyDates, uploadCustomerSelfie, submitInstagramClaim } from '../utils/api';
 import './Rewards.css';
+import ClubCards from './club/ClubCards';
 
 const errorText = (err) => err?.response?.data?.message || err?.message || 'Something went wrong';
 const fill = (text, vars) => String(text || '').replace(/\{(\w+)\}/g, (m, k) => (vars[k] ?? m));
@@ -77,6 +78,7 @@ const Rewards = () => {
         <div className="rewards-page">
             <Header title={t.heading} showCart={false} />
             {error && <p className="error-message rw-pad">{error}</p>}
+            <ClubCards />
 
             {show.points && r.points != null && (
                 <section className="rw-hero">
@@ -138,17 +140,15 @@ const Rewards = () => {
                 </section>
             )}
 
-            {show.upcoming && r.upcoming.length > 0 && (
+            {show.upcoming && r.upcoming.some(u => u.when !== 'birthday') && (
                 <section className="rw-card">
                     <h3>Coming your way</h3>
-                    {r.upcoming.map(u => <p key={u.name} className="small"><strong>{WHEN[u.when] || u.name}</strong>: {u.reward}</p>)}
-                    {r.upcoming.some(u => u.when === 'birthday' || u.when === 'anniversary') && (
+                    {r.upcoming.filter(u => u.when !== 'birthday').map(u => <p key={u.name} className="small"><strong>{WHEN[u.when] || u.name}</strong>: {u.reward}</p>)}
+                    {r.upcoming.some(u => u.when === 'anniversary') && (
                         <div className="rw-dates">
-                            <label className="small">Birthday<input className="input" type="date" value={dates.birthday} disabled={!!r.birthday}
-                                onChange={e => setDates({ ...dates, birthday: e.target.value })} /></label>
                             <label className="small">Anniversary<input className="input" type="date" value={dates.anniversary} disabled={!!r.anniversary}
                                 onChange={e => setDates({ ...dates, anniversary: e.target.value })} /></label>
-                            {(!r.birthday || !r.anniversary) && <button className="btn btn-ghost btn-sm" onClick={saveDates}>Save dates</button>}
+                            {!r.anniversary && <button className="btn btn-ghost btn-sm" onClick={saveDates}>Save date</button>}
                         </div>
                     )}
                 </section>

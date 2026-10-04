@@ -111,6 +111,8 @@ const AdminPOS = () => {
     const [orderType, setOrderType] = useState('takeaway');
     const [tableId, setTableId] = useState('');
     const [customer, setCustomer] = useState(null);
+    // A reward coupon of this customer (e.g. their birthday gift), applied with one tap
+    const [giftCode, setGiftCode] = useState('');
     const [custQuery, setCustQuery] = useState('');
     const [custResults, setCustResults] = useState([]);
     const [note, setNote] = useState('');
@@ -181,6 +183,7 @@ const AdminPOS = () => {
         items: cart.map(l => ({ menuItem: l.menuItemId, quantity: l.qty, unitId: l.unitId || undefined, note: l.note || undefined })),
         manualDiscount: discountAmount || 0,
         customerId: customer?.id || undefined,
+        couponCode: customer?.id && giftCode ? giftCode : undefined,
     });
 
     // Exact bill from the database while online
@@ -199,7 +202,7 @@ const AdminPOS = () => {
         }, 250);
         return () => clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cart, discountAmount, customer, online]);
+    }, [cart, discountAmount, customer, giftCode, online]);
 
     // Customer search by phone digits or name
     useEffect(() => {
@@ -214,6 +217,7 @@ const AdminPOS = () => {
     const reset = () => {
         setCart([]);
         setCustomer(null);
+        setGiftCode('');
         setCustQuery('');
         setNote('');
         setTableId('');
@@ -317,13 +321,21 @@ const AdminPOS = () => {
                     <div className="cust">
                         {customer ? (
                             <div className="cust-chip"><FiUser /> {customer.name || 'New customer'} · {customer.phone}
-                                <button className="icon-btn" aria-label="Remove customer" onClick={() => setCustomer(null)}><FiX /></button></div>
+                                {customer.tier && customer.tier !== 'Bronze' && <span className="club-chip tier">{customer.tier}</span>}
+                                {customer.member && <span className="club-chip member">👑 {customer.member}</span>}
+                                {customer.birthdayGift && (
+                                    <button type="button" className={`club-chip bday ${giftCode ? 'on' : ''}`} title={`Birthday gift code ${customer.birthdayGift}`}
+                                        onClick={() => setGiftCode(giftCode ? '' : customer.birthdayGift)}>
+                                        🎂 {giftCode ? 'Gift applied ✓' : 'Apply birthday gift'}
+                                    </button>
+                                )}
+                                <button className="icon-btn" aria-label="Remove customer" onClick={() => { setCustomer(null); setGiftCode(''); }}><FiX /></button></div>
                         ) : (
                             <>
                                 <input className="input" placeholder="Customer mobile or name (optional)" value={custQuery} onChange={e => setCustQuery(e.target.value)} />
                                 {custResults.length > 0 && (
                                     <div className="cust-results">
-                                        {custResults.map(c => <button key={c.id} onClick={() => { setCustomer(c); setCustQuery(''); }}>{c.name} · {c.phone} · {c.points} pts</button>)}
+                                        {custResults.map(c => <button key={c.id} onClick={() => { setCustomer(c); setCustQuery(''); }}>{c.name} · {c.phone} · {c.points} pts{c.tier ? ` · ${c.tier}` : ''}{c.member ? ` · 👑 ${c.member}` : ''}{c.birthdayGift ? ' · 🎂 gift ready' : ''}</button>)}
                                     </div>
                                 )}
                                 {/^[6-9]\d{9}$/.test(custQuery.trim()) && custResults.length === 0 && (
@@ -383,7 +395,8 @@ const AdminPOS = () => {
                         {quote ? (
                             <>
                                 <div><span>Subtotal</span><span>{inr(quote.subtotal)}</span></div>
-                                {quote.discount > 0 && <div><span>Discount</span><span>-{inr(quote.discount)}</span></div>}
+                                {quote.discount - (quote.clubDiscount || 0) > 0.001 && <div><span>Discount</span><span>-{inr(quote.discount - (quote.clubDiscount || 0))}</span></div>}
+                                {quote.clubDiscount > 0 && <div><span>{[quote.club?.tierAmount > 0 && `${quote.club.tier} ${quote.club.tierPct}%`, quote.club?.memberAmount > 0 && `${quote.club.member} ${quote.club.memberPct}%`].filter(Boolean).join(' + ')}</span><span>-{inr(quote.clubDiscount)}</span></div>}
                                 {(quote.taxDetails || []).map(t => <div key={`${t.name}${t.rate}`}><span>{t.name} {t.rate}%</span><span>{inr(t.amount)}</span></div>)}
                             </>
                         ) : cart.length > 0 && <div className="muted small"><span>{online ? 'Pricing…' : 'Offline estimate'}</span></div>}

@@ -904,3 +904,11 @@
         padding-right: 12px;
     }
 }
+
+/* FiKA Club chips next to the selected customer */
+.club-chip { display: inline-flex; align-items: center; gap: 3px; margin-left: 6px; padding: 2px 8px; border-radius: 99px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.club-chip.tier { background: #F6EBCF; color: #8a5f00; }
+.club-chip.member { background: #2a1d00; color: #F5C452; }
+.club-chip.bday { background: #FDE7F0; color: #A61E58; }
+button.club-chip { border: 1px dashed #E58BB0; cursor: pointer; font-family: inherit; }
+button.club-chip.on { background: #A61E58; color: #fff; border-style: solid; }

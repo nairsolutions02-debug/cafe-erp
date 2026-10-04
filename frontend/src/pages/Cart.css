@@ -792,3 +792,10 @@
         transform: scale(1);
     }
 }
+/* The customer's own reward coupons, one tap to apply */
+.my-gifts { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.my-gift { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 10px 12px; border-radius: 14px; border: 1.5px dashed #E58BB0; background: linear-gradient(135deg, #FDE7F0, #FFF4D8); font: inherit; cursor: pointer; color: var(--text-primary); }
+.my-gift > span:first-child { font-size: 1.3rem; }
+.my-gift-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.my-gift-text small { color: var(--text-muted); font-size: .76rem; }
+.my-gift-apply { font-weight: 700; color: #A61E58; }

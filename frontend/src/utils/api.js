@@ -851,6 +851,26 @@ export const createPickupScreen = async (name) => ok(await rpc('create_pickup_sc
 export const deletePickupScreen = async (id) => ok(await rpc('delete_pickup_screen', { p_id: id }));
 export const getMyRewards = async () => ok(await rpc('my_rewards'));
 
+// FiKA Club: monthly tiers, Members Club, birthdays
+export const getClubPublicConfig = async () => ok(await rpc('club_public_config'));
+export const getMyClub = async () => ok(await rpc('my_club'));
+export const setMyBirthday = async (day, month) => ok(await rpc('set_my_birthday', { p_day: Number(day), p_month: Number(month) }));
+export const requestBirthdayChange = async (day, month, reason) =>
+    ok(await rpc('request_birthday_change', { p_day: Number(day), p_month: Number(month), p_reason: reason }));
+export const requestClubJoin = async (level = null) => ok(await rpc('request_club_join', { p_level: level }));
+export const getClubConfig = async () => ok(await rpc('club_config'));
+export const saveClubConfig = async (cfg) => ok(await rpc('save_club_config', { p: cfg }));
+export const getClubMembers = async () => ok(await rpc('club_members'));
+export const activateClubMembership = async (customerId, level, method, override = false) =>
+    ok(await rpc('activate_club_membership', { p_customer: customerId, p_level: Number(level), p_method: method, p_override: override }));
+export const cancelClubMembership = async (id, reason) => ok(await rpc('cancel_club_membership', { p_id: id, p_reason: reason }));
+export const getClubLeaderboard = async (period = 'month') => ok(await rpc('club_leaderboard', { p_period: period, p_limit: 200 }));
+export const giveSpecialReward = async (customerIds, reward) => ok(await rpc('give_special_reward', { p_customers: customerIds, p: reward }));
+export const getBirthdayRequests = async (status = 'open') => ok(await rpc('birthday_requests_list', { p_status: status }));
+export const decideBirthdayRequest = async (id, approve, note = '') =>
+    ok(await rpc('decide_birthday_request', { p_id: id, p_approve: approve, p_note: note }));
+export const getBirthdayDuplicates = async () => ok(await rpc('birthday_duplicates'));
+
 // Table ordering: QR codes, shared tables, moving tables; the owner's customer-app banners
 export const resolveTable = async (code) => ok(await rpc('resolve_table', { p_code: code }));
 export const moveMyTable = async (code) => ok(await rpc('move_my_table', { p_code: code }));

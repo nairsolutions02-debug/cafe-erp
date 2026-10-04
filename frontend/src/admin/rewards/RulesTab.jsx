@@ -11,6 +11,7 @@ export const TRIGGERS = [
     { value: 'first_order', label: 'First order' },
     { value: 'streak', label: 'Visit streak (days in a row)', unit: 'days' },
     { value: 'birthday', label: 'Birthday' },
+    { value: 'month_milestone', label: 'Nth order this month (milestone)', unit: 'orders' },
     { value: 'anniversary', label: 'Anniversary' },
     { value: 'inactive', label: 'Not visited for X days', unit: 'days' },
     { value: 'group', label: 'Customer moves into a group' },
@@ -194,7 +195,7 @@ const GiveForm = ({ rule, onClose }) => {
 const describe = (r) => {
     const t = TRIGGERS.find(x => x.value === r.triggerKind)?.label || r.triggerKind;
     const v = { nth_order: `every ${r.triggerValue}th order`, spend_crosses: `spend crosses ${fmtMoney(r.triggerValue)}${r.triggerPeriod === 'month' ? ' in a month' : ''}`,
-        streak: `${r.triggerValue} days in a row`, inactive: `no visit for ${r.triggerValue} days`, group: `moves to ${r.triggerGroup}` }[r.triggerKind];
+        streak: `${r.triggerValue} days in a row`, month_milestone: `order ${r.triggerValue} this month`, inactive: `no visit for ${r.triggerValue} days`, group: `moves to ${r.triggerGroup}` }[r.triggerKind];
     return v || t;
 };
 
