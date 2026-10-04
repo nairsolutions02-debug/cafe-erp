@@ -1,0 +1,445 @@
+/* Dark mode, step 2: Orders, Counter, My day and More (plus the shared inputs, buttons and pop-ups they use).
+   Pages join dark mode one at a time through the list in useAdminTheme.js; everything here is under .theme-dark.
+   Screen only: printed bills and KOTs always stay black on white. Bills open as a white paper slip on purpose. */
+@media screen {
+    .theme-dark {
+        --d-bg: #15110D;
+        --d-surface: #1F1A15;
+        --d-surface-2: #2A231C;
+        --d-line: #3A3027;
+        --d-ink: #F5EBDD;
+        --d-ink-2: #CDBBA2;
+        --d-muted: #A8957B;
+        --d-ok: #4ADE80;
+        --d-ok-soft: #14301F;
+        --d-warn: #F6B867;
+        --d-warn-soft: #3D2A12;
+        --d-late: #F87171;
+        --d-late-soft: #3D1714;
+        --d-accent-soft: #3B2611;
+        --d-accent-ink: #F2A14E;
+    }
+
+    /* Shared building blocks */
+    .theme-dark .input,
+    .theme-dark .admin-page input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    .theme-dark .admin-page select,
+    .theme-dark .admin-page textarea {
+        background: var(--d-surface-2);
+        border-color: var(--d-line);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .admin-page input::placeholder,
+    .theme-dark .admin-page textarea::placeholder {
+        color: var(--d-muted);
+    }
+
+    .theme-dark .modal,
+    .theme-dark .toast,
+    .theme-dark .card {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .modal-header,
+    .theme-dark .modal-footer {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .modal-close {
+        color: var(--d-ink);
+    }
+
+    .theme-dark .btn-secondary {
+        background: transparent;
+        color: var(--d-accent-ink);
+        border-color: var(--d-accent-ink);
+    }
+
+    .theme-dark .btn-ghost {
+        color: var(--d-accent-ink);
+    }
+
+    .theme-dark .table-container,
+    .theme-dark th,
+    .theme-dark td {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .pill.ok {
+        background: var(--d-ok-soft);
+        color: var(--d-ok);
+    }
+
+    .theme-dark .pill.warn {
+        background: var(--d-warn-soft);
+        color: var(--d-warn);
+    }
+
+    .theme-dark .pill.muted {
+        background: var(--d-surface-2);
+        color: var(--d-muted);
+    }
+
+    .theme-dark .icon-btn {
+        background: var(--d-surface-2);
+        border-color: var(--d-line);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .error-message {
+        color: var(--d-late);
+    }
+
+    .theme-dark .skel-line,
+    .theme-dark .skel-card {
+        background: linear-gradient(90deg, var(--d-surface) 30%, var(--d-surface-2) 50%, var(--d-surface) 70%);
+        background-size: 300% 100%;
+    }
+
+    /* Orders: phone layout */
+    .theme-dark .po-chips button {
+        background: var(--d-surface);
+        border-color: var(--d-line);
+        color: var(--d-ink-2);
+    }
+
+    .theme-dark .po-chips button span {
+        background: var(--d-surface-2);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .po-chips button[aria-pressed="true"] {
+        background: var(--d-ink);
+        border-color: var(--d-ink);
+        color: var(--d-bg);
+    }
+
+    .theme-dark .po-chips button[aria-pressed="true"] span,
+    .theme-dark .po-chips button.hot span {
+        color: #FFFFFF;
+    }
+
+    .theme-dark .po-card {
+        background: #1F6B3A;
+    }
+
+    .theme-dark .po-in {
+        background: var(--d-surface);
+        box-shadow: none;
+    }
+
+    .theme-dark .po-tok {
+        background: var(--d-surface-2);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .s-pending .po-tok,
+    .theme-dark .s-bill_requested .po-tok {
+        background: var(--d-accent-soft);
+        color: var(--d-accent-ink);
+    }
+
+    .theme-dark .held .po-tok {
+        background: var(--d-warn-soft);
+        color: var(--d-warn);
+    }
+
+    .theme-dark .s-ready .po-tok {
+        background: var(--d-ok-soft);
+        color: var(--d-ok);
+    }
+
+    .theme-dark .po-age,
+    .theme-dark .po-tag {
+        background: var(--d-surface-2);
+        color: var(--d-ink-2);
+    }
+
+    .theme-dark .po-age.warn,
+    .theme-dark .po-tag.held,
+    .theme-dark .po-tag.pay {
+        background: var(--d-warn-soft);
+        color: var(--d-warn);
+    }
+
+    .theme-dark .po-age.late,
+    .theme-dark .po-tag.unpaid {
+        background: var(--d-late-soft);
+        color: var(--d-late);
+    }
+
+    .theme-dark .po-tag.paid {
+        background: var(--d-ok-soft);
+        color: var(--d-ok);
+    }
+
+    .theme-dark .po-act.ghost {
+        background: var(--d-surface-2);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .po-sheet {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .po-grab {
+        background: var(--d-line);
+    }
+
+    .theme-dark .po-x {
+        background: var(--d-surface-2);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .po-note {
+        background: var(--d-warn-soft);
+        color: var(--d-warn);
+    }
+
+    .theme-dark .po-lines .tot {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .po-lines .due {
+        color: var(--d-late);
+    }
+
+    .theme-dark .po-grid button {
+        background: var(--d-surface-2);
+        border-color: var(--d-line);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .po-cancel {
+        color: var(--d-late);
+    }
+
+    /* Orders: laptop layout */
+    .theme-dark .orders-board {
+        background: var(--d-surface);
+    }
+
+    .theme-dark .order-card {
+        background: var(--d-surface-2);
+    }
+
+    .theme-dark .order-card .order-item {
+        background: var(--d-surface);
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .order-customer,
+    .theme-dark .order-total {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .order-special-instructions {
+        background: var(--d-warn-soft);
+        color: var(--d-warn);
+        border-color: #7A5418;
+    }
+
+    .theme-dark .payment-status {
+        background: var(--d-line);
+    }
+
+    .theme-dark .pay-request {
+        background: var(--d-warn-soft);
+        color: var(--d-warn);
+    }
+
+    .theme-dark .pay-request.qr {
+        background: var(--d-late-soft);
+        color: var(--d-late);
+    }
+
+    .theme-dark .status-badge.bill_generated {
+        color: #C4A5F5;
+    }
+
+    /* Counter */
+    .theme-dark .pos-menu,
+    .theme-dark .pos-cart,
+    .theme-dark .sync-list {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .chips button,
+    .theme-dark .seg button,
+    .theme-dark .pay-methods button,
+    .theme-dark .quick-cash button,
+    .theme-dark .line-ctrl button,
+    .theme-dark .cust-results button {
+        background: var(--d-surface-2);
+        border-color: var(--d-line);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .chips button.active,
+    .theme-dark .seg button.active,
+    .theme-dark .pay-methods button.active {
+        background: var(--primary);
+        border-color: var(--primary);
+        color: #FFFFFF;
+    }
+
+    .theme-dark .tile {
+        background: var(--d-surface-2);
+        border-color: var(--d-line);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .tile-price {
+        color: var(--d-accent-ink);
+    }
+
+    .theme-dark .tile.restricted {
+        background: #2E1A17;
+    }
+
+    .theme-dark .tile-qty {
+        border-color: var(--d-bg);
+    }
+
+    .theme-dark .pos.is-phone .pos-menu {
+        background: none;
+    }
+
+    .theme-dark .pos.is-phone .pos-menu .tile {
+        background: var(--d-surface);
+        box-shadow: none;
+    }
+
+    .theme-dark .pos.is-phone .pos-sheet-head {
+        background: var(--d-surface);
+    }
+
+    .theme-dark .pos.is-phone .pos-grab {
+        background: var(--d-line);
+    }
+
+    .theme-dark .pos.is-phone .pos-sheet-head .icon-btn {
+        background: var(--d-surface-2);
+    }
+
+    .theme-dark .line,
+    .theme-dark .sync-row,
+    .theme-dark .totals .grand {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .cust-chip {
+        background: var(--d-accent-soft);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .change,
+    .theme-dark .sync-pill.ok {
+        color: var(--d-ok);
+    }
+
+    .theme-dark .sync-pill.ok {
+        background: var(--d-ok-soft);
+    }
+
+    .theme-dark .sync-pill.wait {
+        background: var(--d-warn-soft);
+        color: var(--d-warn);
+    }
+
+    .theme-dark .sync-pill.off,
+    .theme-dark .shift-warn {
+        background: var(--d-late-soft);
+        color: var(--d-late);
+    }
+
+    .theme-dark .pay-panel {
+        background: var(--d-surface);
+    }
+
+    .theme-dark .club-chip.tier {
+        background: #3A2F14;
+        color: #E2B54E;
+    }
+
+    .theme-dark .club-chip.bday {
+        background: #3E1A29;
+        color: #F07AA6;
+    }
+
+    /* My day */
+    .theme-dark .day-ring {
+        background: conic-gradient(var(--d-ok) var(--p, 0%), var(--d-line) 0);
+    }
+
+    .theme-dark .day-ring i {
+        background: var(--d-surface);
+    }
+
+    .theme-dark .day-count {
+        background: var(--d-surface-2);
+    }
+
+    .theme-dark .day-tasks li + li button {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .day-ck {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .day-link {
+        color: var(--d-accent-ink);
+    }
+
+    .theme-dark .day-card {
+        box-shadow: none;
+    }
+
+    .theme-dark .selfie-btn {
+        background: var(--d-surface-2);
+    }
+
+    /* More */
+    .theme-dark .more-tile,
+    .theme-dark .more-list {
+        background: var(--d-surface);
+        color: var(--d-ink);
+        box-shadow: none;
+    }
+
+    .theme-dark .more-ti,
+    .theme-dark .more-av {
+        background: var(--d-accent-soft);
+        color: var(--d-accent-ink);
+    }
+
+    .theme-dark .more-row {
+        color: var(--d-ink);
+    }
+
+    .theme-dark .more-row + .more-row {
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .more-row.danger {
+        color: var(--d-late);
+    }
+
+    .theme-dark .more-seg {
+        background: var(--d-surface-2);
+    }
+
+    .theme-dark .more-seg button {
+        color: var(--d-ink-2);
+    }
+
+    .theme-dark .more-seg button[aria-pressed="true"] {
+        background: var(--d-line);
+        color: var(--d-ink);
+    }
+}

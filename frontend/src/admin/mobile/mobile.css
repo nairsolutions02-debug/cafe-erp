@@ -754,3 +754,12 @@
 .theme-dark .lang-switch button.on {
     color: #3E2A14;
 }
+
+.more-note {
+    flex-basis: 100%;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    line-height: 1.35;
+    padding-bottom: 10px;
+    margin-top: -6px;
+}

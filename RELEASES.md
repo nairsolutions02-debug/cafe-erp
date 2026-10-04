@@ -4,6 +4,31 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Dark mode, step 2: Orders, Counter, My day and a switch for the whole app (2026-10-04)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Screen colours switch | More → **Screen colours: Auto · Dark · Light**, saved on each phone or laptop. Auto (the default) follows the phone's own dark setting. |
+| Dark pages | **Orders** (phone cards, order sheet, laptop cards, payment / cancel / move pop-ups), **Counter** (tiles, Pay bar, cart sheet, pay panel, customer chips), **My day** (hours ring, tasks, cards) and **More**. Every text was checked for contrast against its background. |
+| Kitchen | Keeps its own Auto / Dark / Light button, so the kitchen tablet can stay dark while the counter phone is light. |
+| Other pages | Stay light for now; they join in the next steps. |
+| Bills and KOTs | Always print black on white. The bill preview stays a white paper slip on purpose. |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Phone with dark mode on: Orders, Counter, My day and More open dark; Customers stays light
+- [ ] More → Screen colours → Light: Orders is light even on a dark phone; Dark: dark even on a light phone; reload keeps the choice
+- [ ] Dark Counter: add items → Pay bar → cart sheet → Pay → Cash → change shows; all text readable
+- [ ] Dark Orders on a laptop: Take payment pop-up readable
+- [ ] Print a bill from a dark screen: it prints black on white
+
+---
+
 ## Dark mode, step 1: the Kitchen screen (2026-10-04)
 
 First step of dark mode. The Kitchen screen can now be dark; every other page stays light until its colours are converted in the next steps. No SQL.

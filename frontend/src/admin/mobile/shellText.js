@@ -14,5 +14,12 @@ export const SHELL = {
     language: T('Language', 'भाषा', 'Bhasha'),
     help: T('Help & support', 'मदद और सपोर्ट', 'Help aur support'),
     logout: T('Log out', 'लॉग आउट', 'Log out'),
+    screen: T('Screen colours', 'स्क्रीन के रंग', 'Screen ke rang'),
+    screenNote: T('Dark works on Orders, Kitchen, Counter, My day and this page for now. Auto follows the phone setting.',
+        'अभी डार्क ऑर्डर, किचन, काउंटर, मेरा दिन और इस पेज पर चलता है। अपने-आप फ़ोन की सेटिंग जैसा रहता है।',
+        'Abhi dark Orders, Kitchen, Counter, Mera din aur is page pe chalta hai. Auto phone ki setting follow karta hai.'),
+    auto: T('Auto', 'अपने-आप', 'Auto'),
+    dark: T('Dark', 'डार्क', 'Dark'),
+    light: T('Light', 'लाइट', 'Light'),
     allPages: T('All pages', 'सभी पेज', 'Saare page'),
 };
