@@ -187,3 +187,17 @@
 .cancelled-card p { margin: 0; font-size: .92rem; color: var(--text-secondary); }
 .cancelled-card .muted { color: var(--text-muted); font-size: .82rem; }
 .cancelled-card .btn { margin-top: 8px; }
+
+.pickup-card {
+    margin: 16px; padding: 18px 16px; border-radius: 20px; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, white), var(--bg-card));
+    border: 1.5px solid color-mix(in srgb, var(--primary) 35%, transparent);
+}
+.pickup-card .pickup-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--primary-dark); }
+.pickup-card .pickup-num { font-size: 3.4rem; font-weight: 800; line-height: 1.05; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.pickup-card .pickup-hint { font-size: .85rem; color: var(--text-muted); }
+.pickup-card.ready { background: linear-gradient(135deg, #22C55E, #15803D); border-color: #15803D; animation: pickup-ready 1.6s ease-in-out 3; }
+.pickup-card.ready .pickup-label, .pickup-card.ready .pickup-num, .pickup-card.ready .pickup-hint { color: #fff; }
+@keyframes pickup-ready { 50% { transform: scale(1.03); box-shadow: 0 0 0 6px rgba(34, 197, 94, .3); } }
+@media (prefers-reduced-motion: reduce) { .pickup-card.ready { animation: none; } }

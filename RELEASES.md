@@ -4,6 +4,39 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Pickup screen: a big TV that shows "Preparing" and "Ready to collect" (2026-10-04)
+
+**Why:** in a rush, people crowd the counter asking "is mine ready?". A TV that everyone can read from their seat (5–10 m away) shows which orders are cooking and which are ready, so customers wait seated and staff hand over orders faster.
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| The TV screen | Its own private link: `/display/<code>`. No login on the TV. Left column **Preparing** (amber: cooking now, dimmer: in queue). Right column **Ready to collect** with huge green numbers and first names. Clock, live dot, and your announcement scrolling at the bottom. Works on landscape and portrait TVs. |
+| Animations | New orders pop in and glow. When an order becomes ready, the whole screen turns green for 5 s with the giant number, the name and "Please collect it from the counter", plus a two-tone chime (tap the TV once to allow sound). |
+| Pickup numbers | Counter and kiosk tokens show as they are (12, 13…). **QR orders now get Q1, Q2, Q3…** for the day. The customer's order screen shows **"Your number Q7 — watch for it on the screen"**, which turns green: **"Ready! Collect at the counter"**. |
+| Follows the kitchen | An order moves to Ready when the kitchen marks every dish ready (Kitchen screen, Orders, or the new page). Counter orders paid upfront work too. Collected orders leave at once. If nobody taps Collected, a ready order leaves after 10 minutes (you can change this). Orders older than 2 hours drop off. |
+| What is shown | Takeaway, counter and QR orders without a table. Table orders stay off by default because they go to the table; switch on "Include table orders" for self-service hours. Kiosk sales and orders waiting for "Confirm table" never show. Only first names, never phone numbers. |
+| Admin → Sell → **Pickup screen** | Add up to 5 screens (link, QR, Copy, Open, Remove, "On now" status, live mini preview). **Ready to collect** list with a **Collected** button per order. Tap any **Preparing** number to mark it ready (for when you don't use the Kitchen screen). Settings: names on/off, include table orders, how long ready orders stay, top message. |
+| Busy screen | Fewer ready orders mean bigger tiles. With many orders, pages turn every 7 s. If the Wi-Fi drops, a "Reconnecting…" badge shows and the last board stays up. The TV is kept awake. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → **New query** → paste **`supabase/upgrades/2026-10-pickup-screen.sql`** → Run → *Success*.
+2. Vercel redeploys from `main` by itself. No new APK is needed.
+3. Admin → Sell → Pickup screen → **Add screen** → open the link on the cafe TV → tap once (sound + full screen) → in the TV settings, turn off sleep.
+
+**Test checklist**
+- [ ] Phone: QR order without a table → order screen shows "Your number Q1"
+- [ ] TV/laptop: the screen link shows Q1 under **Preparing** with the first name
+- [ ] Kitchen screen → mark all dishes ready → TV turns green with "Q1", chime plays (after one tap on the TV), then Q1 sits under **Ready to collect**; phone card turns green
+- [ ] Pickup screen page → **Collected** → Q1 leaves the TV within 3 s
+- [ ] Counter takeaway with token 12, paid by cash → shows under Preparing → tap **12** on the Pickup screen page → moves to Ready
+- [ ] Table order → not on the TV; switch on "Include table orders" → appears with "Table 5"
+- [ ] Remove the screen → TV shows "This screen link isn't active"
+
+---
+
 ## Customers now see when staff cancel their order (2026-10-04)
 
 **What's new**

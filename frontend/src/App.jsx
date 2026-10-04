@@ -5,6 +5,7 @@ import { CartProvider } from './context/CartContext';
 import { PortalProvider } from './context/PortalContext';
 import './components/cx/CustomerApp.css';
 import TableScan from './pages/TableScan';
+import PickupBoard from './pages/display/PickupBoard';
 
 // User Pages
 import Home from './pages/Home';
@@ -46,6 +47,7 @@ import AdminAudit from './admin/AdminAudit';
 import AdminRecipes from './admin/AdminRecipes';
 import AdminPOS from './admin/pos/AdminPOS';
 import AdminKitchen from './admin/pos/AdminKitchen';
+import AdminPickupScreen from './admin/pos/AdminPickupScreen';
 import AdminShifts from './admin/pos/AdminShifts';
 import AdminFinance from './admin/finance/AdminFinance';
 import AdminKiosk from './admin/pos/AdminKiosk';
@@ -122,6 +124,7 @@ function AppRoutes() {
       <Route path="/profile" element={<UserLayout><Profile /></UserLayout>} />
       <Route path="/rewards" element={<UserLayout><Rewards /></UserLayout>} />
       <Route path="/t/:code" element={<TableScan />} />
+      <Route path="/display/:key" element={<PickupBoard />} />
 
       {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -141,6 +144,7 @@ function AppRoutes() {
         <Route path="inventory" element={<RequirePerm path="/admin/inventory"><AdminInventory /></RequirePerm>} />
         <Route path="recipes" element={<RequirePerm path="/admin/recipes"><AdminRecipes /></RequirePerm>} />
         <Route path="pos" element={<RequirePerm path="/admin/pos"><AdminPOS /></RequirePerm>} />
+        <Route path="pickup-screen" element={<RequirePerm path="/admin/pickup-screen"><AdminPickupScreen /></RequirePerm>} />
         <Route path="kitchen" element={<RequirePerm path="/admin/kitchen"><AdminKitchen /></RequirePerm>} />
         <Route path="shifts" element={<RequirePerm path="/admin/shifts"><AdminShifts /></RequirePerm>} />
         <Route path="finance" element={<RequirePerm path="/admin/finance"><AdminFinance /></RequirePerm>} />

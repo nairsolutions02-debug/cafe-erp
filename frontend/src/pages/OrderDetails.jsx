@@ -158,6 +158,19 @@ const OrderDetails = () => {
                 </div>
             )}
 
+            {/* Takeaway / counter pickup: the number to watch for on the cafe screen */}
+            {order.tokenNumber && !order.tableNumber && order.status !== 'cancelled'
+                && (order.items || []).some(i => i.kitchenStatus !== 'served') && (() => {
+                const ready = (order.items || []).every(i => ['ready', 'served'].includes(i.kitchenStatus));
+                return (
+                    <div className={`pickup-card ${ready ? 'ready' : ''}`}>
+                        <span className="pickup-label">{ready ? 'Ready! Collect at the counter' : 'Your number'}</span>
+                        <span className="pickup-num">{order.tokenNumber}</span>
+                        <span className="pickup-hint">{ready ? 'Show this number at the serving counter' : 'Watch for it on the screen at the counter'}</span>
+                    </div>
+                );
+            })()}
+
             {/* Order Status */}
             <div className="order-status-section">
                 <OrderStatus status={order.status} />

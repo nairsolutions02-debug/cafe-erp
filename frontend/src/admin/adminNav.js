@@ -1,7 +1,7 @@
 import {
     FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage, FiUsers, FiBarChart2, FiLayout, FiActivity,
     FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase, FiZap, FiBook,
-    FiPieChart, FiSmartphone, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck,
+    FiPieChart, FiSmartphone, FiTv, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck,
 } from 'react-icons/fi';
 
 // Menu labels in English, Hindi and Hinglish: [en, hi, hinglish]
@@ -31,6 +31,7 @@ export const NAV_SECTIONS = [
             { path: '/admin/orders', icon: FiShoppingBag, label: L('Orders', 'ऑर्डर', 'Order'), perm: 'orders.view' },
             { path: '/admin/history', icon: FiActivity, label: L('Order history', 'पुराने ऑर्डर', 'Purane order'), perm: 'orders.view', tab: true },
             { path: '/admin/kitchen', icon: FiCoffee, label: L('Kitchen', 'रसोई', 'Kitchen'), perm: 'orders.view' },
+            { path: '/admin/pickup-screen', icon: FiTv, label: L('Pickup screen', 'पिकअप स्क्रीन', 'Pickup screen'), perm: 'orders.view' },
             { path: '/admin/tables', icon: FiLayout, label: L('Tables', 'टेबल', 'Table'), perm: 'tables.view' },
         ],
     },

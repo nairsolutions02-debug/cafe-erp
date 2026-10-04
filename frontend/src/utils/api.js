@@ -841,6 +841,14 @@ export const markRewardSent = async (id, status = 'sent') => ok(await rpc('mark_
 export const getCustomerRewards = async (customerId) => ok(await rpc('customer_rewards', { p_customer: customerId }));
 export const runRewardChecks = async () => ok(await rpc('run_reward_checks'));
 export const getPortalConfig = async () => ok(await rpc('portal_config'));
+
+// Collect-your-order screen
+export const getPickupBoard = async (key, preview = false) => ok(await rpc('pickup_board', { p_key: key, p_preview: preview }));
+export const getPickupStaffBoard = async () => ok(await rpc('pickup_staff_board'));
+export const getPickupScreens = async () =>
+    ok(unwrap(await supabase.from('pickup_screens').select('id, name, key, last_seen_at, created_at').order('created_at')));
+export const createPickupScreen = async (name) => ok(await rpc('create_pickup_screen', { p_name: name }));
+export const deletePickupScreen = async (id) => ok(await rpc('delete_pickup_screen', { p_id: id }));
 export const getMyRewards = async () => ok(await rpc('my_rewards'));
 
 // Table ordering: QR codes, shared tables, moving tables; the owner's customer-app banners
