@@ -41,5 +41,5 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 6.2 Admin → Sell → Pickup screen → Add screen → open the link on the cafe TV → tap once → TV sleep off
 
 ## 7. FiKA Club (2026-10-04)
-- [ ] 7.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-club-rewards.sql` → Run → Success
+- [x] 7.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-club-rewards.sql` → Run → Success
 - [ ] 7.2 Admin → Customers → FiKA Club → check monthly tiers, milestones, Club levels and prices, birthday gift → Save
