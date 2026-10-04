@@ -31,7 +31,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 4.2 Menu → switch off **Kiosk** on items the kiosk doesn't sell and **Main shop** on kiosk-only items (use the Where sold filter to check)
 
 ## 5. Table QR ordering (2026-10-04)
-- [ ] 5.1 Supabase → SQL Editor → paste `supabase/upgrades/2026-10-table-ordering.sql` → Run → Success
+- [x] 5.1 Supabase → SQL Editor → paste `supabase/upgrades/2026-10-table-ordering.sql` → Run → Success
 - [ ] 5.2 Tables → QR Codes → Print → stick the new QR on every table
 - [ ] 5.3 Menu → Customer app → check table mode, sharing and "staff confirm first order"; add at least one banner
 - [ ] 5.4 When every table has the new QR: Customer app → turn off **Old printed QR codes still work**
