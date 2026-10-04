@@ -26,6 +26,7 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 **Deploy**
 
 1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-table-ordering.sql`** → Run → *Success*. Run it once, after the kiosk-menu upgrade.
+   *Fixed 2026-10-04:* the first version stopped with "unterminated dollar-quoted string" (an apostrophe in a comment confused the SQL Editor). Nothing was applied then; paste the current file.
 2. Vercel redeploys from `main` by itself. No new APK is needed.
 3. Tables → **QR Codes** → Print → replace the table stickers. When every table has the new QR: Menu → Customer app → turn off **Old printed QR codes still work**.
 

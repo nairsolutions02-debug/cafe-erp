@@ -83,7 +83,7 @@ $$;
 -- Settings for tables (all per cafe, in public.settings)
 --   table_mode: 'qr' (table comes from the QR, locked) | 'pick' (customer picks) | 'none' (no tables)
 --   table_shared: several groups may order at one table (default on)
---   table_confirm_first: hold a table's first order until staff confirm it (default off)
+--   table_confirm_first: hold the first order on a table until staff confirm it (default off)
 --   table_legacy_links: old ?table=5 QR codes still work (default on)
 -- ---------------------------------------------------------------------------
 create function public.table_settings(p_tenant uuid default null) returns jsonb
@@ -142,7 +142,7 @@ $$;
 -- ---------------------------------------------------------------------------
 alter table public.orders add column held boolean not null default false;
 
--- The table a customer order goes to, following the cafe's table mode
+-- The table a customer order goes to, following the table mode of the cafe
 create function public.order_table_for(p_tenant uuid, p_customer uuid, p_table_id uuid, p_table_code text) returns public.dining_tables
 language plpgsql stable security definer set search_path = public, pg_temp as $$
 declare
@@ -463,7 +463,7 @@ language sql security definer set search_path = public, pg_temp as $$
 $$;
 revoke execute on function public.free_idle_tables(uuid[]) from public, anon, authenticated;
 
--- Customer scanned another table's QR and said "Move to Table 7": their open orders follow them
+-- Customer scanned the QR of another table and said "Move to Table 7": their open orders follow them
 create function public.move_my_table(p_code text) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare
@@ -493,7 +493,7 @@ begin
 end;
 $$;
 
--- Staff: move one order, or that customer's whole group at the table, to another table
+-- Staff: move one order, or the whole group of that customer at the table, to another table
 create function public.move_order_table(p_order_id uuid, p_table_id uuid, p_whole_group boolean default true) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare
@@ -607,7 +607,7 @@ begin
 end;
 $$;
 
--- Owner saves the banner list; checked here so a banner can't promote something it shouldn't
+-- Owner saves the banner list; checked here so a banner never promotes a restricted item
 create function public.save_portal_banners(p_banners jsonb) returns jsonb
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare
@@ -665,7 +665,7 @@ begin
 end;
 $$;
 
--- Owner's banner pictures go to images/banners/
+-- Banner pictures from the owner go to images/banners/
 drop policy if exists "staff upload images" on storage.objects;
 create policy "staff upload images" on storage.objects for insert to authenticated
     with check (bucket_id = 'images' and (public.has_perm('menu.create') or public.has_perm('menu.edit')
