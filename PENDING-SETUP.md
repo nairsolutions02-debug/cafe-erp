@@ -45,5 +45,5 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 7.2 Admin → Customers → FiKA Club → check monthly tiers, milestones, Club levels and prices, birthday gift → Save
 
 ## 8. Help guide and support tickets (2026-10-04)
-- [ ] 8.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-support-tickets.sql` → Run → Success
+- [x] 8.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-support-tickets.sql` → Run → Success
 - [ ] 8.2 Phone: tap **?** at the top → send a test ticket → reply to it from `/superadmin` → the reply arrives on the phone
