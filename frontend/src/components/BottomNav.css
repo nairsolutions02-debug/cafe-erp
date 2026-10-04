@@ -49,3 +49,16 @@
         display: none;
     }
 }
+/* Five tabs share the width equally, so the bar fits even 320 px phones */
+.bottom-nav .nav-item {
+    flex: 1;
+    min-width: 0;
+    padding: 6px 2px;
+}
+
+.bottom-nav .nav-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}

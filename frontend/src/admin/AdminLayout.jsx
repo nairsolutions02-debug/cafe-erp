@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FiLogOut, FiMenu, FiX } from 'react-icons/fi';
-import { ADMIN_NAV } from './adminNav';
+import { FiLogOut, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
+import { NAV_SECTIONS, QUICK_BAR, LANGS, tr, sectionFor, navItem } from './adminNav';
 import GlobalSearch from './GlobalSearch';
 import Notifications from './Notifications';
 import Presence from './staffapp/Presence';
@@ -9,12 +9,25 @@ import { useAuth } from '../context/AuthContext';
 import './AdminLayout.css';
 import brand from '../brand';
 
+// Menu language (English / हिन्दी / Hinglish), remembered on this device
+const readLang = () => {
+    try { return localStorage.getItem('menuLang') || 'en'; } catch { return 'en'; }
+};
+
 const AdminLayout = () => {
     const { user, logout, socket, hasPerm } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
+    const [lang, setLang] = useState(readLang);
+    const current = sectionFor(location.pathname);
+    const [openSection, setOpenSection] = useState(current?.section.key || 'home');
+    useEffect(() => { if (current) setOpenSection(current.section.key); }, [current?.section.key]); // eslint-disable-line react-hooks/exhaustive-deps
+    const chooseLang = (key) => {
+        setLang(key);
+        try { localStorage.setItem('menuLang', key); } catch { /* private mode */ }
+    };
 
     useEffect(() => {
         if (socket) {
@@ -45,12 +58,26 @@ const AdminLayout = () => {
         navigate('/admin/login');
     };
 
-    const menuItems = ADMIN_NAV.filter(item => !item.perm || hasPerm(item.perm));
+    const allowed = (item) => !item.perm || hasPerm(item.perm);
+    const sections = NAV_SECTIONS.map(sec => ({ ...sec, items: sec.items.filter(allowed) })).filter(sec => sec.items.length > 0);
 
     const isActive = (path, exact) => {
         if (exact) return location.pathname === path;
-        return location.pathname.startsWith(path);
+        return location.pathname === path || location.pathname.startsWith(path + '/');
     };
+    // The sidebar line to highlight: the page itself, or for a tab-only page (e.g. Order history) its parent
+    const activeSidebarPath = (() => {
+        if (!current) return null;
+        if (!current.item.tab) return current.item.path;
+        const list = current.section.items;
+        for (let i = list.indexOf(current.item) - 1; i >= 0; i--) if (!list[i].tab) return list[i].path;
+        return null;
+    })();
+
+    // Pages of the current section, shown as tabs above the page (Counter and Kiosk keep the whole screen)
+    const fullScreen = ['/admin/pos', '/admin/kiosk'].some(p => location.pathname.startsWith(p));
+    const sectionTabs = current && !fullScreen ? current.section.items.filter(allowed) : [];
+    const quick = QUICK_BAR.map(navItem).filter(i => i && allowed(i));
 
     return (
         <div className="admin-layout">
@@ -65,18 +92,46 @@ const AdminLayout = () => {
                 </div>
 
                 <nav className="sidebar-nav">
-                    {menuItems.map(item => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`nav-link ${isActive(item.path, item.exact) ? 'active' : ''}`}
-                            onClick={() => setSidebarOpen(false)}
-                        >
-                            <item.icon />
-                            <span>{item.label}</span>
-                        </Link>
-                    ))}
+                    {sections.map(sec => {
+                        const open = openSection === sec.key;
+                        const sidebarItems = sec.items.filter(i => !i.tab);
+                        // A section with a single page opens that page directly
+                        if (sidebarItems.length === 1) {
+                            const item = sidebarItems[0];
+                            return (
+                                <Link key={sec.key} to={item.path} onClick={() => setSidebarOpen(false)}
+                                    className={`nav-link nav-section${current?.section.key === sec.key ? ' active' : ''}`}>
+                                    <sec.icon /><span>{tr(sec.label, lang)}</span>
+                                </Link>
+                            );
+                        }
+                        return (
+                            <div key={sec.key} className={`nav-group${open ? ' open' : ''}`}>
+                                <button type="button" className={`nav-link nav-section${current?.section.key === sec.key ? ' current' : ''}`}
+                                    aria-expanded={open} onClick={() => setOpenSection(open ? '' : sec.key)}>
+                                    <sec.icon /><span>{tr(sec.label, lang)}</span><FiChevronDown className="nav-chevron" />
+                                </button>
+                                {open && (
+                                    <div className="nav-sub">
+                                        {sidebarItems.map(item => (
+                                            <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
+                                                className={`nav-sublink${activeSidebarPath === item.path ? ' active' : ''}`}>
+                                                {tr(item.label, lang)}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
                 </nav>
+
+                <div className="lang-switch" role="group" aria-label="Menu language">
+                    {LANGS.map(l => (
+                        <button key={l.key} type="button" className={lang === l.key ? 'on' : ''} aria-pressed={lang === l.key}
+                            onClick={() => chooseLang(l.key)}>{l.label}</button>
+                    ))}
+                </div>
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogout} className="logout-link">
@@ -132,9 +187,34 @@ const AdminLayout = () => {
                 )}
 
                 <Presence />
-                <main className="admin-content">
+                <main className={`admin-content${quick.length && !fullScreen ? ' with-quickbar' : ''}`}>
+                    {sectionTabs.length > 1 && (
+                        <nav className="section-tabs" aria-label={tr(current.section.label, lang)}>
+                            <span className="section-name">{tr(current.section.label, lang)}</span>
+                            <div className="section-tab-row">
+                                {sectionTabs.map(item => (
+                                    <Link key={item.path} to={item.path}
+                                        className={`section-tab${current.item.path === item.path ? ' active' : ''}`}
+                                        aria-current={current.item.path === item.path ? 'page' : undefined}>
+                                        {tr(item.label, lang)}
+                                    </Link>
+                                ))}
+                            </div>
+                        </nav>
+                    )}
                     <Outlet />
                 </main>
+
+                {/* Phone quick bar: the screens staff use all day */}
+                {quick.length > 0 && !fullScreen && (
+                    <nav className="quick-bar" aria-label="Quick">
+                        {quick.map(item => (
+                            <Link key={item.path} to={item.path} className={`quick-link${isActive(item.path, item.exact) ? ' active' : ''}`}>
+                                <item.icon /><span>{tr(item.label, lang)}</span>
+                            </Link>
+                        ))}
+                    </nav>
+                )}
             </div>
 
             {/* Overlay */}

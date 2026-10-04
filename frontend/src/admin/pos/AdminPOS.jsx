@@ -125,6 +125,16 @@ const AdminPOS = () => {
     const [unitPick, setUnitPick] = useState(null);
     const [autoKot, setAutoKot] = useState(() => localStorage.getItem('pos-auto-kot') === '1');
     const searchRef = useRef(null);
+    const cartRef = useRef(null);
+    // Phones: hide the cart bar while the cart itself is on screen
+    const [cartInView, setCartInView] = useState(false);
+    useEffect(() => {
+        const el = cartRef.current;
+        if (!el || typeof IntersectionObserver === 'undefined') return undefined;
+        const io = new IntersectionObserver(([e]) => setCartInView(e.isIntersecting), { threshold: 0.25 });
+        io.observe(el);
+        return () => io.disconnect();
+    });
 
     const loadCatalogue = useCallback(async () => {
         try {
@@ -291,7 +301,7 @@ const AdminPOS = () => {
                     </div>
                 </section>
 
-                <section className="pos-cart">
+                <section className="pos-cart" ref={cartRef}>
                     <div className="seg">
                         {[['takeaway', 'Takeaway'], ['dine_in', 'Dine-in']].map(([v, l]) => (
                             <button key={v} className={orderType === v ? 'active' : ''} onClick={() => setOrderType(v)}>{l}</button>
@@ -407,6 +417,15 @@ const AdminPOS = () => {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Phones: the cart sits below the menu, so a bar at the bottom shows the total and jumps to it */}
+            {cart.length > 0 && !cartInView && (
+                <button type="button" className="pos-cartbar" onClick={() => cartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                    <span>{cart.reduce((a, l) => a + l.qty, 0)} item{cart.reduce((a, l) => a + l.qty, 0) === 1 ? '' : 's'}</span>
+                    <strong>{inr(total)}</strong>
+                    <span className="pos-cartbar-go">View cart ↓</span>
+                </button>
             )}
 
             {done && (

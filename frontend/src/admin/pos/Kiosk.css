@@ -282,3 +282,35 @@
     background: none;
     cursor: pointer;
 }
+
+/* Phones: 3 compact tiles per row so a full shelf fits on one screen */
+@media (max-width: 640px) {
+    .kiosk-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .ktile {
+        min-height: 72px;
+        padding: 8px;
+        border-radius: 10px;
+        gap: 4px;
+    }
+
+    .ktile-name {
+        font-size: 0.86rem;
+        overflow-wrap: anywhere;
+    }
+
+    .ktile-price {
+        font-size: 0.78rem;
+    }
+
+    .ktile-left {
+        font-size: 0.68rem;
+    }
+
+    .kiosk-hint {
+        display: none;
+    }
+}

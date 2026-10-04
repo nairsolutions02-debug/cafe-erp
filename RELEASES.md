@@ -4,6 +4,39 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## New menu layout + every screen fitted for phones (2026-10-04)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Main menu | 31 separate menu lines are now **8 sections**: Home · Sell · Menu · Stock · Customers · Money · Team · Settings. Tap a section to open its pages; the section you're in stays open. |
+| Where pages went | **Menu** has Items, Categories, Recipes & Costing, Brands & Taxes, Homepage Sections. **Sell** has Counter, Kiosk, Orders, Kitchen, Tables. **Money** has Cash & Shifts, Finance, Reports, Profit advisor. **Team** has Employees, Attendance, Payroll, Staff logins & Roles. **Settings** has Cafe settings, Alerts, Audit log. |
+| Merged pages | **Order history** is a tab next to Orders; **Points** (old Loyalty Points page) is a tab next to Rewards; **Sales trends** (old Analytics page) is a tab next to Reports. |
+| Section tabs | Every page shows its section's pages as tabs at the top (e.g. Items · Categories · Recipes…), so you move between them without opening the menu. Counter and Kiosk keep the whole screen. |
+| Languages | Menu names in **English / हिन्दी / Hinglish** — switch at the bottom of the side menu; each phone remembers its choice. (Page content stays English for now.) |
+| Phone quick bar | On phones, a bar at the bottom with **Counter · Orders · Kitchen · My day** (only the ones the role allows). |
+| Kiosk on phones | 3 compact tiles per row — a whole shelf on one screen instead of 6 big tiles. |
+| Counter on phones | 3 tiles per row, and a **“2 items · ₹136 · View cart ↓”** bar at the bottom that jumps to the cart (hides while the cart is on screen). |
+| All screens on phones | Smaller page headers, buttons at least 40 px tall, popups (add item, purchase, rule builder…) with one-column forms and less padding. The customer bottom bar (Home · Menu · Rewards · History · Profile) fits 320 px phones. Checked automatically: all 31 admin pages at 320 and 360 px, 15 popups and 8 customer pages — nothing wider than the screen. |
+| Unchanged | Page addresses are the same, so alerts, bookmarks and the Android app open the right pages. Roles still decide what each person sees. |
+
+**Deploy**
+
+Nothing to run — Vercel redeploys from `main`; the Android app picks it up on the next open (no new APK).
+
+**Test checklist**
+- [ ] Laptop: side menu shows 8 sections; open **Menu** → Items, Categories, Recipes & Costing, Brands & Taxes, Homepage Sections; tabs at the top of the page match
+- [ ] Orders → tab **Order history**; Rewards → tab **Points**; Reports → tab **Sales trends**
+- [ ] Side menu → **हिन्दी** → names switch to Hindi; **Hinglish** → Hinglish; reopen the app → choice remembered
+- [ ] Phone: quick bar at the bottom (Counter, Orders, Kitchen, My day); not shown on Counter and Kiosk screens
+- [ ] Phone → Kiosk: 3 tiles per row, Cash/UPI/Khata bar at the bottom
+- [ ] Phone → Counter: add 2 items → bottom bar shows count and total → tap → cart scrolls into view
+- [ ] Phone → Menu → Add Item: one-column form, Save button visible
+- [ ] Cashier login: only the sections their role allows
+
+---
+
 ## Kiosk menu — choose what sells at the main shop and at the kiosk (2026-10-03)
 
 **What's new**

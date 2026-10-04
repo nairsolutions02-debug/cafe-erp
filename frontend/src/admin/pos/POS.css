@@ -835,3 +835,72 @@
     background: rgba(255, 255, 255, 0.2);
     color: white;
 }
+
+/* Phones: cart summary bar at the bottom of the counter screen */
+.pos-cartbar {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .pos-cartbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: calc(12px + env(safe-area-inset-bottom));
+        z-index: 60;
+        border: none;
+        border-radius: var(--radius-full);
+        background: var(--primary);
+        color: white;
+        padding: 12px 18px;
+        font: inherit;
+        font-size: 1rem;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+        cursor: pointer;
+    }
+
+    .pos-cartbar strong {
+        font-size: 1.1rem;
+    }
+
+    .pos-cartbar-go {
+        margin-left: auto;
+        font-weight: 700;
+    }
+
+    .pos-cart {
+        position: static;
+        margin-bottom: 72px;
+    }
+
+    .pos-menu .tiles,
+    .pos-menu .pos-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 640px) {
+    .pos-menu .tiles {
+        gap: 6px;
+    }
+
+    .pos-menu .tile {
+        min-height: 66px;
+        padding: 8px;
+    }
+
+    .pos-menu .tile-name {
+        font-size: 0.86rem;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 640px) {
+    /* leave room for the veg / non-veg dot in the tile corner */
+    .pos-menu .tile-name {
+        padding-right: 12px;
+    }
+}

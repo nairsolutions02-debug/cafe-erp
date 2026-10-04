@@ -262,7 +262,7 @@ const AdminKiosk = () => {
                             <span className="num">{inr(l.price * l.qty)}</span>
                         </div>
                     ))}
-                    {!tab.lines.length && <p className="muted small">Tap a tile for one piece; hold for a number pad and packs.</p>}
+                    {!tab.lines.length && <p className="muted small kiosk-hint">Tap a tile for one piece; hold for a number pad and packs.</p>}
                 </div>
                 {error && <p className="error-message">{error}</p>}
                 {toast && (
