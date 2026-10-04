@@ -4,6 +4,29 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Dark mode, step 3: every admin page (2026-10-04)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| All pages | Dashboard, Order history, Tables, Pickup screen settings, Menu, Categories, Recipes, Brands & taxes, Homepage sections, Customer app, Inventory, Customers, Khata, FiKA Club, Rewards, Points, Coupons, Cash & Shifts, Finance, Reports, Sales trends, Profit advisor, Employees, Attendance, Payroll, Staff logins, Settings, Alerts, Audit log and Help now follow More → Screen colours (Auto · Dark · Light). |
+| Stays light | The Kiosk (customers use it), printed bills and KOTs, and the bill preview (a white paper slip). |
+| How it works | `scripts/build-dark-css.mjs` reads the admin stylesheets and writes `admin/mobile/dark-auto.css`: white panels become dark panels, pale tinted badges become deep tints of the same colour, dark text becomes light text. Strong colours (brand orange, gold badges, green buttons) keep their look. Re-run it after changing an admin stylesheet. Hand-written rules in `dark.css` handle the rest. |
+| Checked | Every admin page on a 360 px phone and a 1280 px laptop with an automatic contrast check (text against its background) and a search for leftover white panels. About 630 problems before, none left (two intentional: a selected chip and the gold Bestseller badge). Old orange title blocks on laptops become plain dark panels. Green buttons are a deeper green in dark so white text reads. |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] More → Screen colours → Dark: open Customers, Inventory, Finance, Reports, Settings on the phone: all dark and readable
+- [ ] Same on a laptop: Dashboard, Reports (P&L table), Employees, Audit log
+- [ ] Kiosk stays light; printing a bill prints black on white
+- [ ] Screen colours → Light: everything is back to the light look
+
+---
+
 ## Dark mode, step 2: Orders, Counter, My day and a switch for the whole app (2026-10-04)
 
 **What's new**

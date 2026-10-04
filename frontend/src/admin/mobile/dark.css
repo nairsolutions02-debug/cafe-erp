@@ -442,4 +442,41 @@
         background: var(--d-line);
         color: var(--d-ink);
     }
+
+    /* Step 3: the rest of the admin pages */
+    .theme-dark .page-header {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .page-header p,
+    .theme-dark .page-header .muted {
+        color: var(--d-ink-2);
+    }
+
+    .theme-dark .btn-success,
+    .theme-dark .badge.new {
+        background: #15803D;
+        color: #FFFFFF;
+    }
+
+    .theme-dark .btn-danger {
+        background: #B91C1C;
+    }
+
+    .theme-dark a {
+        color: inherit;
+    }
+
+    .theme-dark .admin-page a:not(.btn):not([class]) {
+        color: var(--d-accent-ink);
+    }
+
+    .theme-dark .ca-mode.on {
+        background: var(--d-accent-soft);
+    }
+
+    .theme-dark .ca-swatches button.on {
+        box-shadow: 0 0 0 2px var(--d-bg) inset;
+    }
 }

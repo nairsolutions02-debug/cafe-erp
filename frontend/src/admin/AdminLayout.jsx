@@ -11,6 +11,7 @@ import usePullToRefresh from './mobile/usePullToRefresh';
 import useAdminTheme from './mobile/useAdminTheme';
 import { SHELL } from './mobile/shellText';
 import './mobile/mobile.css';
+import './mobile/dark-auto.css';
 import './mobile/dark.css';
 import './AdminLayout.css';
 import brand from '../brand';

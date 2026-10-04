@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react';
 
 // Light / dark for the admin app, chosen per device (More, Screen colours: Auto / Dark / Light).
 // Auto follows the phone setting. The Kitchen has its own switch, so the kitchen tablet can differ.
-// Pages join dark mode once their colours are converted (DARK_READY); the others stay light for now.
+
 const DARK_QUERY = '(prefers-color-scheme: dark)';
 export const KDS_KEY = 'kds-theme';
 export const APP_KEY = 'admin-theme';
-export const DARK_READY = ['/admin/orders', '/admin/pos', '/admin/me', '/admin/more'];
+// Every admin page follows the switch except the Kiosk, which faces customers and stays light
+const LIGHT_ONLY = ['/admin/kiosk'];
 const EVENT = 'admintheme';
 
 export const readKdsTheme = () => {
@@ -40,6 +41,6 @@ export default function useAdminTheme(pathname) {
         return () => { window.removeEventListener(EVENT, sync); m?.removeEventListener?.('change', onScheme); };
     }, []);
     if (pathname.startsWith('/admin/kitchen')) return resolve(kds);
-    if (DARK_READY.some(p => pathname === p || pathname.startsWith(`${p}/`))) return resolve(app);
-    return false;
+    if (LIGHT_ONLY.some(p => pathname === p || pathname.startsWith(`${p}/`))) return false;
+    return resolve(app);
 }
