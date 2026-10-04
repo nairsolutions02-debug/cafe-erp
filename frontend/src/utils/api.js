@@ -930,3 +930,24 @@ export const getMenuMatrix = async (from, to) => ok(await rpc('menu_matrix', { p
 export const matchAggregatorItems = async (platform, names) => ok(await rpc('aggregator_match', { p_platform: platform, p_names: names }));
 export const importAggregator = async (payload) => ok(await rpc('import_aggregator', { p: payload }));
 export const getAggregatorImports = async () => ok(await rpc('list_aggregator_imports'));
+
+// Support tickets: the cafe asks N.A.I.R. Solutions, the platform console answers
+export const uploadSupportScreenshot = async (file, tenantId) => {
+    if (!file || !tenantId) return '';
+    const body = await shrinkImage(file);
+    const ext = body.type === 'image/webp' ? 'webp' : body.type === 'image/png' ? 'png' : 'jpg';
+    const path = `${tenantId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+    unwrap(await supabase.storage.from('support').upload(path, body, { contentType: body.type }));
+    return path;
+};
+export const supportScreenshotUrl = async (path) => {
+    if (!path) return null;
+    const { data } = await supabase.storage.from('support').createSignedUrl(path, 600);
+    return data?.signedUrl || null;
+};
+export const createSupportTicket = async (t) => ok(await rpc('create_support_ticket', { p: t }));
+export const getMySupportTickets = async () => ok(await rpc('my_support_tickets'));
+export const replySupportTicket = async (id, body, status = null) =>
+    ok(await rpc('reply_support_ticket', { p_id: id, p_body: body || '', p_status: status }));
+export const markSupportRead = async (id) => ok(await rpc('mark_support_read', { p_id: id }));
+export const saGetSupportTickets = async (status = 'active') => ok(await rpc('sa_support_tickets', { p_status: status }));

@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-04)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -43,3 +43,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 ## 7. FiKA Club (2026-10-04)
 - [x] 7.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-club-rewards.sql` → Run → Success
 - [x] 7.2 Admin → Customers → FiKA Club → check monthly tiers, milestones, Club levels and prices, birthday gift → Save
+
+## 8. Help guide and support tickets (2026-10-04)
+- [ ] 8.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-support-tickets.sql` → Run → Success
+- [ ] 8.2 Phone: tap **?** at the top → send a test ticket → reply to it from `/superadmin` → the reply arrives on the phone

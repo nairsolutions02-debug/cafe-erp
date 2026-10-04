@@ -88,6 +88,7 @@ export const NAV_SECTIONS = [
             { path: '/admin/settings', icon: FiSettings, label: L('Cafe settings', 'कैफ़े सेटिंग्स', 'Cafe settings'), perm: 'settings.view' },
             { path: '/admin/alerts', icon: FiBell, label: L('Alerts', 'अलर्ट', 'Alert'), perm: 'staff.view' },
             { path: '/admin/audit', icon: FiFileText, label: L('Audit log', 'ऑडिट लॉग', 'Audit log'), perm: 'audit.view' },
+            { path: '/admin/help', icon: FiBookOpen, label: L('Help & support', 'मदद और सपोर्ट', 'Help aur support') },
         ],
     },
 ];

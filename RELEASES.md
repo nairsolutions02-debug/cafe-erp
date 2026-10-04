@@ -4,6 +4,36 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Help guide (English / हिन्दी / Hinglish) + support tickets to N.A.I.R. (2026-10-04)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Help & support page | Admin → Settings → **Help & support** (`/admin/help`). Every staff login can open it; no permission is needed. Three tabs: **Daily guide**, **Common problems**, **Ask N.A.I.R. / Report a problem**. |
+| Daily guide | Ten step-by-step routines in plain spoken language: opening the cafe, counter orders, table QR orders, kitchen and pickup TV, khata, FiKA Club, stock and purchases, closing the day, the weekly owner check, and staff logins. Each step shows the real button as it looks in the app (orange chip) and an **Open →** link to that page. Each routine has a real example (Ravi, Meera, Sonu…) and tips. Search box; **Print** gives a paper or PDF copy for the counter. |
+| Three languages | English / हिन्दी / Hinglish switch on the page. It is the same setting as the side-menu language, so changing one changes both. |
+| Common problems | Nine real questions (order not reaching the kitchen, old QR, printer, cash short, wrong birthday, member discount, pickup TV, out of stock, no internet), each with the fix and a link to the page. |
+| Tickets from the app | The **?** button at the top of every admin screen (web and phone app) opens a new ticket. Fields: type (not working / how do I / idea / plan or payment / other), short title, details, an optional screenshot or photo, and **Urgent**. The page they came from and the device type are attached by themselves. Staff see their cafe's tickets with status (Open, Working on it, Needs your reply, Solved, Closed), reply in a chat thread, close, or open again. A reply from N.A.I.R. sends a 🔔 notification and marks the ticket "new reply". Up to 10 new tickets per hour per cafe. |
+| Platform console | `/superadmin` has a **Support tickets** section: urgent and open tickets first, filters Open / Solved / Closed / All, the cafe name, who raised it and their phone, page, device and screenshot. Reply, **Send · ask the cafe** (Needs your reply) or **Mark solved**. |
+| Privacy | Screenshots go into a private storage bucket (`support`, one folder per cafe, 4 MB max, images only). Only that cafe and the platform admin can open them, through links that expire after 10 minutes. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → **New query** → paste **`supabase/upgrades/2026-10-support-tickets.sql`** → Run → *Success*.
+2. Vercel redeploys from `main` by itself. No new APK is needed: the phone app loads the live site.
+
+**Test checklist**
+- [ ] Phone: log in as staff → tap **?** at the top → the ticket form opens and says which page you came from
+- [ ] Pick "Something is not working", write a title and details, add a photo, tick Urgent → **Send to N.A.I.R.** → "Ticket #1 sent" → it shows as Open
+- [ ] `/superadmin` → Support tickets → the ticket is at the top with Urgent, the photo opens → write a reply → **Send · ask the cafe**
+- [ ] Back on the phone: the 🔔 shows "Reply from N.A.I.R." → Help → the ticket says "new reply" and **Needs your reply** → reply → it goes back to Open → **It is solved, close**
+- [ ] Help → Daily guide → switch to हिन्दी and Hinglish → the side menu changes too → tap an **Open →** link → the right page opens
+- [ ] Help → Daily guide → **Print** → every routine is in the print preview, without the menu
+- [ ] A second cafe cannot see the first cafe's tickets
+
+---
+
 ## FiKA Club: birthdays, monthly tiers, Members Club, owner leaderboard (2026-10-04)
 
 **What's new**

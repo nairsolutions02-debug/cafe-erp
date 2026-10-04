@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { FiPlus, FiLogOut, FiCreditCard, FiEdit2, FiKey, FiLock, FiUnlock } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { saOverview, saCreateTenant, saUpdateTenant, saRecordPayment, saResetOwnerPin, saSavePlan } from '../utils/api';
+import SupportPanel from './SupportPanel';
 import './Superadmin.css';
 
 const errorText = (err, fallback) => err.response?.data?.message || fallback;
@@ -153,6 +154,8 @@ const Superadmin = () => {
                     </article>
                 ))}
             </div>
+
+            <SupportPanel />
 
             <section className="sa-plans">
                 <div className="sa-plans-head">

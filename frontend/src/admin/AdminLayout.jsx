@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FiLogOut, FiMenu, FiX, FiChevronDown } from 'react-icons/fi';
+import { FiLogOut, FiMenu, FiX, FiChevronDown, FiHelpCircle } from 'react-icons/fi';
 import { NAV_SECTIONS, QUICK_BAR, LANGS, tr, sectionFor, navItem } from './adminNav';
 import GlobalSearch from './GlobalSearch';
 import Notifications from './Notifications';
@@ -27,7 +27,14 @@ const AdminLayout = () => {
     const chooseLang = (key) => {
         setLang(key);
         try { localStorage.setItem('menuLang', key); } catch { /* private mode */ }
+        window.dispatchEvent(new Event('menulang'));
     };
+    // The Help page has its own language switch; keep the menu in step with it
+    useEffect(() => {
+        const sync = () => setLang(readLang());
+        window.addEventListener('menulang', sync);
+        return () => window.removeEventListener('menulang', sync);
+    }, []);
 
     useEffect(() => {
         if (socket) {
@@ -149,6 +156,8 @@ const AdminLayout = () => {
                     </button>
                     <GlobalSearch />
                     <div className="header-right">
+                        <Link className="header-help" to={location.pathname === '/admin/help' ? '/admin/help?tab=tickets' : `/admin/help?from=${encodeURIComponent(location.pathname + location.search)}`}
+                            aria-label="Help and report a problem" title="Help · report a problem"><FiHelpCircle /></Link>
                         <Notifications />
                         <div className="admin-user">
                             <span className="admin-name">{user?.name || 'Admin'}</span>
