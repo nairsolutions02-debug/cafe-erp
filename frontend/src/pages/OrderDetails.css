@@ -171,3 +171,19 @@
     margin-top: 12px;
     text-align: center;
 }
+
+.cancelled-card {
+    margin: 16px;
+    padding: 16px;
+    border-radius: 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.cancelled-card strong { color: var(--error); font-size: 1.05rem; }
+.cancelled-card p { margin: 0; font-size: .92rem; color: var(--text-secondary); }
+.cancelled-card .muted { color: var(--text-muted); font-size: .82rem; }
+.cancelled-card .btn { margin-top: 8px; }

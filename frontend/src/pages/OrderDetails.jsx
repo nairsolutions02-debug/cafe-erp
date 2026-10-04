@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { FiFileText, FiCheckCircle } from 'react-icons/fi';
 import Header from '../components/Header';
 import OrderStatus from '../components/OrderStatus';
@@ -9,6 +9,11 @@ import { getOrder, requestBill, requestPayment, getCheckoutInfo } from '../utils
 import { usePortal } from '../context/PortalContext';
 import { clearQrTable, getQrTable } from '../lib/qrTable';
 import Confetti from '../components/cx/Confetti';
+import { useCart } from '../context/CartContext';
+import { inr } from '../admin/pos/money';
+
+// What staff typed as the reason, without the internal "(approved by …)" note
+const customerReason = (r) => String(r || '').replace(/\s*\(approved by [^)]*\)\s*$/i, '').trim();
 import './OrderDetails.css';
 
 const OrderDetails = () => {
@@ -19,6 +24,19 @@ const OrderDetails = () => {
     const location = useLocation();
     const { show, nudge } = usePortal();
     const justPlaced = !!location.state?.justPlaced;
+    const navigate = useNavigate();
+    const { addItem } = useCart();
+
+    // Cancelled: put the same dishes back in the cart so ordering again is one tap
+    const orderAgain = () => {
+        (order.items || []).forEach(i => {
+            if (!i.menuItem || i.isRestricted) return;
+            for (let n = 0; n < i.quantity; n++) {
+                addItem({ _id: i.menuItem._id, name: i.menuItem.name, price: i.menuItem.price, image: i.menuItem.image, isAvailable: true });
+            }
+        });
+        navigate('/cart');
+    };
 
     useEffect(() => {
         if (!justPlaced || !show('nudgeCelebrate')) return;
@@ -125,6 +143,19 @@ const OrderDetails = () => {
             {justPlaced && show('nudgeCelebrate') && <Confetti />}
             {order.held && !['paid', 'cancelled'].includes(order.status) && (
                 <div className="held-note">⏳ <span>Got it! A staff member will confirm your table in a moment, then the kitchen starts.</span></div>
+            )}
+
+            {order.status === 'cancelled' && (
+                <div className="cancelled-card" role="alert">
+                    <strong>This order was cancelled</strong>
+                    {customerReason(order.cancelReason) && <p>Reason: {customerReason(order.cancelReason)}</p>}
+                    {order.amountPaid > 0 && <p>You paid {inr(order.amountPaid)}. The staff will return it to you.</p>}
+                    {order.pointsRedeemed > 0 && <p>Your {order.pointsRedeemed} points are back in your account.</p>}
+                    <p className="muted">Questions? Please ask the staff.</p>
+                    {(order.items || []).some(i => i.menuItem && !i.isRestricted) && (
+                        <button className="btn btn-primary btn-full" onClick={orderAgain}>Order again</button>
+                    )}
+                </div>
             )}
 
             {/* Order Status */}

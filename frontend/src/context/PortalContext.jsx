@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getPortalConfig } from '../utils/api';
 import { useAuth } from './AuthContext';
 
@@ -23,7 +24,8 @@ const applyTheme = (color) => {
 };
 
 export const PortalProvider = ({ children }) => {
-    const { user } = useAuth();
+    const { user, socket } = useAuth();
+    const navigate = useNavigate();
     const [cfg, setCfg] = useState(null);
     const [current, setCurrent] = useState(null);
     const timer = useRef();
@@ -40,20 +42,38 @@ export const PortalProvider = ({ children }) => {
     }, [cfg]);
 
     // One reminder at a time; each kind at most once per visit; hides itself after 5 seconds.
-    // A reminder that arrives while another is showing is dropped, never queued.
-    const nudge = useCallback(({ kind, icon = '✨', text, action }) => {
+    // A reminder that arrives while another is showing is dropped, never queued; an important one
+    // (an order cancelled by staff) replaces it and stays a little longer.
+    const nudge = useCallback(({ kind, icon = '✨', text, action, important = false }) => {
         if (!text) return;
         try {
             if (sessionStorage.getItem(`nudged:${kind}`)) return;
             sessionStorage.setItem(`nudged:${kind}`, '1');
         } catch { /* storage unavailable: still show it */ }
         setCurrent(prev => {
-            if (prev) return prev;
+            if (prev && !important) return prev;
             clearTimeout(timer.current);
-            timer.current = setTimeout(() => setCurrent(null), NUDGE_MS);
-            return { kind, icon, text, action, id: Date.now() };
+            const ms = important ? NUDGE_MS * 2 : NUDGE_MS;
+            timer.current = setTimeout(() => setCurrent(null), ms);
+            return { kind, icon, text, action, important, ms, id: Date.now() };
         });
     }, []);
+
+    // Staff cancelled one of this customer's orders: tell them wherever they are in the app
+    useEffect(() => {
+        if (!socket || user?.role !== 'customer') return undefined;
+        const onUpdate = (order) => {
+            if (order?.status !== 'cancelled' || order.user?._id !== user._id) return;
+            if (window.location.pathname === `/order/${order._id}`) return; // that page shows it in full
+            nudge({
+                kind: `cancelled-${order._id}`, icon: '⚠️', important: true,
+                text: `Order ${order.orderNumber} was cancelled by the cafe.`,
+                action: { label: 'View', onClick: () => navigate(`/order/${order._id}`) },
+            });
+        };
+        socket.on('my-order-updated', onUpdate);
+        return () => socket.off('my-order-updated', onUpdate);
+    }, [socket, user?._id, user?.role, nudge, navigate]);
     const dismiss = () => { clearTimeout(timer.current); setCurrent(null); };
     useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -61,14 +81,14 @@ export const PortalProvider = ({ children }) => {
         <PortalContext.Provider value={{ cfg, show, nudge, refresh }}>
             {children}
             {current && (
-                <div className="nudge" role="status" key={current.id}>
+                <div className={`nudge ${current.important ? 'important' : ''}`} role={current.important ? 'alert' : 'status'} key={current.id}>
                     <span className="nudge-icon" aria-hidden="true">{current.icon}</span>
                     <span className="nudge-text">{current.text}</span>
                     {current.action && (
                         <button className="nudge-action" onClick={() => { current.action.onClick(); dismiss(); }}>{current.action.label}</button>
                     )}
                     <button className="nudge-close" aria-label="Close" onClick={dismiss}>×</button>
-                    <span className="nudge-timer" style={{ animationDuration: `${NUDGE_MS}ms` }} />
+                    <span className="nudge-timer" style={{ animationDuration: `${current.ms}ms` }} />
                 </div>
             )}
         </PortalContext.Provider>

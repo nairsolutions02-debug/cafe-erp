@@ -4,6 +4,28 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Customers now see when staff cancel their order (2026-10-04)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Order screen | A cancelled order shows **"This order was cancelled"** with the reason staff typed. The internal "approved by…" note is hidden. If they had paid, it says "You paid ₹X. The staff will return it to you."; if they used points, it says the points are back. The progress tracker shows **Order Cancelled** instead of staying on "Order placed". It updates live, with no refresh needed. |
+| Anywhere in the app | If the customer is on another page (menu, home, cart), a red alert appears: **"Order ORD-… was cancelled by the cafe. [View]"**. It replaces any other reminder and stays 10 seconds. |
+| Order again | One tap puts the same dishes back in the cart. |
+
+**Deploy**
+
+Nothing to run. Vercel redeploys from `main`, and there's no SQL and no new APK.
+
+**Test checklist**
+- [ ] Phone: place a QR order and stay on the order screen → laptop: Orders → Cancel → reason "Dosa batter finished" → the phone shows the red cancelled box with that reason within a couple of seconds
+- [ ] Phone: place another order, go to the Menu → cancel it from the laptop → red alert at the top → **View** opens the cancelled order
+- [ ] **Order again** → cart has the same items
+- [ ] Order paid with points, then cancelled → "Your N points are back" and the points balance is restored
+
+---
+
 ## Table QR ordering, shared tables, owner-editable customer app (2026-10-04)
 
 **What's new**

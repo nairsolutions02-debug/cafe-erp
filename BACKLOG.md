@@ -2,7 +2,7 @@
 
 Owner's notes on things to fix later. Newest first.
 
-## Customer doesn't see a cancelled order (reported 2026-10-04)
+## ✅ Done 2026-10-04 — Customer doesn't see a cancelled order (reported 2026-10-04)
 - **What happens:** staff cancel an order (Orders → Cancel). The customer's order screen still shows "Order placed".
 - **First look:** the order screen gets the update live, but the status tracker (`components/OrderStatus.jsx`) has no
   "cancelled" step, so it falls back to the first step. Nothing else on the page says the order was cancelled.

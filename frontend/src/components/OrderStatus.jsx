@@ -1,6 +1,6 @@
 import React from 'react';
 import './OrderStatus.css';
-import { FiClipboard, FiCheck, FiCoffee, FiCheckCircle, FiCloudLightning, FiFlag, FiFileText } from 'react-icons/fi';
+import { FiClipboard, FiCheck, FiCoffee, FiCheckCircle, FiFlag, FiFileText, FiXCircle } from 'react-icons/fi';
 import { BiDish } from 'react-icons/bi';
 
 const statusSteps = [
@@ -13,6 +13,15 @@ const statusSteps = [
 
 const OrderStatus = ({ status }) => {
     const currentIndex = statusSteps.findIndex(s => s.key === status);
+
+    if (status === 'cancelled') {
+        return (
+            <div className="order-status-cancelled">
+                <div className="cancelled-icon"><FiXCircle /></div>
+                <span>Order Cancelled</span>
+            </div>
+        );
+    }
 
     if (status === 'paid') {
         return (

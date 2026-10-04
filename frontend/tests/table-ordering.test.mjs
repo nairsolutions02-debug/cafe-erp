@@ -247,3 +247,13 @@ test('checkout info counts orders for the milestone card', async () => {
     assert.equal(info.ordersSoFar, 2);
     assert.deepEqual(info.openAtTable.map(t => t.tableNumber), ['7']);
 });
+
+test('staff cancel: the customer sees the cancellation, the reason and their points back', async () => {
+    const a = await customer(slug, 'Cancelled', 25);
+    const id = await rpc(a, 'place_order', { p_items: items, p_table_code: await codeOf(t7) });
+    await rpc(owner, 'cancel_order', { p_order_id: id, p_reason: 'Dosa batter finished' });
+    const o = await rpc(a, 'get_order', { p_id: id });
+    assert.equal(o.status, 'cancelled');
+    assert.equal(o.cancelReason, 'Dosa batter finished');
+    assert.ok(o.items[0].menuItem?._id, 'items keep their menu link for "Order again"');
+});

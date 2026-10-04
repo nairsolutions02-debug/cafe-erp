@@ -107,3 +107,18 @@
 .bill-icon {
     font-size: 2rem;
 }
+.order-status-cancelled {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: var(--radius-lg);
+    color: var(--error);
+    font-weight: 600;
+    animation: cancelled-in .4s ease both;
+}
+.cancelled-icon { font-size: 2rem; }
+@keyframes cancelled-in { from { transform: scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .order-status-cancelled { animation: none; } }
