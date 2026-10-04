@@ -4,6 +4,39 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phone app redesign, part 3: Counter and My day (2026-10-04)
+
+Third of four parts of the approved mobile redesign. Counter changes on phones only. My day changes everywhere (it is mostly used on phones).
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Counter (phone) | The bottom bar now stays on the Counter, so staff can jump between Counter and Orders. Items are two big tiles per row with a count badge (2, 3…) after tapping. |
+| Pay bar (phone) | A bar above the bottom bar: **3 items · Pay → ₹315**. Tapping it opens the cart as a sheet from the bottom: takeaway / dine-in, customer (tier, 👑, 🎂 gift), lines with bigger + / − buttons, discount, kitchen note, totals, **Send to kitchen** and **Pay**. |
+| Pay (phone) | Bigger Cash / UPI / Card / Split buttons and quick-note buttons (exact, ₹500, ₹2,000…) that show the change. After payment the sheet closes and the token appears above the bottom bar. |
+| My day | Greeting with the date and shift. A ring shows hours worked today against shift hours. Breaks no longer pop up a typing box: tap Tea break / Lunch / Delivery, then pick the reason. |
+| Today card | My orders today and my paid sales (for staff PIN logins), cash in the counter drawer, and an **Open shift** / **Close shift** button for people who handle cash. |
+| Daily tasks | New: the cafe's daily jobs ("Count milk", "Clean the coffee machine"). The owner or a manager taps **Edit** on My day and types one task per line. Anyone on shift ticks a task; everyone sees who did it and when. Ticks reset every day. Up to 30 tasks. |
+| Languages | My day and the Counter pay bar follow English / हिन्दी / Hinglish. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → **New query** → paste **`supabase/upgrades/2026-10-my-day.sql`** → Run → *Success*. Until it runs, My day simply shows no tasks.
+2. Vercel redeploys from `main` by itself. No new APK.
+3. Owner: My day → Today's tasks → **Edit** → type the cafe's daily jobs → Save.
+
+**Test checklist**
+- [ ] Phone → Counter: bottom bar visible; tap an item twice → badge 2; Pay bar shows items and total
+- [ ] Tap the Pay bar → cart sheet → Pay → Cash → ₹500 → change shown → Paid → sheet closes, token shows
+- [ ] Send to kitchen (without paying) → appears on Kitchen and Orders
+- [ ] My day (staff PIN login): check in → ring fills over the shift; Tea break → pick Lunch → "On break until…"
+- [ ] Owner: My day → Edit tasks → save 3 tasks; staff phone: tick one → owner sees the name and time
+- [ ] Next day: all tasks are unticked again
+- [ ] Laptop: Counter looks as before (cart on the right)
+
+---
+
 ## Phone app redesign, part 2: Orders and Kitchen (2026-10-04)
 
 Second of four parts of the approved mobile redesign. Orders changes on phones only. Kitchen gets the new tickets on every screen size (phone, tablet, TV).

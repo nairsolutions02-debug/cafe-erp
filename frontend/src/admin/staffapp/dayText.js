@@ -1,0 +1,30 @@
+// Words on the My day screen in English, Hindi and Hinglish
+const T = (en, hi, hinglish) => ({ en, hi, hinglish });
+
+export const D = {
+    hi: T('Hi', 'नमस्ते', 'Namaste'),
+    shift: T('shift', 'शिफ्ट', 'shift'),
+    checkedInAt: T('Checked in at', 'हाज़िरी लगी', 'Check in hua'),
+    doneToday: T('Done for today', 'आज का काम पूरा', 'Aaj ka kaam poora'),
+    notIn: T('Not checked in', 'हाज़िरी नहीं लगी', 'Check in nahi hua'),
+    checkIn: T('Check in', 'हाज़िरी लगाएँ', 'Check in karo'),
+    checkOut: T('Check out', 'छुट्टी करें', 'Check out karo'),
+    tea: T('Tea break', 'चाय ब्रेक', 'Chai break'),
+    lunch: T('Lunch', 'खाना', 'Khana'),
+    delivery: T('Delivery', 'डिलीवरी', 'Delivery'),
+    personal: T('Personal', 'निजी काम', 'Personal'),
+    why: T('What is the break for?', 'ब्रेक किस लिए?', 'Break kis liye?'),
+    cancel: T('Cancel', 'रद्द', 'Cancel'),
+    save: T('Save', 'सेव करें', 'Save karo'),
+    edit: T('Edit', 'बदलें', 'Badlo'),
+    today: T('Today', 'आज', 'Aaj'),
+    myOrders: T('my orders', 'मेरे ऑर्डर', 'mere order'),
+    mySales: T('my paid sales', 'मेरी बिक्री', 'meri bikri'),
+    inDrawer: T('cash in drawer', 'ड्रॉअर में कैश', 'drawer mein cash'),
+    openShift: T('Open shift', 'शिफ्ट खोलें', 'Shift kholo'),
+    closeShift: T('Close shift', 'शिफ्ट बंद करें', 'Shift band karo'),
+    tasks: T('Today’s tasks', 'आज के काम', 'Aaj ke kaam'),
+    onePerLine: T('One task per line. Everyone on shift sees these every day.', 'हर लाइन में एक काम। शिफ्ट पर सबको रोज़ दिखेंगे।', 'Har line mein ek kaam. Shift pe sabko roz dikhenge.'),
+    noTasks: T('No tasks yet. Tap Edit to add the cafe’s daily jobs.', 'अभी कोई काम नहीं। रोज़ के काम जोड़ने के लिए बदलें दबाएँ।', 'Abhi koi kaam nahi. Roz ke kaam add karne ke liye Badlo dabao.'),
+    month: T('This month', 'इस महीने', 'Is mahine'),
+};

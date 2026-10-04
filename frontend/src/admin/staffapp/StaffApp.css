@@ -138,3 +138,34 @@
 .setup-steps li span { flex: 1; }
 .setup-steps li.ok svg { color: var(--success); }
 .setup-steps li.todo svg { color: var(--warning); }
+
+/* My day (phone redesign, part 3) */
+.day-hello h1 { margin: 0; font-size: 1.5rem; }
+.day-hello p { margin: 2px 0 0; font-size: 0.85rem; }
+.day-clock { display: flex; align-items: center; gap: 14px; }
+.day-ring { width: 64px; height: 64px; border-radius: 50%; background: conic-gradient(var(--success) var(--p, 0%), #EFE7DA 0); display: grid; place-items: center; flex: none; }
+.day-ring i { width: 52px; height: 52px; border-radius: 50%; background: var(--bg-card, #fff); display: grid; place-items: center; font-style: normal; font-weight: 700; font-size: 0.72rem; font-variant-numeric: tabular-nums; }
+.day-clock .day-status { font-size: 1rem; }
+.day-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.day-count { margin-left: 6px; font-size: 0.78rem; background: #F1E8DA; border-radius: 99px; padding: 1px 8px; font-variant-numeric: tabular-nums; }
+.day-link { border: 0; background: none; color: var(--primary); font: inherit; font-weight: 600; font-size: 0.85rem; display: inline-flex; gap: 4px; align-items: center; cursor: pointer; min-height: 40px; }
+.day-small { font-size: 0.82rem; color: var(--text-muted); margin: 0; }
+.day-row { display: flex; gap: 8px; justify-content: flex-end; }
+.day-shift { align-self: stretch; justify-content: center; min-height: 46px; text-decoration: none; }
+.day-tasks { list-style: none; margin: 0; padding: 0; }
+.day-tasks button { width: 100%; display: flex; align-items: center; gap: 12px; border: 0; background: none; padding: 8px 0; min-height: 48px; text-align: left; font: inherit; color: var(--text-primary); cursor: pointer; }
+.day-tasks li + li button { border-top: 1px solid #F1E8DA; }
+.day-ck { width: 26px; height: 26px; border-radius: 8px; border: 2px solid #E6D9C6; display: grid; place-items: center; color: transparent; flex: none; }
+.day-tasks .on .day-ck { background: var(--success); border-color: var(--success); color: white; }
+.day-tt { display: flex; flex-direction: column; line-height: 1.3; }
+.day-tasks .on .day-tt { color: var(--text-muted); }
+.day-tasks .on .day-tn { text-decoration: line-through; }
+.day-tt small { font-size: 0.74rem; color: var(--text-muted); }
+.break-pick { display: flex; flex-direction: column; gap: 6px; }
+.break-row .btn { min-height: 44px; }
+@media (max-width: 768px) {
+    .myday { gap: 12px; }
+    .day-card { padding: 14px; box-shadow: 0 1px 2px rgba(40, 25, 10, 0.1); border-radius: 18px; }
+    .selfie-btn { width: 108px; height: 108px; }
+    .big-act { font-size: 1.15rem; padding: 15px; }
+}

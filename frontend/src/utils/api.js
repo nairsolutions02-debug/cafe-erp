@@ -953,3 +953,8 @@ export const replySupportTicket = async (id, body, status = null) =>
     ok(await rpc('reply_support_ticket', { p_id: id, p_body: body || '', p_status: status }));
 export const markSupportRead = async (id) => ok(await rpc('mark_support_read', { p_id: id }));
 export const saGetSupportTickets = async (status = 'active') => ok(await rpc('sa_support_tickets', { p_status: status }));
+
+// My day: cafe daily tasks and my numbers for today
+export const getMyDayExtras = async () => ok(await rpc('my_day_extras'));
+export const tickDailyTask = async (id, done) => ok(await rpc('tick_daily_task', { p_id: id, p_done: done }));
+export const saveDailyTasks = async (tasks) => ok(await rpc('save_daily_tasks', { p: tasks }));

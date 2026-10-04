@@ -1139,3 +1139,219 @@
 .club-chip.bday { background: #FDE7F0; color: #A61E58; }
 button.club-chip { border: 1px dashed #E58BB0; cursor: pointer; font-family: inherit; }
 button.club-chip.on { background: #A61E58; color: #fff; border-style: solid; }
+
+/* Phone Counter (mobile redesign, part 3): two tiles per row, Pay bar above the bottom bar, cart as a sheet */
+.tile-qty {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    min-width: 26px;
+    height: 26px;
+    padding: 0 6px;
+    border-radius: 99px;
+    background: var(--primary);
+    color: white;
+    font-weight: 800;
+    font-size: 0.82rem;
+    display: grid;
+    place-items: center;
+    border: 2px solid white;
+    font-variant-numeric: tabular-nums;
+}
+
+.pos-sheet-head,
+.pos-scrim {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .pos.is-phone .pos-top h1 {
+        display: none;
+    }
+
+    .pos.is-phone .pos-top {
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .pos.is-phone .sync-pill.ok {
+        display: none;
+    }
+
+    .pos.is-phone .pos-menu {
+        background: none;
+        padding: 0;
+    }
+
+    .pos.is-phone .pos-search .input {
+        min-height: 44px;
+    }
+
+    .pos.is-phone .chips button {
+        min-height: 38px;
+    }
+
+    .pos.is-phone .pos-menu .tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding-bottom: 76px;
+    }
+
+    .pos.is-phone .pos-menu .tile {
+        min-height: 84px;
+        padding: 12px;
+        background: white;
+        border: 0;
+        border-radius: 16px;
+        box-shadow: 0 1px 2px rgba(40, 25, 10, 0.1);
+    }
+
+    .pos.is-phone .pos-menu .tile-name {
+        font-size: 0.92rem;
+        padding-right: 14px;
+    }
+
+    .pos.is-phone .veg-dot {
+        top: 12px;
+        right: 12px;
+    }
+
+    /* The cart: a sheet from the bottom */
+    .pos.is-phone .pos-scrim {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(20, 12, 4, 0.45);
+        z-index: 130;
+    }
+
+    .pos.is-phone .pos-cart {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        z-index: 131;
+        margin: 0;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 24px 24px 0 0;
+        padding: 0 16px calc(16px + env(safe-area-inset-bottom));
+        transform: translateY(105%);
+        transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .pos.is-phone .pos-cart.open {
+        transform: none;
+    }
+
+    .pos.is-phone .pos-sheet-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: sticky;
+        top: 0;
+        background: white;
+        padding: 14px 0 8px;
+        z-index: 1;
+    }
+
+    .pos.is-phone .pos-sheet-head b {
+        flex: 1;
+        font-size: 1.05rem;
+    }
+
+    .pos.is-phone .pos-grab {
+        position: absolute;
+        top: 6px;
+        left: calc(50% - 20px);
+        width: 40px;
+        height: 5px;
+        border-radius: 99px;
+        background: #E6D9C6;
+    }
+
+    .pos.is-phone .pos-sheet-head .icon-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        border: 0;
+        background: #F4EDE2;
+        display: grid;
+        place-items: center;
+        font-size: 1.1rem;
+    }
+
+    .pos.is-phone .lines {
+        max-height: none;
+    }
+
+    .pos.is-phone .disc-row:first-child {
+        grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1.3fr);
+    }
+
+    .pos.is-phone .line-ctrl button {
+        width: 40px;
+        height: 40px;
+        border-radius: 11px;
+    }
+
+    .pos.is-phone .seg button {
+        min-height: 42px;
+    }
+
+    .pos.is-phone .pos-actions .btn,
+    .pos.is-phone .pay-confirm {
+        min-height: 54px;
+    }
+
+    .pos.is-phone .pay-methods button {
+        min-height: 52px;
+        font-size: 0.95rem;
+    }
+
+    .pos.is-phone .quick-cash button {
+        min-height: 46px;
+        font-size: 0.95rem;
+    }
+
+    /* Pay bar: above the bottom bar */
+    .pos.is-phone .pos-cartbar {
+        left: 12px;
+        right: 12px;
+        bottom: calc(80px + env(safe-area-inset-bottom));
+        border-radius: 16px;
+        min-height: 56px;
+        padding: 0 16px;
+        z-index: 89;
+    }
+
+    .pos.is-phone .pos-cartbar-n {
+        background: rgba(255, 255, 255, 0.22);
+        border-radius: 9px;
+        padding: 3px 9px;
+        font-size: 0.85rem;
+        font-weight: 700;
+    }
+
+    .pos.is-phone .pos-cartbar-go {
+        margin-left: 0;
+    }
+
+    .pos.is-phone .pos-cartbar strong {
+        margin-left: auto;
+        font-size: 1.15rem;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .pos.is-phone .pos-done {
+        bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pos.is-phone .pos-cart {
+        transition: none;
+    }
+}

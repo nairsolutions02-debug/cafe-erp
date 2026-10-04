@@ -99,7 +99,8 @@ const AdminLayout = () => {
     const fullScreen = ['/admin/pos', '/admin/kiosk'].some(p => location.pathname.startsWith(p));
     const sectionTabs = current && !fullScreen ? current.section.items.filter(allowed) : [];
     const quick = QUICK_BAR.map(navItem).filter(i => i && allowed(i));
-    const showQuick = !fullScreen;
+    // The Counter keeps the bottom bar on phones (its Pay bar sits above it); the Kiosk keeps the whole screen
+    const showQuick = !location.pathname.startsWith('/admin/kiosk');
     const pageTitle = location.pathname === '/admin/more' ? tr(SHELL.more, lang) : current ? tr(current.item.label, lang) : brand.name;
 
     return (

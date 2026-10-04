@@ -49,5 +49,9 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 8.2 Phone: tap **?** at the top → send a test ticket → reply to it from `/superadmin` → the reply arrives on the phone
 
 ## 9. Kitchen stations (2026-10-04)
-- [ ] 9.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-kitchen-stations.sql` → Run → Success
-- [ ] 9.2 Admin → Menu → Categories → check each category's **Kitchen station** (Hot kitchen, Coffee bar, Cold)
+- [x] 9.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-kitchen-stations.sql` → Run → Success
+- [x] 9.2 Admin → Menu → Categories → check each category's **Kitchen station** (Hot kitchen, Coffee bar, Cold)
+
+## 10. My day tasks (2026-10-04)
+- [ ] 10.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-my-day.sql` → Run → Success
+- [ ] 10.2 Owner phone: My day → Today's tasks → **Edit** → type the cafe's daily jobs (one per line) → Save

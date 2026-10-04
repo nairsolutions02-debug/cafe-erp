@@ -7,6 +7,9 @@ import { useOutbox, runOrQueue, newClientId, retryFailed, dismissFailed } from '
 import { ensureDevice, getDevice, nextOrderNumber, cacheGet, cacheSet } from '../../lib/device';
 import { printKot, printBill } from '../../lib/print';
 import { estimateTotal, inr } from './money';
+import useIsPhone from '../mobile/useIsPhone';
+import useMenuLang from '../mobile/useMenuLang';
+import { W } from '../mobile/staffText';
 import './POS.css';
 
 const errorText = (err) => err?.message || err?.response?.data?.message || 'Something went wrong';
@@ -130,6 +133,18 @@ const AdminPOS = () => {
     const cartRef = useRef(null);
     // Phones: hide the cart bar while the cart itself is on screen
     const [cartInView, setCartInView] = useState(false);
+    // Phones: the cart opens as a sheet from the bottom
+    const isPhone = useIsPhone();
+    const { t } = useMenuLang();
+    const [cartOpen, setCartOpen] = useState(false);
+    const qtyOf = (id) => cart.reduce((a, l) => a + (l.menuItemId === id ? l.qty : 0), 0);
+    const count = cart.reduce((a, l) => a + l.qty, 0);
+    useEffect(() => {
+        if (!cartOpen) return undefined;
+        const esc = (e) => { if (e.key === 'Escape') setCartOpen(false); };
+        window.addEventListener('keydown', esc);
+        return () => window.removeEventListener('keydown', esc);
+    }, [cartOpen]);
     useEffect(() => {
         const el = cartRef.current;
         if (!el || typeof IntersectionObserver === 'undefined') return undefined;
@@ -225,6 +240,7 @@ const AdminPOS = () => {
         setNeedApprover(false);
         setPaying(false);
         setQuote(null);
+        setCartOpen(false);
         setTimeout(() => searchRef.current?.focus(), 50);
     };
 
@@ -270,7 +286,7 @@ const AdminPOS = () => {
     }
 
     return (
-        <div className="pos">
+        <div className={`pos${isPhone ? ' is-phone' : ''}`}>
             <div className="pos-top">
                 <h1 className="keep-h1">Counter{device && <span className="muted"> · {device.code}</span>}</h1>
                 <SyncPill />
@@ -299,13 +315,22 @@ const AdminPOS = () => {
                                 <span className={`veg-dot ${i.is_veg ? 'veg' : 'nonveg'}`} />
                                 <span className="tile-name">{i.name}</span>
                                 <span className="tile-price">{inr(i.price)}{i.item_units?.length ? ' +packs' : ''}</span>
+                                {qtyOf(i.id) > 0 && <span className="tile-qty" aria-label={`${qtyOf(i.id)} in cart`}>{qtyOf(i.id)}</span>}
                             </button>
                         ))}
                         {shown.length === 0 && <p className="muted">No items match.</p>}
                     </div>
                 </section>
 
-                <section className="pos-cart" ref={cartRef}>
+                {isPhone && cartOpen && <div className="pos-scrim" onClick={() => setCartOpen(false)} aria-hidden="true" />}
+                <section className={`pos-cart${cartOpen ? ' open' : ''}`} ref={cartRef} {...(isPhone ? { role: 'dialog', 'aria-label': 'Cart', inert: !cartOpen } : {})}>
+                    {isPhone && (
+                        <div className="pos-sheet-head">
+                            <span className="pos-grab" aria-hidden="true" />
+                            <b>{count} {t(W.items)}</b>
+                            <button type="button" className="icon-btn" aria-label="Close cart" onClick={() => setCartOpen(false)}><FiX /></button>
+                        </div>
+                    )}
                     <div className="seg">
                         {[['takeaway', 'Takeaway'], ['dine_in', 'Dine-in']].map(([v, l]) => (
                             <button key={v} className={orderType === v ? 'active' : ''} onClick={() => setOrderType(v)}>{l}</button>
@@ -433,11 +458,12 @@ const AdminPOS = () => {
             )}
 
             {/* Phones: the cart sits below the menu, so a bar at the bottom shows the total and jumps to it */}
-            {cart.length > 0 && !cartInView && (
-                <button type="button" className="pos-cartbar" onClick={() => cartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-                    <span>{cart.reduce((a, l) => a + l.qty, 0)} item{cart.reduce((a, l) => a + l.qty, 0) === 1 ? '' : 's'}</span>
-                    <strong>{inr(total)}</strong>
-                    <span className="pos-cartbar-go">View cart ↓</span>
+            {cart.length > 0 && (isPhone ? !cartOpen : !cartInView) && (
+                <button type="button" className="pos-cartbar"
+                    onClick={() => (isPhone ? setCartOpen(true) : cartRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }))}>
+                    <span className="pos-cartbar-n">{count} {t(W.items)}</span>
+                    <span className="pos-cartbar-go">{isPhone ? `${t(W.pay)} →` : 'View cart ↓'}</span>
+                    <strong>{estimated ? '≈ ' : ''}{inr(total)}</strong>
                 </button>
             )}
 

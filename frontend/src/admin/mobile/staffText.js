@@ -40,6 +40,8 @@ export const W = {
         ready: T('Ready', 'तैयार', 'Ready'), served: T('Served', 'दे दिया', 'De diya'), bill_requested: T('Wants bill', 'बिल माँगा', 'Bill maanga'),
         bill_generated: T('Bill given', 'बिल दिया', 'Bill diya'),
     },
+    items: T('items', 'आइटम', 'items'),
+    pay: T('Pay', 'पेमेंट', 'Pay'),
     // Kitchen
     tickets: T('tickets', 'टिकट', 'ticket'),
     oldest: T('oldest', 'सबसे पुराना', 'sabse purana'),
