@@ -3,7 +3,7 @@ import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter, FiM
 import { getActiveOrders, updateOrderStatus, settleOrder, cancelOrder, removeServiceCharge, confirmTableOrder, moveOrderTable, getTables } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import OrderBill from '../components/OrderBill';
-import Loader from '../components/Loader';
+import Skeleton from './mobile/Skeleton';
 import Modal from './inventory/Modal';
 import { printKot, printBill } from '../lib/print';
 import { inr } from './pos/money';
@@ -302,7 +302,7 @@ const AdminOrders = () => {
         try { afterChange((await confirmTableOrder(order._id)).data); } catch (err) { alert(errText(err)); }
     };
 
-    if (loading) return <Loader message="Cooking up some orders..." />;
+    if (loading) return <Skeleton label="Cooking up some orders..." />;
 
     return (
         <div className="admin-orders">

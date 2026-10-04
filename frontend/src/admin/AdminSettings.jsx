@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiSettings, FiSave, FiPlus, FiTrash2, FiInfo } from 'react-icons/fi';
 import { getAllSettings, updateSetting } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
-import Loader from '../components/Loader';
+import Skeleton from './mobile/Skeleton';
 import './AdminSettings.css';
 import brand from '../brand';
 
@@ -89,7 +89,7 @@ const AdminSettings = () => {
         }
     };
 
-    if (loading) return <Loader message="Fetching your settings..." />;
+    if (loading) return <Skeleton label="Fetching your settings..." />;
 
     return (
         <div className="admin-settings">

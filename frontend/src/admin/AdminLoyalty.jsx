@@ -14,7 +14,7 @@ import {
 import { getImageUrl } from '../utils/config';
 import { FiStar, FiSettings, FiUsers, FiGift, FiPlus, FiMinus, FiSave, FiTag, FiEdit, FiTrash2 } from 'react-icons/fi';
 
-import Loader from '../components/Loader';
+import Skeleton from './mobile/Skeleton';
 import './AdminLoyalty.css';
 
 const AdminLoyalty = () => {
@@ -126,7 +126,7 @@ const AdminLoyalty = () => {
         setOfferModal(true);
     };
 
-    if (loading) return <Loader message="Loading loyalty settings..." />;
+    if (loading) return <Skeleton label="Loading loyalty settings..." />;
 
     return (
         <div className="admin-loyalty">

@@ -4,7 +4,7 @@ import { FiShoppingBag, FiDollarSign, FiAlertCircle, FiTrendingUp, FiSettings, F
 import { getDashboardStats, getActiveOrders, getInventoryAlerts, getGstRate, updateGstRate, getUserAnalytics } from '../utils/api';
 import { fmtMoney, fmtQty } from './inventory/shared';
 import { useAuth } from '../context/AuthContext';
-import Loader from '../components/Loader';
+import Skeleton from './mobile/Skeleton';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -84,7 +84,7 @@ const AdminDashboard = () => {
     };
 
     if (loading) {
-        return <Loader message="Setting up your dashboard..." />;
+        return <Skeleton label="Setting up your dashboard..." />;
     }
 
     return (

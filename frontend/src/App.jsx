@@ -22,6 +22,7 @@ import MyDay from './admin/staffapp/MyDay';
 import AdminRewards from './admin/rewards/AdminRewards';
 import AdminClub from './admin/club/AdminClub';
 import AdminHelp from './admin/help/AdminHelp';
+import AdminMore from './admin/mobile/AdminMore';
 import AdminProfit from './admin/profit/AdminProfit';
 import BottomNav from './components/BottomNav';
 
@@ -168,6 +169,7 @@ function AppRoutes() {
         <Route path="profit" element={<RequirePerm path="/admin/profit"><AdminProfit /></RequirePerm>} />
         <Route path="club" element={<RequirePerm path="/admin/club"><AdminClub /></RequirePerm>} />
         <Route path="help" element={<AdminHelp />} />
+        <Route path="more" element={<AdminMore />} />
         <Route path="rewards" element={<RequirePerm path="/admin/rewards"><AdminRewards /></RequirePerm>} />
         <Route path="audit" element={<RequirePerm path="/admin/audit"><AdminAudit /></RequirePerm>} />
       </Route>

@@ -1,3 +1,4 @@
+import Skeleton from '../mobile/Skeleton';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FiCamera, FiLogIn, FiLogOut, FiCoffee, FiMapPin, FiBell } from 'react-icons/fi';
 import { getMyDay, staffCheckIn, staffCheckOut, staffBreak, myLeaveRequest, uploadPrivatePhoto, getMyIncentives } from '../../utils/api';
@@ -79,7 +80,7 @@ const MyDay = () => {
         } catch (err) { setError(errorText(err)); }
     };
 
-    if (!d) return <div className="myday">{error || 'Loading…'}</div>;
+    if (!d) return error ? <div className="myday">{error}</div> : <Skeleton rows={3} />;
     // Phone alerts are for everyone, linked to an employee record or not (e.g. the owner's email login)
     const alertsCard = isNativeApp() ? <PhoneSetup /> : (
         <section className="day-card">
@@ -103,7 +104,7 @@ const MyDay = () => {
 
     return (
         <div className="myday">
-            <h1>Hi {d.name.split(' ')[0]}</h1>
+            <h1 className="keep-h1">Hi {d.name.split(' ')[0]}</h1>
             <p className="muted">Shift starts {d.shiftStart} · {d.shiftHours} h{!d.geofence.lat && d.trackLocation ? ' · cafe location not set yet' : ''}</p>
 
             <section className={`day-card ${checkedIn ? 'in' : t?.checkOutAt ? 'done' : ''}`}>

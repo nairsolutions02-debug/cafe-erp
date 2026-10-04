@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FiSearch, FiUser, FiPhone, FiDollarSign, FiShoppingBag, FiChevronDown, FiChevronUp, FiX, FiStar, FiGift, FiDownload, FiCalendar } from 'react-icons/fi';
 import { getCustomerAnalytics, getCustomerDetail } from '../utils/api';
 import { exportToCSV, customerExportColumns, getFilenameDate } from '../utils/exportUtils';
-import Loader from '../components/Loader';
+import Skeleton from './mobile/Skeleton';
 import './AdminCustomers.css';
 
 const AdminCustomers = () => {
@@ -107,7 +107,7 @@ const AdminCustomers = () => {
     };
 
     if (loading && customers.length === 0) {
-        return <Loader message="Loading customers..." />;
+        return <Skeleton label="Loading customers..." />;
     }
 
     return (
@@ -215,7 +215,7 @@ const AdminCustomers = () => {
                         <button className="close-btn" onClick={closeModal}><FiX /></button>
 
                         {detailLoading ? (
-                            <Loader message="Loading details..." />
+                            <Skeleton rows={2} label="Loading details..." />
                         ) : customerDetail && (
                             <>
                                 <div className="modal-header">

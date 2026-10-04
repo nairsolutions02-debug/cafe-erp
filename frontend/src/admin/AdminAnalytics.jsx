@@ -3,7 +3,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getDashboardStats, getRevenueData, getCategorySales, getTopItems, getUserAnalytics, updateSetting, getAllSettings } from '../utils/api';
 import { exportToCSV, revenueExportColumns, getFilenameDate } from '../utils/exportUtils';
 import { useAuth } from '../context/AuthContext';
-import Loader from '../components/Loader';
+import Skeleton from './mobile/Skeleton';
 import { FiUsers, FiUserPlus, FiActivity, FiRepeat, FiSettings, FiDownload } from 'react-icons/fi';
 import './AdminAnalytics.css';
 
@@ -75,7 +75,7 @@ const AdminAnalytics = () => {
         exportToCSV(revenueData, revenueExportColumns, filename);
     };
 
-    if (loading) return <Loader message="Crunching the numbers..." />;
+    if (loading) return <Skeleton label="Crunching the numbers..." />;
 
     const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
     const totalProfit = revenueData.reduce((sum, d) => sum + d.profit, 0);

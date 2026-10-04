@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { FiLogOut, FiMenu, FiX, FiChevronDown, FiHelpCircle } from 'react-icons/fi';
+import { FiLogOut, FiMenu, FiX, FiChevronDown, FiHelpCircle, FiSearch, FiGrid, FiWifiOff, FiUploadCloud } from 'react-icons/fi';
 import { NAV_SECTIONS, QUICK_BAR, LANGS, tr, sectionFor, navItem } from './adminNav';
 import GlobalSearch from './GlobalSearch';
 import Notifications from './Notifications';
 import Presence from './staffapp/Presence';
 import { useAuth } from '../context/AuthContext';
+import { useOutbox } from '../lib/outbox';
+import usePullToRefresh from './mobile/usePullToRefresh';
+import { SHELL } from './mobile/shellText';
+import './mobile/mobile.css';
 import './AdminLayout.css';
 import brand from '../brand';
 
@@ -14,6 +18,12 @@ const readLang = () => {
     try { return localStorage.getItem('menuLang') || 'en'; } catch { return 'en'; }
 };
 
+// Pages where pulling down on a phone reloads the page (no half-filled forms to lose)
+const REFRESHABLE = ['/admin', '/admin/orders', '/admin/history', '/admin/kitchen', '/admin/me', '/admin/customers', '/admin/khata',
+    '/admin/club', '/admin/rewards', '/admin/inventory', '/admin/finance', '/admin/reports', '/admin/attendance', '/admin/pickup-screen',
+    '/admin/tables', '/admin/help', '/admin/alerts', '/admin/profit', '/admin/more'];
+const MORE = { path: '/admin/more', icon: FiGrid, label: SHELL.more };
+
 const AdminLayout = () => {
     const { user, logout, socket, hasPerm } = useAuth();
     const location = useLocation();
@@ -21,6 +31,10 @@ const AdminLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [notifications, setNotifications] = useState([]);
     const [lang, setLang] = useState(readLang);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
+    const { online, pending } = useOutbox();
+    const { pull, busy, ready } = usePullToRefresh(REFRESHABLE.includes(location.pathname), () => setRefreshKey(k => k + 1));
     const current = sectionFor(location.pathname);
     const [openSection, setOpenSection] = useState(current?.section.key || 'home');
     useEffect(() => { if (current) setOpenSection(current.section.key); }, [current?.section.key]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -85,6 +99,8 @@ const AdminLayout = () => {
     const fullScreen = ['/admin/pos', '/admin/kiosk'].some(p => location.pathname.startsWith(p));
     const sectionTabs = current && !fullScreen ? current.section.items.filter(allowed) : [];
     const quick = QUICK_BAR.map(navItem).filter(i => i && allowed(i));
+    const showQuick = !fullScreen;
+    const pageTitle = location.pathname === '/admin/more' ? tr(SHELL.more, lang) : current ? tr(current.item.label, lang) : brand.name;
 
     return (
         <div className="admin-layout">
@@ -150,12 +166,23 @@ const AdminLayout = () => {
 
             {/* Main Content */}
             <div className="admin-main">
-                <header className="admin-header">
-                    <button className="menu-toggle" onClick={() => setSidebarOpen(true)}>
+                <header className={`admin-header${showQuick ? ' has-quickbar' : ''}`}>
+                    <button className="menu-toggle" aria-label="Open menu" onClick={() => setSidebarOpen(true)}>
                         <FiMenu />
                     </button>
+                    <div className="ah-title">
+                        <small>{user?.tenant?.name || brand.name}</small>
+                        <b>{pageTitle}</b>
+                    </div>
                     <GlobalSearch />
                     <div className="header-right">
+                        {(!online || pending.length > 0) && (
+                            <span className={`net-pill${online ? ' sending' : ''}`} role="status">
+                                {online ? <FiUploadCloud /> : <FiWifiOff />}
+                                {online ? `${tr(SHELL.sending, lang)} ${pending.length}` : `${tr(SHELL.offline, lang)}${pending.length ? ` · ${pending.length} ${tr(SHELL.waiting, lang)}` : ''}`}
+                            </span>
+                        )}
+                        <button type="button" className="header-search" aria-label={tr(SHELL.search, lang)} onClick={() => setSearchOpen(true)}><FiSearch /></button>
                         <Link className="header-help" to={location.pathname === '/admin/help' ? '/admin/help?tab=tickets' : `/admin/help?from=${encodeURIComponent(location.pathname + location.search)}`}
                             aria-label="Help and report a problem" title="Help · report a problem"><FiHelpCircle /></Link>
                         <Notifications />
@@ -195,8 +222,16 @@ const AdminLayout = () => {
                     </div>
                 )}
 
+                {searchOpen && <GlobalSearch overlay placeholder={tr(SHELL.search, lang)} onClose={() => setSearchOpen(false)} />}
+
                 <Presence />
-                <main className={`admin-content${quick.length && !fullScreen ? ' with-quickbar' : ''}`}>
+                {(pull > 0 || busy) && (
+                    <div className="ptr" style={{ height: pull }} aria-live="polite">
+                        <span className={`ptr-dot${busy ? ' spin' : ''}`} style={{ transform: busy ? undefined : `rotate(${pull * 3}deg)` }} />
+                        <span>{tr(busy ? SHELL.refreshing : ready ? SHELL.release : SHELL.pull, lang)}</span>
+                    </div>
+                )}
+                <main className={`admin-content${showQuick ? ' with-quickbar' : ''}`}>
                     {sectionTabs.length > 1 && (
                         <nav className="section-tabs" aria-label={tr(current.section.label, lang)}>
                             <span className="section-name">{tr(current.section.label, lang)}</span>
@@ -211,17 +246,20 @@ const AdminLayout = () => {
                             </div>
                         </nav>
                     )}
-                    <Outlet />
+                    <div key={refreshKey} className="admin-page"><Outlet /></div>
                 </main>
 
                 {/* Phone quick bar: the screens staff use all day */}
-                {quick.length > 0 && !fullScreen && (
-                    <nav className="quick-bar" aria-label="Quick">
-                        {quick.map(item => (
-                            <Link key={item.path} to={item.path} className={`quick-link${isActive(item.path, item.exact) ? ' active' : ''}`}>
-                                <item.icon /><span>{tr(item.label, lang)}</span>
-                            </Link>
-                        ))}
+                {showQuick && (
+                    <nav className="quick-bar" aria-label="Main">
+                        {[...quick, MORE].map(item => {
+                            const on = isActive(item.path, item.exact);
+                            return (
+                                <Link key={item.path} to={item.path} className={`quick-link${on ? ' active' : ''}`} aria-current={on ? 'page' : undefined}>
+                                    <span className="ql-pill"><item.icon /></span><span>{tr(item.label, lang)}</span>
+                                </Link>
+                            );
+                        })}
                     </nav>
                 )}
             </div>

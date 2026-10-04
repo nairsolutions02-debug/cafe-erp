@@ -11,7 +11,7 @@ import {
     getCategories
 } from '../utils/api';
 import { getImageUrl } from '../utils/config';
-import Loader from '../components/Loader';
+import Skeleton from './mobile/Skeleton';
 import './AdminCollections.css';
 
 const AdminCollections = () => {
@@ -172,7 +172,7 @@ const AdminCollections = () => {
     });
 
     if (loading) {
-        return <Loader message="Loading your sections..." />;
+        return <Skeleton label="Loading your sections..." />;
     }
 
     return (

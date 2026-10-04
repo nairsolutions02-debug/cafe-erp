@@ -4,6 +4,38 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phone app redesign, part 1: the new phone shell (2026-10-04)
+
+First of four parts of the approved mobile redesign (demo: "FiKA Staff App Redesign"). This part changes the frame around every admin page on phones (up to 768 px wide). Desktop and tablets look the same as before.
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Compact header | One line: cafe name, page name, search icon, **?** and the bell. The page now starts about 120 px from the top instead of about 300 px. The old orange title blocks and big page headings are hidden on phones because the header already names the page. |
+| Search | The search icon opens a full-screen search with a back arrow (items, orders, customers, stock, pages). |
+| Bottom bar | **Orders · Kitchen · Counter · My day · More**, each shown only if the role allows it. The current tab is highlighted with a pill. |
+| More page | `/admin/more`: every page the role allows, as tiles grouped by section, plus language (English / हिन्दी / Hinglish), Help & support and Log out. On phones it replaces the side menu, so the ☰ button is hidden there (it still shows on Counter and Kiosk). |
+| Pull to refresh | Pull down at the top of Orders, Kitchen, My day, Dashboard, Customers, Khata, FiKA Club, Stock, Money pages and others to reload the page. It is switched off on pages with forms (for example Cash & Shifts and Settings), so nothing half-typed is lost. |
+| Offline sign | When the phone loses internet, the header shows **Offline · N waiting**. While queued sales are being sent it shows **Sending N**. |
+| Loading | Grey placeholder cards replace the full-screen dosa animation on Orders, Dashboard, Customers, Points, Sales trends, Homepage sections, Settings and My day. |
+| Languages | The header, bottom bar, More page, search box and refresh messages follow the menu language. |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK: the phone app loads the live site.
+
+**Test checklist** (on a phone, logged in as staff and as owner)
+- [ ] Header shows the cafe name and page name on one line; no page scrolls sideways
+- [ ] Search icon → type an item name → tap a result → that page opens and the search closes
+- [ ] Bottom bar: Orders, Kitchen, Counter, My day, More; a cashier without kitchen permission doesn't see Kitchen
+- [ ] More → every allowed page opens; switch to हिन्दी → header, bottom bar and tiles change; Log out works
+- [ ] Orders → pull down at the top → "Release to refresh" → the list reloads
+- [ ] Turn on airplane mode → header shows Offline → sell on the Counter → "Offline · 1 waiting" → internet back → it disappears
+- [ ] Desktop / laptop: sidebar, search box and page titles look as before
+
+---
+
 ## Help guide (English / हिन्दी / Hinglish) + support tickets to N.A.I.R. (2026-10-04)
 
 **What's new**
