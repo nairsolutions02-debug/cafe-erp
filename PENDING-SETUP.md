@@ -1,4 +1,4 @@
-# Pending setup (table QR ordering added 2026-10-04)
+# Pending setup — ALL DONE (2026-10-04)
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -34,4 +34,4 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 5.1 Supabase → SQL Editor → paste `supabase/upgrades/2026-10-table-ordering.sql` → Run → Success
 - [x] 5.2 Tables → QR Codes → Print → stick the new QR on every table
 - [x] 5.3 Menu → Customer app → check table mode, sharing and "staff confirm first order"; add at least one banner
-- [ ] 5.4 When every table has the new QR: Customer app → turn off **Old printed QR codes still work**
+- [x] 5.4 When every table has the new QR: Customer app → turn off **Old printed QR codes still work**
