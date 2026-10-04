@@ -493,3 +493,150 @@
         animation: none;
     }
 }
+
+/* Part 4: older pages on phones. One side margin (the app gutter), compact number cards,
+   tap targets of at least 40 px, 16 px text in form fields (stops phones zooming in), no sideways scroll. */
+@media (max-width: 768px) {
+    /* Page wrappers used to add their own 20-24 px padding inside the app gutter */
+    .admin-page > div {
+        padding-left: 0;
+        padding-right: 0;
+        max-width: 100%;
+    }
+
+    .admin-content .admin-page .page-header {
+        padding: 0;
+        margin-bottom: 12px;
+        background: none;
+        box-shadow: none;
+        color: var(--text-primary);
+    }
+
+    .admin-content .admin-page .page-header p {
+        color: var(--text-muted);
+        margin: 0 0 8px;
+    }
+
+    /* Number cards: three small tiles in a row instead of three screen-wide cards */
+    .admin-page .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .admin-page .stats-row .stat-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 12px 10px;
+        min-width: 0;
+        border-radius: 14px;
+    }
+
+    .admin-page .stats-row .stat-icon {
+        font-size: 1.1rem;
+        width: auto;
+        height: auto;
+        padding: 0;
+    }
+
+    .admin-page .stats-row .stat-value {
+        font-size: 1.05rem;
+        overflow-wrap: anywhere;
+    }
+
+    .admin-page .stats-row .stat-label {
+        font-size: 0.72rem;
+        line-height: 1.2;
+    }
+
+    /* Tables: two per row */
+    .admin-page .tables-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    /* Tap targets */
+    .admin-page .icon-btn,
+    .admin-page .btn-icon {
+        min-width: 40px;
+        min-height: 40px;
+    }
+
+    .admin-page .btn,
+    .admin-page .btn-sm,
+    .admin-page .sold-chip,
+    .admin-page .stock-btn,
+    .admin-page .btn-view-bill,
+    .admin-page .btn-delete,
+    .admin-page .period-btn,
+    .admin-page .view-all,
+    .admin-page .settings-btn,
+    .admin-page .chips button,
+    .admin-page .tabs button,
+    .admin-page .seg button,
+    .admin-page .ktab {
+        min-height: 40px;
+    }
+
+    .admin-page .view-all,
+    .admin-page .settings-btn {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Form fields: 44 px tall and 16 px text */
+    .admin-page input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="color"]):not([type="range"]),
+    .admin-page select,
+    .admin-page textarea {
+        min-height: 44px;
+        font-size: 16px;
+    }
+
+    .admin-page textarea {
+        min-height: 88px;
+    }
+
+    /* Help page: the search box shrinks, Print hides (no printer on a phone) */
+    .hp-tools .btn {
+        display: none;
+    }
+
+    .hp-search {
+        min-width: 0;
+    }
+
+    /* Smallest labels stay readable */
+    .po-tok small {
+        font-size: 0.62rem;
+    }
+
+    .ti-st {
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .po-chips button,
+    .kds-chips button,
+    .kds-icon,
+    .hp-tabs button,
+    .hp-lang button,
+    .more-seg button,
+    .admin-page .status-toggle-btn,
+    .admin-page .btn-add-tax,
+    .admin-page .cla-tabs button,
+    .admin-page [role="tablist"] button {
+        min-height: 40px;
+    }
+
+    .kds-icon {
+        width: 40px;
+    }
+
+    /* "Why?" explanations in reports: a bigger tap area around the small text */
+    .admin-page button.why {
+        padding: 10px 6px;
+        margin: -10px -6px;
+    }
+}

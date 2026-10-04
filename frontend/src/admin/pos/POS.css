@@ -1188,7 +1188,7 @@ button.club-chip.on { background: #A61E58; color: #fff; border-style: solid; }
     }
 
     .pos.is-phone .chips button {
-        min-height: 38px;
+        min-height: 40px;
     }
 
     .pos.is-phone .pos-menu .tiles {

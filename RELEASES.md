@@ -4,6 +4,36 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phone app redesign, part 4: every other page (2026-10-04)
+
+Last of the four parts of the approved mobile redesign. Phones only (up to 768 px); laptop and tablet look the same as before. No SQL.
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| One side margin | Older pages (Customers, Settings, Points, Homepage sections, Employees, Coupons, Catalogue…) used to add their own 20–24 px padding inside the app's own margin, squeezing content from both sides. They now use the app margin only. |
+| Page titles | Page titles and orange title blocks stay hidden on phones (the header names the page). Descriptions show as plain grey text. |
+| Number cards | Customers: three small tiles in one row (customers, revenue, orders) instead of three screen-wide cards. Dashboard keeps its 2 × 2 tiles. |
+| Tables | Two tables per row instead of one per screen. |
+| Tap targets | Every button, chip, tab and icon button on admin pages is at least 40 px tall; form fields are 44 px with 16 px text, so phones no longer zoom in when typing. Buttons under 40 px went from about 500 across 36 pages to a few inline text links. |
+| Help page | No sideways scroll on phones (Print is hidden there; it stays on laptops). |
+| Checked | All 36 admin pages at 360 px wide: no page scrolls sideways. Wide tables (Order history, Reports) scroll inside their own box. |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist** (phone)
+- [ ] Customers: three number tiles in a row; the list starts higher on the screen
+- [ ] Settings, Employees, Coupons: content uses the full width with one margin on each side
+- [ ] Tables: two tables per row
+- [ ] Tap into any form field: the page does not zoom in
+- [ ] No page scrolls sideways (try Help, FiKA Club, Finance, Reports)
+- [ ] Laptop: pages look as before
+
+---
+
 ## Phone app redesign, part 3: Counter and My day (2026-10-04)
 
 Third of four parts of the approved mobile redesign. Counter changes on phones only. My day changes everywhere (it is mostly used on phones).

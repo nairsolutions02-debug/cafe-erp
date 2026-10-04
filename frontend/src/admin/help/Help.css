@@ -4,7 +4,7 @@
 .hp-head h1 { margin: 0; font-size: 1.4rem; }
 .hp-head p { margin: 4px 0 0; font-size: .9rem; }
 .hp-lang, .hp-tabs { display: flex; gap: 4px; background: #F1EEE9; border-radius: 12px; padding: 4px; }
-.hp-lang button, .hp-tabs button { border: 0; background: none; border-radius: 9px; padding: 8px 12px; font: inherit; font-size: .85rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; min-height: 38px; }
+.hp-lang button, .hp-tabs button { border: 0; background: none; border-radius: 9px; padding: 8px 12px; font: inherit; font-size: .85rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; min-height: 40px; }
 .hp-lang button.on, .hp-tabs button.on { background: #fff; color: var(--text-primary); box-shadow: 0 1px 3px rgba(0, 0, 0, .1); }
 .hp-tabs { overflow-x: auto; scrollbar-width: none; }
 .hp-tabs button { flex: 1 0 auto; white-space: nowrap; }
@@ -33,7 +33,7 @@
 .hp-step-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .hp-tap { font-size: .75rem; color: var(--text-muted); font-weight: 600; }
 .hp-btn { display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 10px; background: var(--primary); color: #fff; font-size: .82rem; font-weight: 700; box-shadow: 0 2px 0 rgba(0, 0, 0, .18); }
-.hp-open { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 10px; background: #EEF0EE; color: var(--text-primary); font-size: .82rem; font-weight: 700; text-decoration: none; min-height: 32px; }
+.hp-open { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 10px; background: #EEF0EE; color: var(--text-primary); font-size: .82rem; font-weight: 700; text-decoration: none; min-height: 40px; }
 .hp-open:hover { background: #E2E6E3; }
 .hp-example, .hp-tip { border-radius: 14px; padding: 10px 12px; font-size: .9rem; }
 .hp-example { background: #FFF7E6; border-left: 4px solid #E4A62A; }
