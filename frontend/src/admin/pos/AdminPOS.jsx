@@ -310,7 +310,7 @@ const AdminPOS = () => {
                     {orderType === 'dine_in' && (
                         <select className="input" value={tableId} onChange={e => setTableId(e.target.value)} aria-label="Table">
                             <option value="">No table (token)</option>
-                            {(cat.tables || []).map(t => <option key={t.id} value={t.id}>Table {t.table_number}{t.status === 'occupied' ? ' · occupied' : ''}</option>)}
+                            {(cat.tables || []).map(t => <option key={t.id} value={t.id}>Table {t.table_number}{t.status === 'occupied' ? ' · busy' : ''}</option>)}
                         </select>
                     )}
 

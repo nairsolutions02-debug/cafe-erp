@@ -29,7 +29,9 @@ function open(html) {
 
 // Kitchen order ticket
 export function printKot(order, { cafeName = '' } = {}) {
-    const where = order.tableNumber ? `Table ${order.tableNumber}` : order.tokenNumber ? `Token ${order.tokenNumber}` : (order.channel || '').replace('_', ' ');
+    // Shared tables: the customer's name tells the runner which group gets this ticket
+    const who = order.tableNumber && order.user?.name ? ` · ${order.user.name.split(' ')[0]}` : '';
+    const where = order.tableNumber ? `Table ${order.tableNumber}${who}` : order.tokenNumber ? `Token ${order.tokenNumber}` : (order.channel || '').replace('_', ' ');
     const body = `
       <div class="c b">KOT ${esc(cafeName)}</div>
       <div class="c big">${esc(where)}</div>

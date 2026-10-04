@@ -1,0 +1,39 @@
+.table-scan {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 24px 16px 96px;
+    background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 60%), var(--bg-secondary);
+    text-align: center;
+}
+.ts-logo { height: 56px; object-fit: contain; }
+.ts-card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--bg-card);
+    border-radius: 20px;
+    padding: 24px 20px;
+    box-shadow: 0 12px 32px rgba(62, 42, 20, .12);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.ts-card h1 { font-size: 1.45rem; color: var(--text-primary); margin: 0; }
+.ts-card p { color: var(--text-secondary); margin: 0; font-size: .95rem; }
+.ts-card .btn-full { width: 100%; margin-top: 6px; }
+.ts-kicker { font-size: .8rem !important; text-transform: uppercase; letter-spacing: .08em; color: var(--primary) !important; font-weight: 600; }
+.ts-pin {
+    width: 64px; height: 64px; margin: 0 auto 4px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 28px; color: #fff;
+    background: var(--primary);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 50%, transparent);
+    animation: ts-ping 1.6s ease-out infinite;
+}
+.ts-pin.warn { background: var(--warning); animation: none; }
+.ts-pop { animation: ts-pop .45s cubic-bezier(.2, 1.4, .4, 1) both; }
+@keyframes ts-pop { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes ts-ping { 70% { box-shadow: 0 0 0 18px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+@media (prefers-reduced-motion: reduce) { .ts-pin, .ts-pop { animation: none; } }

@@ -4,6 +4,47 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Table QR ordering, shared tables, owner-editable customer app (2026-10-04)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Table from the QR | New QR codes open `/t/5-K7Q2` (a private code per table). The customer sees **"You're at Table 5"**, then the menu. There's no table dropdown: the table chip shows in the header and at checkout. Old printed `?table=5` QRs keep working until you switch them off. |
+| Shared tables | Customers never see "occupied". Any number of people can scan the same QR, log in and order. **Each customer is their own group with their own bill.** "Request bill" asks only for that customer's orders. |
+| Staff view | **Tables**: shows who is at each table (*Rahul ₹231 · Asha ₹294*), with busy/free set automatically from open bills. **Orders**: "Table 5 · 2 groups", a **Whole table** bill when one group pays for all, and **Move** to another table. **Kitchen** and KOT print the customer's first name when a table is shared. |
+| Table modes | Menu → **Customer app**: *From the QR (locked)* (default) · *Customer picks* (dropdown, for cafes without QRs) · *No tables* (pickup only). |
+| Safety | Optional **Staff confirm a table's first order**: the order waits (the kitchen doesn't see it) until staff tap **Confirm table**. This stops orders from a QR photo shared outside the cafe. The **↻ New QR code** button on Tables replaces one table's code, and the old QR stops working. Double taps place one order. |
+| Moving tables | A customer who scans another table's QR is asked "Move to Table 7?", and their open orders follow them. |
+| Return visits | The phone forgets the table after 3 hours or once their bill is paid, so the next visit asks them to scan again. **Takeaway instead** is one tap. |
+| Banners | Menu → Customer app → **Banners**: headline, label, text, button, opens (item / category / rewards / menu / web link), colour or picture, start and end dates, on/off, reorder. Up to 12. Restricted and kiosk-only items can't be promoted, and an item's banner hides itself when the item is sold out. |
+| Announcement strip | One line above the banners (scrolls if long). |
+| What customers see | Switches for reward progress ring, item photos, badges and ⓘ info buttons, plus the **main colour**. |
+| Reminders | Order milestone card at checkout (**"#24 · This will be your 24th order"**), **"You have enough points to pay!"** chip (only when the points really work on that bill), "1 more order to your reward", and confetti when an order is placed. Each has a switch. The rules: one at a time, auto-hides after 5 s, once per visit, never covers the Order button, and no motion when the phone asks for less. |
+| Menu | Tap an item for a bottom sheet with a big picture and description. ADD flies a dot into the cart, which bumps. The cart bar shows the total. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → paste **`supabase/upgrades/2026-10-table-ordering.sql`** → Run → *Success*. Run it once, after the kiosk-menu upgrade.
+2. Vercel redeploys from `main` by itself. No new APK is needed.
+3. Tables → **QR Codes** → Print → replace the table stickers. When every table has the new QR: Menu → Customer app → turn off **Old printed QR codes still work**.
+
+**Test checklist**
+- [ ] Tables → print Table 5's QR → scan with a phone → "You're at Table 5" → menu; header shows 📍5
+- [ ] Order from phone A, then from phone B (different number) on the same QR → both go through; nobody sees "occupied"
+- [ ] Tables → Table 5 shows both names with their amounts; Orders → "Table 5 · 2 groups"
+- [ ] Phone A → Request bill → only A's orders change to bill requested
+- [ ] Orders → **Whole table** → one bill with both groups; **Move** → pick Table 6 → order shows Table 6
+- [ ] Phone A scans Table 6's QR → "Move to Table 6?" → Yes → order shows Table 6
+- [ ] Customer app → **Staff confirm a table's first order** on → new phone orders at an empty table → "staff will confirm" note; Kitchen doesn't show it; Orders → **Confirm table** → Kitchen shows it
+- [ ] Tables → ↻ on Table 3 → print → the old Table 3 QR says "isn't in use any more"
+- [ ] Customer app → add a banner linked to an item → customer home shows it → tap → item sheet opens; set an end date in the past → it disappears
+- [ ] Announcement on → strip shows on home and menu
+- [ ] A regular customer with enough points → checkout shows the milestone card and the points chip → tap **Use** → discount in the bill → place order → confetti
+- [ ] Customer app → turn off Item photos → menu shows a compact list
+
+---
+
 ## New menu layout + every screen fitted for phones (2026-10-04)
 
 **What's new**

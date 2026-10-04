@@ -279,3 +279,11 @@
         display: none;
     }
 }
+
+/* Who's at the table: one line per group (each has its own bill) */
+.table-groups { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: .82rem; }
+.table-groups li { display: flex; justify-content: space-between; gap: 8px; padding: 4px 8px; border-radius: 8px; background: rgba(0, 0, 0, .04); }
+.table-groups li.held { background: #fef3c7; font-weight: 600; }
+.table-groups li.bill { background: #dbeafe; }
+.qr-code-text { font-family: monospace; font-size: .75rem; color: #666; margin-top: 2px; }
+.qr-missing { width: 180px; height: 180px; display: grid; place-items: center; border: 1px dashed #ccc; color: #888; }

@@ -12,11 +12,17 @@ import Loader from '../components/Loader';
 import FloatingCartBtn from '../components/FloatingCartBtn';
 import './Home.css';
 import brand from '../brand';
+import { usePortal } from '../context/PortalContext';
+import AnnouncementStrip from '../components/cx/AnnouncementStrip';
+import BannerCarousel from '../components/cx/BannerCarousel';
+import RewardBar from '../components/cx/RewardBar';
 
 const Home = () => {
     const { user, isAuthenticated } = useAuth();
     const { itemCount } = useCart();
     const navigate = useNavigate();
+    const { cfg } = usePortal();
+    const hasBanners = (cfg?.banners || []).length > 0;
     const [categories, setCategories] = useState([]);
     const [collections, setCustomCollections] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -48,8 +54,12 @@ const Home = () => {
         <div className="home-page">
             <Header />
 
-            {/* Hero Section */}
-            <section className="hero-section">
+            <AnnouncementStrip />
+            <BannerCarousel />
+            <RewardBar />
+
+            {/* Hero Section (the owner's banners take its place when there are any) */}
+            {!hasBanners && <section className="hero-section">
                 <div className="hero-content">
                     <div className="hero-text">
                         <span className="hero-badge">{brand.heroBadge}</span>
@@ -79,7 +89,7 @@ const Home = () => {
                         <div className="hero-image-decoration"></div>
                     </div>
                 </div>
-            </section>
+            </section>}
 
             {/* Categories Section */}
             {categories.length > 0 && (
@@ -131,7 +141,6 @@ const Home = () => {
                 )
             ))}
 
-            {/* Floating Cart Button */}
             {/* Floating Cart Button */}
             <FloatingCartBtn />
 

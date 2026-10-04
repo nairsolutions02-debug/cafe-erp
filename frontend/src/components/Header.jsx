@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { getMenuItems, getMyLoyaltyPoints } from '../utils/api';
 import './Header.css';
 import brand from '../brand';
+import TableChip from './cx/TableChip';
 
 const Header = ({ title, showCart = true, showBack = false }) => {
     const { isAuthenticated } = useAuth();
@@ -145,6 +146,7 @@ const Header = ({ title, showCart = true, showBack = false }) => {
                 {title && <h1 className="header-title">{title}</h1>}
 
                 <div className="header-actions">
+                    <TableChip />
                     {/* Loyalty Points Badge */}
                     {isAuthenticated && (
                         <div className="header-points-badge">
@@ -154,7 +156,7 @@ const Header = ({ title, showCart = true, showBack = false }) => {
                     )}
 
                     {showCart && (
-                        <Link to="/cart" className="header-icon-btn cart-btn">
+                        <Link to="/cart" className="header-icon-btn cart-btn" data-cart-target>
                             <FiShoppingCart />
                             {itemCount > 0 && (
                                 <span className="cart-badge">{itemCount}</span>

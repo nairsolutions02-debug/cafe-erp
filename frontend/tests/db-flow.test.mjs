@@ -58,6 +58,7 @@ const [latte, cake] = await must(admin.from('menu_items').insert([
     { name: `Cake ${run}`, price: 100, category_id: cat.id },
 ], { defaultToNull: false }).select());
 const table = await must(admin.from('dining_tables').insert({ table_number: `T${run}` }).select().single());
+const tableCode = (await must(admin.from('table_codes').select('code').eq('table_id', table.id).single())).code;
 await must(admin.from('coupons').insert({
     code: `save${run}`, discount_type: 'percentage', discount_value: 10, max_discount: 20,
     valid_from: new Date(Date.now() - 864e5).toISOString(), valid_until: new Date(Date.now() + 864e5).toISOString(),
@@ -89,7 +90,7 @@ test('order totals are computed on the server, table session rules hold', async 
     const c = await customer('Meera', 3);
     const orderId = await rpc(c, 'place_order', {
         p_items: [{ menuItem: latte.id, quantity: 2 }, { menuItem: cake.id, quantity: 1 }],
-        p_coupon_code: `SAVE${run}`, p_table_id: table.id,
+        p_coupon_code: `SAVE${run}`, p_table_code: tableCode,
     });
     const order = await rpc(c, 'get_order', { p_id: orderId });
     assert.equal(order.subtotal, 400);
@@ -100,22 +101,21 @@ test('order totals are computed on the server, table session rules hold', async 
     assert.equal(order.user.name, 'Meera');
     assert.equal(order.tableNumber, `T${run}`);
 
-    // Same customer can order again at their table; someone else cannot
-    await rpc(c, 'place_order', { p_items: [{ menuItem: cake.id, quantity: 1 }], p_table_id: table.id });
+    // Same customer can order again at their table; another group can share it (own bill)
+    await rpc(c, 'place_order', { p_items: [{ menuItem: cake.id, quantity: 1 }], p_table_code: tableCode });
     const other = await customer('Stranger', 4);
-    await assert.rejects(
-        rpc(other, 'place_order', { p_items: [{ menuItem: cake.id, quantity: 1 }], p_table_id: table.id }),
-        /occupied/);
+    const otherOrder = await rpc(other, 'place_order', { p_items: [{ menuItem: cake.id, quantity: 1 }], p_table_code: tableCode });
 
     // Privacy: another customer cannot read this order
     assert.equal(await rpc(other, 'get_order', { p_id: orderId }), null);
     const { data: visible } = await other.from('orders').select('id');
-    assert.equal(visible.length, 0);
+    assert.deepEqual(visible.map(o => o.id), [otherOrder]);
 
-    // Bill request covers both orders on the table
+    // Bill request covers both of this customer's orders on the table, not the other group's
     await rpc(c, 'request_bill', { p_order_id: orderId });
     const mine = await rpc(c, 'my_orders');
     assert.ok(mine.every(o => o.status === 'bill_requested'));
+    assert.equal((await rpc(other, 'get_order', { p_id: otherOrder })).status, 'pending');
 
     // Customer cannot mark their own order paid
     await assert.rejects(rpc(c, 'record_payment', { p_order_id: orderId, p_method: 'cash', p_amount: 999 }), /Not authorized/);
@@ -126,6 +126,9 @@ test('order totals are computed on the server, table session rules hold', async 
     assert.equal(t.status, 'occupied');
     const second = mine.find(o => o._id !== orderId);
     await rpc(admin, 'record_payment', { p_order_id: second._id, p_method: 'online', p_amount: second.total });
+    t = (await admin.from('dining_tables').select().eq('id', table.id).single()).data;
+    assert.equal(t.status, 'occupied'); // the other group is still eating
+    await rpc(admin, 'record_payment', { p_order_id: otherOrder, p_method: 'cash', p_amount: 999 });
     t = (await admin.from('dining_tables').select().eq('id', table.id).single()).data;
     assert.equal(t.status, 'available');
 

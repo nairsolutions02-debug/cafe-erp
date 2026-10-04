@@ -1,27 +1,32 @@
 import React from 'react';
 import { FiPlus, FiMinus } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
+import { usePortal } from '../context/PortalContext';
 import { getImageUrl } from '../utils/config';
+import { flyToCart } from './cx/fly';
 import './MenuCard.css';
 
-const MenuCard = ({ item }) => {
+const MenuCard = ({ item, onOpen }) => {
     const { items, addItem, incrementQuantity, decrementQuantity } = useCart();
+    const { show } = usePortal();
     const cartItem = items.find(i => i._id === item._id);
     const quantity = cartItem?.quantity || 0;
+    const badges = show('badges');
 
     const imageUrl = getImageUrl(item.image) || '/placeholder-food.svg';
+    const add = (e) => { addItem(item); flyToCart(e.currentTarget); };
 
     return (
         <div className="menu-card">
-            <div className="menu-card-image-container">
-                <img src={imageUrl} alt={item.name} className="menu-card-image" />
-                {item.isBestSeller && <span className="menu-badge bestseller">Bestseller</span>}
-                {item.isNewItem && <span className="menu-badge new">New</span>}
+            <div className={`menu-card-image-container ${onOpen ? 'tappable' : ''}`} onClick={onOpen ? () => onOpen(item) : undefined}>
+                <img src={imageUrl} alt={item.name} className="menu-card-image" loading="lazy" />
+                {badges && item.isBestSeller && <span className="menu-badge bestseller">Bestseller</span>}
+                {badges && item.isNewItem && <span className="menu-badge new">New</span>}
                 {!item.isAvailable && <div className="out-of-stock-overlay">Out of Stock</div>}
             </div>
 
             <div className="menu-card-content">
-                <div className="menu-card-header">
+                <div className="menu-card-header" onClick={onOpen ? () => onOpen(item) : undefined}>
                     <span className={`veg-badge ${item.isVeg ? 'badge-veg' : 'badge-non-veg'}`}></span>
                     <h3 className="menu-card-name">{item.name}</h3>
                 </div>
@@ -36,16 +41,16 @@ const MenuCard = ({ item }) => {
                     {item.isAvailable && (
                         quantity > 0 ? (
                             <div className="quantity-control">
-                                <button onClick={() => decrementQuantity(item._id)} className="qty-btn">
+                                <button onClick={() => decrementQuantity(item._id)} className="qty-btn" aria-label="One less">
                                     <FiMinus />
                                 </button>
                                 <span className="qty-value">{quantity}</span>
-                                <button onClick={() => incrementQuantity(item._id)} className="qty-btn">
+                                <button onClick={(e) => { incrementQuantity(item._id); flyToCart(e.currentTarget); }} className="qty-btn" aria-label="One more">
                                     <FiPlus />
                                 </button>
                             </div>
                         ) : (
-                            <button onClick={() => addItem(item)} className="add-btn">
+                            <button onClick={add} className="add-btn">
                                 ADD
                             </button>
                         )

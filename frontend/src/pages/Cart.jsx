@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMinus, FiPlus, FiTrash2, FiShoppingCart, FiAward, FiLock, FiAlertTriangle, FiImage, FiDroplet } from 'react-icons/fi';
+import { FiMinus, FiPlus, FiShoppingCart, FiAward, FiLock, FiAlertTriangle, FiDroplet, FiMapPin, FiShoppingBag } from 'react-icons/fi';
 import { BiDish } from 'react-icons/bi';
 import Header from '../components/Header';
 import AnimatedSearchInput from '../components/AnimatedSearchInput';
@@ -17,15 +17,30 @@ import {
     calculateRedemption,
     getLoyaltyOffers,
     quoteOrder,
+    getCheckoutInfo,
 } from '../utils/api';
-import { getQrTable } from '../lib/qrTable';
+import { useQrTable, clearQrTable } from '../lib/qrTable';
+import { usePortal } from '../context/PortalContext';
+import InfoTip from '../components/cx/InfoTip';
 import { getImageUrl } from '../utils/config';
 import './Cart.css';
+
+const ordinal = (n) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+};
 
 const Cart = () => {
     const navigate = useNavigate();
     const { items: cart, updateQuantity, removeItem, clearCart, subtotal: getCartTotal, addItem } = useCart();
-    const { isAuthenticated, socket } = useAuth();
+    const { isAuthenticated } = useAuth();
+    const { cfg, show, nudge } = usePortal();
+    const tableMode = cfg?.tables?.mode || 'qr';
+    const qrTable = useQrTable();
+    const [checkoutInfo, setCheckoutInfo] = useState(null);
+    // One id per checkout: a double tap or a retry places the order only once
+    const clientId = useRef(globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`);
 
     const [tables, setTables] = useState([]);
     const [selectedTable, setSelectedTable] = useState('');
@@ -74,7 +89,6 @@ const Cart = () => {
     }, [cartKey, isAuthenticated, couponApplied, usePoints, selectedOffer]);
 
     useEffect(() => {
-        fetchTables();
         fetchRecommendations();
         fetchGstRate();
         fetchUpsellItem();
@@ -103,29 +117,23 @@ const Cart = () => {
         }
     }, [usePoints, selectedOffer]);
 
-    useEffect(() => {
-        if (socket) {
-            socket.on('table-occupied', () => fetchTables());
-            socket.on('table-freed', () => fetchTables());
-            return () => {
-                socket.off('table-occupied');
-                socket.off('table-freed');
-            };
-        }
-    }, [socket]);
-
+    // Tables to pick from, only for cafes in "customer picks" mode (customers never see busy/free)
     const fetchTables = async () => {
         try {
             const res = await getTables();
             setTables(res.data);
-            // Preselect the table from the scanned QR code
-            const qrTable = getQrTable();
-            const match = qrTable && res.data.find(t => t.tableNumber === qrTable);
-            if (match) setSelectedTable(prev => prev || match._id);
         } catch (error) {
             console.error('Error fetching tables:', error);
         }
     };
+    useEffect(() => { if (tableMode === 'pick') fetchTables(); }, [tableMode]);
+
+    useEffect(() => {
+        if (!isAuthenticated) return;
+        fetchLoyaltyPoints();
+        fetchLoyaltyOffers();
+        getCheckoutInfo().then(r => setCheckoutInfo(r.data)).catch(() => {});
+    }, [isAuthenticated]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const fetchRecommendations = async () => {
         try {
@@ -233,27 +241,49 @@ const Cart = () => {
                 couponCode: couponApplied ? couponCode : '',
                 pointsUsed: usePoints ? pointsUsed : 0,
                 loyaltyOfferId: usePoints && selectedOffer ? selectedOffer._id : null,
-                tableId: selectedTable || null,
+                tableId: tableMode === 'pick' ? (selectedTable || null) : null,
+                tableCode: tableMode === 'qr' && qrTable ? qrTable.code : null,
+                clientId: clientId.current,
                 specialInstructions
             };
 
             const res = await createOrder(orderData);
             clearCart();
-            navigate(`/order/${res.data._id}`);
+            clientId.current = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+            navigate(`/order/${res.data._id}`, { state: { justPlaced: true, nth: checkoutInfo ? checkoutInfo.ordersSoFar + 1 : null } });
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to place order');
+            const msg = err.response?.data?.message || err.message || 'Failed to place order';
+            // The QR code was replaced or the table switched off: forget it so they can scan again
+            if (/QR is no longer in use|not in use right now/.test(msg)) clearQrTable();
+            setError(msg);
         } finally {
             setLoading(false);
         }
     };
 
     const subtotal = getCartTotal;
+
+    // Points that can actually be used on this bill (never shown when they can't)
+    const usableOffer = loyaltyPoints && loyaltyOffers
+        .filter(o => o.pointsRequired <= loyaltyPoints.currentPoints && (o.minOrderValue || 0) <= subtotal && o.discountValue > 0)
+        .sort((a, b) => b.discountValue - a.discountValue)[0];
+    const nth = checkoutInfo ? checkoutInfo.ordersSoFar + 1 : null;
     const totalDiscount = discount + (usePoints ? pointsDiscount : 0);
     // Estimate until the exact quote (per-item taxes, MRP items, restricted items) arrives
     const estimatedTax = (subtotal - totalDiscount) * (gstRate / 100);
     const tax = quote ? quote.tax : estimatedTax;
     const total = quote ? quote.total : subtotal - totalDiscount + estimatedTax;
     const shownDiscount = quote ? quote.discount : totalDiscount;
+
+    useEffect(() => {
+        if (usableOffer && !usePoints && show('nudgePoints')) {
+            nudge({
+                kind: 'points', icon: '🪙',
+                text: `You have enough points to save ₹${Math.min(usableOffer.discountValue, subtotal).toFixed(0)} on this order`,
+                action: { label: 'Use', onClick: () => { setSelectedOffer(usableOffer); setUsePoints(true); } },
+            });
+        }
+    }, [usableOffer?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (cart.length === 0) {
         return (
@@ -360,31 +390,38 @@ const Cart = () => {
                     </div>
                 </div>
 
-                {/* Table Selection */}
-                <div className="cart-section">
-                    <h3 className="section-title">Select Table</h3>
-                    <select
-                        value={selectedTable}
-                        onChange={(e) => setSelectedTable(e.target.value)}
-                        className="table-select"
-                    >
-                        <option value="">-- Select a Table --</option>
-                        {tables.map(table => {
-                            // The QR table stays selectable: the customer may already be seated there
-                            const isQrTable = table.tableNumber === getQrTable();
-                            return (
-                                <option
-                                    key={table._id}
-                                    value={table._id}
-                                    disabled={table.status !== 'available' && !isQrTable}
-                                >
-                                    Table {table.tableNumber} ({table.capacity} seats)
-                                    {isQrTable ? ' - Your table' : table.status !== 'available' ? ' - Occupied' : ' - Available'}
-                                </option>
-                            );
-                        })}
-                    </select>
-                </div>
+                {/* Table: from the QR (locked), picked from a list, or none at all */}
+                {tableMode === 'qr' && (
+                    <div className="cart-section">
+                        <div className="table-box">
+                            <span className="tb-pin">{qrTable ? <FiMapPin /> : <FiShoppingBag />}</span>
+                            {qrTable ? (
+                                <span className="tb-copy">
+                                    <strong>Table {qrTable.tableNumber}
+                                        <InfoTip label="About your table">Set from the QR you scanned. Sharing the table? Friends can scan the same QR and order on their own phones, each with their own bill. Sitting somewhere else? Scan the QR on that table.</InfoTip>
+                                    </strong>
+                                    <small>Your order comes to this table · <button className="link-btn-sm" onClick={clearQrTable}>Takeaway instead</button></small>
+                                </span>
+                            ) : (
+                                <span className="tb-copy">
+                                    <strong>Takeaway / pickup</strong>
+                                    <small>Sitting at a table? Scan the QR on your table to have it served there.</small>
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
+                {tableMode === 'pick' && (
+                    <div className="cart-section">
+                        <h3 className="section-title">Your table</h3>
+                        <select value={selectedTable} onChange={(e) => setSelectedTable(e.target.value)} className="table-select">
+                            <option value="">Takeaway / no table</option>
+                            {tables.map(table => (
+                                <option key={table._id} value={table._id}>Table {table.tableNumber}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
                 {/* Coupon Section */}
                 <div className="cart-section">
@@ -417,7 +454,9 @@ const Cart = () => {
                 {isAuthenticated && loyaltyPoints && (
                     <div className="cart-section loyalty-section">
                         <div className="loyalty-header">
-                            <h3 className="section-title"><FiAward /> Loyalty Rewards</h3>
+                            <h3 className="section-title"><FiAward /> Loyalty Rewards
+                                <InfoTip label="How points work">You earn points on every paid order. Pick a reward below to spend points on this order; the discount shows in the bill.</InfoTip>
+                            </h3>
                             <span className="points-balance">{loyaltyPoints.currentPoints} pts available</span>
                         </div>
 
@@ -516,6 +555,34 @@ const Cart = () => {
                             </button>
                         </div>
                     </div>
+                )}
+
+                {/* Milestone: "this will be your 23rd order" */}
+                {nth > 1 && show('nudgeMilestone') && (
+                    <div className="cx-card milestone-card">
+                        <span className="milestone-badge">#{nth}</span>
+                        <span className="cx-card-copy">
+                            <strong>This will be your {ordinal(nth)} order with us 🎉</strong>
+                            <small>{nth % 5 === 0 ? 'A round number! Thanks for being a regular.' : 'Thanks for coming back. Every order earns points.'}</small>
+                        </span>
+                    </div>
+                )}
+
+                {/* Points ready to use */}
+                {usableOffer && show('nudgePoints') && (
+                    <button type="button" className={`points-chip ${usePoints && selectedOffer?._id === usableOffer._id ? 'on' : ''}`}
+                        onClick={() => {
+                            const on = usePoints && selectedOffer?._id === usableOffer._id;
+                            setSelectedOffer(on ? null : usableOffer);
+                            setUsePoints(!on);
+                        }}>
+                        <span className="pc-coin" aria-hidden="true">🪙</span>
+                        <span className="pc-copy">
+                            <strong>{usePoints && selectedOffer?._id === usableOffer._id ? `Using ${usableOffer.pointsRequired} points` : 'You have enough points to pay!'}</strong>
+                            <small>{usableOffer.name}: save ₹{Math.min(usableOffer.discountValue, subtotal).toFixed(0)} for {usableOffer.pointsRequired} of your {loyaltyPoints.currentPoints} points</small>
+                        </span>
+                        <span className="pc-btn">{usePoints && selectedOffer?._id === usableOffer._id ? 'Remove' : 'Use'}</span>
+                    </button>
                 )}
 
                 {/* Bill Summary */}

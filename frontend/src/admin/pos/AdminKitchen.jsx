@@ -78,7 +78,7 @@ const AdminKitchen = () => {
                     return (
                         <div key={o.id} className={`ticket${allReady ? ' ready' : age >= 20 ? ' late' : age >= 10 ? ' warn' : ''}`}>
                             <div className="ticket-head">
-                                <strong>{o.tableNumber ? `Table ${o.tableNumber}` : o.tokenNumber ? `Token ${o.tokenNumber}` : o.orderNumber.slice(-6)}</strong>
+                                <strong>{o.tableNumber ? `Table ${o.tableNumber}` : o.tokenNumber ? `Token ${o.tokenNumber}` : o.orderNumber.slice(-6)}{o.tableNumber && o.customer && o.tableGroups > 1 ? ` · ${o.customer.split(' ')[0]}` : ''}</strong>
                                 <span className="muted">{age} min</span>
                             </div>
                             <div className="muted small">{o.channel.replace('_', ' ')} · {o.orderNumber}{o.customer ? ` · ${o.customer}` : ''}</div>

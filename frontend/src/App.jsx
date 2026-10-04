@@ -2,6 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { PortalProvider } from './context/PortalContext';
+import './components/cx/CustomerApp.css';
+import TableScan from './pages/TableScan';
 
 // User Pages
 import Home from './pages/Home';
@@ -32,6 +35,7 @@ import AdminEmployees from './admin/AdminEmployees';
 import AdminAnalytics from './admin/AdminAnalytics';
 import AdminTables from './admin/AdminTables';
 import AdminCollections from './admin/AdminCollections';
+import AdminCustomerApp from './admin/AdminCustomerApp';
 import AdminHistory from './admin/AdminHistory';
 import AdminSettings from './admin/AdminSettings';
 import AdminLoyalty from './admin/AdminLoyalty';
@@ -117,6 +121,7 @@ function AppRoutes() {
       <Route path="/history" element={<UserLayout><History /></UserLayout>} />
       <Route path="/profile" element={<UserLayout><Profile /></UserLayout>} />
       <Route path="/rewards" element={<UserLayout><Rewards /></UserLayout>} />
+      <Route path="/t/:code" element={<TableScan />} />
 
       {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
@@ -131,6 +136,7 @@ function AppRoutes() {
         <Route path="categories" element={<RequirePerm path="/admin/categories"><AdminCategories /></RequirePerm>} />
         <Route path="catalogue" element={<RequirePerm path="/admin/catalogue"><AdminCatalogue /></RequirePerm>} />
         <Route path="collections" element={<RequirePerm path="/admin/collections"><AdminCollections /></RequirePerm>} />
+        <Route path="customer-app" element={<RequirePerm path="/admin/customer-app"><AdminCustomerApp /></RequirePerm>} />
         <Route path="coupons" element={<RequirePerm path="/admin/coupons"><AdminCoupons /></RequirePerm>} />
         <Route path="inventory" element={<RequirePerm path="/admin/inventory"><AdminInventory /></RequirePerm>} />
         <Route path="recipes" element={<RequirePerm path="/admin/recipes"><AdminRecipes /></RequirePerm>} />
@@ -172,7 +178,9 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <AppRoutes />
+          <PortalProvider>
+            <AppRoutes />
+          </PortalProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

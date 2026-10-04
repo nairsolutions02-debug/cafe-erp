@@ -184,7 +184,10 @@ export const getBestsellers = async () =>
 export const getNewItems = async () =>
     ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_new_item', true).eq('is_available', true).eq('sold_in_shop', true).limit(10))));
 export const getRecommended = async () =>
-    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_recommended', true).eq('is_available', true))));
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('is_recommended', true).eq('is_available', true).eq('sold_in_shop', true))));
+// One item for the customer's item sheet (only items on sale in the shop)
+export const getShopItem = async (id) =>
+    ok(menuList(unwrap(await supabase.from('menu_items').select(MENU_SELECT).eq('id', id).eq('sold_in_shop', true)))[0] || null);
 
 export const createMenuItem = async (data) => {
     const row = toDb(data, MENU);
@@ -233,6 +236,8 @@ export const createOrder = async (data) => {
         p_table_id: data.tableId || null,
         p_special_instructions: data.specialInstructions || '',
         p_loyalty_offer_id: data.pointsUsed && data.loyaltyOfferId ? data.loyaltyOfferId : null,
+        p_table_code: data.tableCode || null,
+        p_client_id: data.clientId || null,
     });
     return getOrder(id);
 };
@@ -837,6 +842,20 @@ export const getCustomerRewards = async (customerId) => ok(await rpc('customer_r
 export const runRewardChecks = async () => ok(await rpc('run_reward_checks'));
 export const getPortalConfig = async () => ok(await rpc('portal_config'));
 export const getMyRewards = async () => ok(await rpc('my_rewards'));
+
+// Table ordering: QR codes, shared tables, moving tables; the owner's customer-app banners
+export const resolveTable = async (code) => ok(await rpc('resolve_table', { p_code: code }));
+export const moveMyTable = async (code) => ok(await rpc('move_my_table', { p_code: code }));
+export const getCheckoutInfo = async () => ok(await rpc('my_checkout_info'));
+export const getTableCodes = async () =>
+    ok(Object.fromEntries(unwrap(await supabase.from('table_codes').select('table_id, code')).map(r => [r.table_id, r.code])));
+export const reissueTableCode = async (tableId) => ok(await rpc('reissue_table_code', { p_table_id: tableId }));
+export const getTableGroups = async () => ok(await rpc('table_groups'));
+export const confirmTableOrder = async (orderId) => ok(await rpc('confirm_table_order', { p_order_id: orderId }));
+export const moveOrderTable = async (orderId, tableId, wholeGroup = true) =>
+    ok(await rpc('move_order_table', { p_order_id: orderId, p_table_id: tableId, p_whole_group: wholeGroup }));
+export const savePortalBanners = async (banners) => ok(await rpc('save_portal_banners', { p_banners: banners }));
+export const uploadBannerImage = async (file) => uploadImage(file, 'banners');
 export const setMyDates = async (birthday, anniversary) => ok(await rpc('set_my_dates', { p_birthday: birthday || null, p_anniversary: anniversary || null }));
 export const uploadCustomerSelfie = async (file, tenantId, customerId) => {
     const body = await shrinkImage(file);

@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiPrinter } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiPrinter, FiRefreshCw } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 import { tableQrUrl } from '../lib/qrTable';
 import brand from '../brand';
-import { getTables, createTable, createBulkTables, updateTable, deleteTable } from '../utils/api';
+import { getTables, createTable, createBulkTables, updateTable, deleteTable, getTableCodes, reissueTableCode, getTableGroups } from '../utils/api';
+import { inr } from './pos/money';
 import { useAuth } from '../context/AuthContext';
 import './AdminTables.css';
 
 const AdminTables = () => {
-    const { socket } = useAuth();
+    const { socket, hasPerm } = useAuth();
+    const [codes, setCodes] = useState({});
+    const [groups, setGroups] = useState([]);
     const [tables, setTables] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -34,8 +37,10 @@ const AdminTables = () => {
 
     const fetchData = async () => {
         try {
-            const res = await getTables();
+            const [res, c, g] = await Promise.all([getTables(), getTableCodes(), getTableGroups().catch(() => ({ data: [] }))]);
             setTables(res.data);
+            setCodes(c.data);
+            setGroups(g.data);
         } catch (error) {
             console.error('Error:', error);
         } finally {
@@ -82,18 +87,26 @@ const AdminTables = () => {
         }
     };
 
-    const handleToggleStatus = async (table) => {
+    // Busy/free follows open bills by itself; this is for a table left marked busy by mistake
+    const handleClear = async (table) => {
+        const open = groups.filter(g => g.tableId === table._id);
+        if (open.length && !window.confirm(`Table ${table.tableNumber} still has ${open.length} open bill${open.length > 1 ? 's' : ''}. Mark it free anyway?`)) return;
         try {
-            const newStatus = table.status === 'available' ? 'occupied' : 'available';
-            await updateTable(table._id, {
-                ...table,
-                status: newStatus,
-                isOccupied: newStatus === 'occupied',
-                currentOrder: newStatus === 'available' ? null : table.currentOrder
-            });
+            await updateTable(table._id, { status: 'available', isOccupied: false });
             fetchData();
-        } catch (error) {
+        } catch {
             alert('Failed to update status');
+        }
+    };
+
+    const handleReissue = async (table) => {
+        if (!window.confirm(`Make a new QR code for Table ${table.tableNumber}? The old printed QR stops working, so print the new one right away.`)) return;
+        try {
+            const code = (await reissueTableCode(table._id)).data;
+            setCodes(c => ({ ...c, [table._id]: code }));
+            setQrTables([{ ...table }]);
+        } catch (error) {
+            alert(error.response?.data?.message || error.message || 'Could not make a new QR code');
         }
     };
 
@@ -112,6 +125,7 @@ const AdminTables = () => {
 
     const availableCount = tables.filter(t => t.status === 'available').length;
     const occupiedCount = tables.filter(t => t.status === 'occupied').length;
+    const groupsAt = (id) => groups.filter(g => g.tableId === id);
 
     return (
         <div className="admin-tables">
@@ -120,7 +134,8 @@ const AdminTables = () => {
                     <h1>Tables Management</h1>
                     <div className="table-stats">
                         <span className="stat available">{availableCount} Available</span>
-                        <span className="stat occupied">{occupiedCount} Occupied</span>
+                        <span className="stat occupied">{occupiedCount} Busy</span>
+                        {groups.length > 0 && <span className="stat">{groups.length} group{groups.length > 1 ? 's' : ''} seated</span>}
                     </div>
                 </div>
                 <div className="header-actions">
@@ -146,24 +161,28 @@ const AdminTables = () => {
                             <FiUsers /> {table.capacity} seats
                         </div>
                         <div className={`table-status ${table.status}`}>
-                            {table.status === 'available' ? '✓ Available' :
-                                table.status === 'occupied' ? '● Occupied' :
+                            {table.status === 'available' ? '✓ Free' :
+                                table.status === 'occupied' ? `● ${groupsAt(table._id).length > 1 ? `${groupsAt(table._id).length} groups` : 'Busy'}` :
                                     table.status === 'reserved' ? '◐ Reserved' : '⚠ Maintenance'}
                         </div>
-                        {table.currentOrder && (
-                            <div className="table-order">
-                                Order: #{table.currentOrder.orderNumber}
-                            </div>
+                        {groupsAt(table._id).length > 0 && (
+                            <ul className="table-groups">
+                                {groupsAt(table._id).map(g => (
+                                    <li key={g.customerId || g.name} className={g.held ? 'held' : g.billRequested ? 'bill' : ''}>
+                                        <span>{g.name}{g.orders > 1 ? ` ×${g.orders}` : ''}</span>
+                                        <span>{g.held ? 'Confirm' : g.billRequested ? 'Bill' : inr(g.due)}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         )}
                         <div className="table-actions">
-                            <button
-                                onClick={() => handleToggleStatus(table)}
-                                className={`status-toggle-btn ${table.status}`}
-                                title={table.status === 'available' ? 'Mark as Occupied' : 'Mark as Available'}
-                            >
-                                {table.status === 'available' ? 'Mark Occupied' : 'Free Table'}
-                            </button>
+                            {table.status !== 'available' && (
+                                <button onClick={() => handleClear(table)} className={`status-toggle-btn ${table.status}`} title="Mark this table free">
+                                    Clear table
+                                </button>
+                            )}
                             <button onClick={() => setQrTables([table])} className="icon-btn" title="Table QR code"><FiPrinter /></button>
+                            {hasPerm('tables.edit') && <button onClick={() => handleReissue(table)} className="icon-btn" title="New QR code (old one stops working)"><FiRefreshCw /></button>}
                             <button onClick={() => openEdit(table)} className="icon-btn edit"><FiEdit2 /></button>
                             <button
                                 onClick={() => handleDelete(table._id)}
@@ -197,9 +216,12 @@ const AdminTables = () => {
                             {qrTables.map(table => (
                                 <div key={table._id} className="qr-card">
                                     <div className="qr-cafe">{brand.name}</div>
-                                    <QRCodeSVG value={tableQrUrl(table.tableNumber)} size={180} marginSize={2} />
+                                    {codes[table._id]
+                                        ? <QRCodeSVG value={tableQrUrl(codes[table._id])} size={180} marginSize={2} />
+                                        : <div className="qr-missing">No QR code yet</div>}
                                     <div className="qr-table">Table {table.tableNumber}</div>
-                                    <div className="qr-hint">Scan to see the menu &amp; order</div>
+                                    <div className="qr-hint">Scan to order · Everyone at the table can scan</div>
+                                    {codes[table._id] && <div className="qr-code-text">{codes[table._id]}</div>}
                                 </div>
                             ))}
                         </div>

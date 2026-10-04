@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 import { FiFileText, FiCheckCircle } from 'react-icons/fi';
 import Header from '../components/Header';
 import OrderStatus from '../components/OrderStatus';
 import DishFeedback from '../components/DishFeedback';
 import { useAuth } from '../context/AuthContext';
-import { getOrder, requestBill, requestPayment } from '../utils/api';
+import { getOrder, requestBill, requestPayment, getCheckoutInfo } from '../utils/api';
+import { usePortal } from '../context/PortalContext';
+import { clearQrTable, getQrTable } from '../lib/qrTable';
+import Confetti from '../components/cx/Confetti';
 import './OrderDetails.css';
 
 const OrderDetails = () => {
@@ -13,6 +16,25 @@ const OrderDetails = () => {
     const { socket } = useAuth();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const location = useLocation();
+    const { show, nudge } = usePortal();
+    const justPlaced = !!location.state?.justPlaced;
+
+    useEffect(() => {
+        if (!justPlaced || !show('nudgeCelebrate')) return;
+        const nth = location.state?.nth;
+        nudge({ kind: `placed-${id}`, icon: '🎉', text: nth > 1 ? `Order placed! That's order #${nth} with us. Thank you!` : 'Order placed! The kitchen has it.' });
+    }, [justPlaced, id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Bill paid and nothing else open at this table: forget the table, so the next visit scans again
+    useEffect(() => {
+        if (order?.status !== 'paid' || !order.tableNumber) return;
+        const t = getQrTable();
+        if (!t || t.tableNumber !== order.tableNumber) return;
+        getCheckoutInfo().then(r => {
+            if (!(r.data?.openAtTable || []).some(x => x.tableNumber === order.tableNumber)) clearQrTable();
+        }).catch(() => {});
+    }, [order?.status, order?.tableNumber]);
 
     useEffect(() => {
         fetchOrder();
@@ -99,6 +121,11 @@ const OrderDetails = () => {
     return (
         <div className="order-details-page">
             <Header title={`Order #${order.orderNumber}`} showBack showCart={false} />
+
+            {justPlaced && show('nudgeCelebrate') && <Confetti />}
+            {order.held && !['paid', 'cancelled'].includes(order.status) && (
+                <div className="held-note">⏳ <span>Got it! A staff member will confirm your table in a moment, then the kitchen starts.</span></div>
+            )}
 
             {/* Order Status */}
             <div className="order-status-section">

@@ -5,8 +5,12 @@ import Header from '../components/Header';
 import CategoryCard from '../components/CategoryCard';
 import MenuCard from '../components/MenuCard';
 import MenuCardSkeleton from '../components/MenuCardSkeleton';
-import { getCategories, getMenuItems } from '../utils/api';
+import { getCategories, getMenuItems, getShopItem } from '../utils/api';
 import FloatingCartBtn from '../components/FloatingCartBtn';
+import { usePortal } from '../context/PortalContext';
+import AnnouncementStrip from '../components/cx/AnnouncementStrip';
+import BannerCarousel from '../components/cx/BannerCarousel';
+import ItemSheet from '../components/cx/ItemSheet';
 import './Menu.css';
 
 const ITEMS_PER_PAGE = 10;
@@ -22,6 +26,19 @@ const Menu = () => {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [page, setPage] = useState(1);
+    const { show } = usePortal();
+    const [sheetItem, setSheetItem] = useState(null);
+
+    // A banner linking to an item opens its sheet (/menu?item=<id>)
+    const itemParam = searchParams.get('item');
+    useEffect(() => {
+        if (!itemParam) return;
+        getShopItem(itemParam).then(r => r.data && setSheetItem(r.data)).catch(() => {});
+    }, [itemParam]);
+    const closeSheet = () => {
+        setSheetItem(null);
+        if (itemParam) { const p = new URLSearchParams(searchParams); p.delete('item'); setSearchParams(p, { replace: true }); }
+    };
 
     // Intersection Observer ref
     const observerRef = useRef();
@@ -218,6 +235,9 @@ const Menu = () => {
         <div className="menu-page">
             <Header title="Menu" showBack />
 
+            <AnnouncementStrip />
+            {!selectedCategory && !searchParams.get('search') && <BannerCarousel />}
+
             {/* Search Bar */}
             <div className="menu-search-container">
                 <div className="menu-search-bar">
@@ -275,9 +295,9 @@ const Menu = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="menu-grid">
+                        <div className={`menu-grid ${show('photos') ? '' : 'no-photos'}`}>
                             {menuItems.map(item => (
-                                <MenuCard key={item._id} item={item} />
+                                <MenuCard key={item._id} item={item} onOpen={setSheetItem} />
                             ))}
 
                             {/* Loading more skeletons */}
@@ -305,6 +325,7 @@ const Menu = () => {
 
             {/* Floating Cart Button */}
             <FloatingCartBtn />
+            {sheetItem && <ItemSheet item={sheetItem} onClose={closeSheet} />}
         </div>
     );
 };

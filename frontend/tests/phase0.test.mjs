@@ -164,7 +164,8 @@ test('MRP item includes tax; restricted item gets no coupon and no points', asyn
     assert.equal(quote.total, 92.5);
     const id = await rpc(c, 'place_order', {
         p_items: [{ menuItem: coffee.id, quantity: 1 }, { menuItem: cig.id, quantity: 2 }],
-        p_coupon_code: 'HALF', p_table_id: tableA.id });
+        p_coupon_code: 'HALF',
+        p_table_code: (await must(ownerA.from('table_codes').select('code').eq('table_id', tableA.id).single())).code });
     const order = await rpc(c, 'get_order', { p_id: id });
     assert.equal(order.total, 92.5);
     assert.deepEqual(order.taxDetails.map(t => `${t.name} ${t.rate}`).sort(), ['CGST 14', 'CGST 2.5', 'SGST 14', 'SGST 2.5']);

@@ -1,7 +1,7 @@
 import {
     FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage, FiUsers, FiBarChart2, FiLayout, FiActivity,
     FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase, FiZap, FiBook,
-    FiPieChart, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck,
+    FiPieChart, FiSmartphone, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck,
 } from 'react-icons/fi';
 
 // Menu labels in English, Hindi and Hinglish: [en, hi, hinglish]
@@ -42,6 +42,7 @@ export const NAV_SECTIONS = [
             { path: '/admin/recipes', icon: FiBookOpen, label: L('Recipes & Costing', 'रेसिपी और लागत', 'Recipe aur laagat'), perm: 'inventory.view' },
             { path: '/admin/catalogue', icon: FiLayers, label: L('Brands & Taxes', 'ब्रांड और टैक्स', 'Brand aur tax'), perm: 'menu.view' },
             { path: '/admin/collections', icon: FiLayout, label: L('Homepage Sections', 'होमपेज सेक्शन', 'Homepage section'), perm: 'collections.view' },
+            { path: '/admin/customer-app', icon: FiSmartphone, label: L('Customer app', 'ग्राहक ऐप', 'Customer app'), perm: 'settings.view' },
         ],
     },
     {

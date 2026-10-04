@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter } from 'react-icons/fi';
-import { getActiveOrders, updateOrderStatus, settleOrder, cancelOrder, removeServiceCharge } from '../utils/api';
+import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter, FiMove, FiUsers } from 'react-icons/fi';
+import { getActiveOrders, updateOrderStatus, settleOrder, cancelOrder, removeServiceCharge, confirmTableOrder, moveOrderTable, getTables } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import OrderBill from '../components/OrderBill';
 import Loader from '../components/Loader';
@@ -112,10 +112,42 @@ const CancelModal = ({ order, canVoid, onClose, onDone }) => {
     );
 };
 
+// Move an order (and the rest of that customer's group) to another table
+const MoveModal = ({ order, onClose, onDone }) => {
+    const [tables, setTables] = useState([]);
+    const [to, setTo] = useState('');
+    const [whole, setWhole] = useState(true);
+    const [error, setError] = useState('');
+    useEffect(() => { getTables().then(r => setTables(r.data.filter(t => t._id !== order.table))).catch(() => {}); }, [order.table]);
+    const submit = async () => {
+        try { onDone((await moveOrderTable(order._id, to, whole)).data); } catch (err) { setError(errText(err)); }
+    };
+    return (
+        <Modal title={`Move ${order.orderNumber}`} onClose={onClose}>
+            <div className="modal-body">
+                <div className="input-group"><label>To table</label>
+                    <select className="input" value={to} onChange={e => setTo(e.target.value)} autoFocus>
+                        <option value="">Choose…</option>
+                        {tables.map(t => <option key={t._id} value={t._id}>Table {t.tableNumber}</option>)}
+                    </select></div>
+                {order.user && order.table && (
+                    <label className="check"><input type="checkbox" checked={whole} onChange={e => setWhole(e.target.checked)} /> Move all of {order.user.name}'s open orders at this table</label>
+                )}
+                {error && <p className="error-message">{error}</p>}
+            </div>
+            <div className="modal-footer">
+                <button className="btn btn-ghost" onClick={onClose}>Back</button>
+                <button className="btn btn-primary" disabled={!to} onClick={submit}>Move</button>
+            </div>
+        </Modal>
+    );
+};
+
 const AdminOrders = () => {
     const { socket, hasPerm } = useAuth();
     const [settling, setSettling] = useState(null);
     const [cancelling, setCancelling] = useState(null);
+    const [moving, setMoving] = useState(null);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedOrdersForBill, setSelectedOrdersForBill] = useState([]);
@@ -162,7 +194,8 @@ const AdminOrders = () => {
         }
     };
 
-    const getSessionOrders = (targetOrder, allList) => {
+    // A table bill is per group (one customer's orders); wholeTable merges every group at the table
+    const getSessionOrders = (targetOrder, allList, wholeTable = false) => {
         const getOrderId = (obj) => obj?._id?.toString() || obj?.toString() || '';
         const orderTime = new Date(targetOrder.createdAt).getTime();
         const ONE_HOUR = 60 * 60 * 1000;
@@ -172,6 +205,7 @@ const AdminOrders = () => {
             const currentTableId = getOrderId(targetOrder.table);
             sessionOrders = allList.filter(o =>
                 getOrderId(o.table) === currentTableId &&
+                (wholeTable || !targetOrder.user || getOrderId(o.user) === getOrderId(targetOrder.user)) &&
                 o.status !== 'cancelled' &&
                 o.status !== 'paid' &&
                 Math.abs(new Date(o.createdAt).getTime() - orderTime) < ONE_HOUR
@@ -236,8 +270,8 @@ const AdminOrders = () => {
         }
     };
 
-    const handleShowBill = (order) => {
-        const sessionOrders = getSessionOrders(order, orders);
+    const handleShowBill = (order, wholeTable = false) => {
+        const sessionOrders = getSessionOrders(order, orders, wholeTable);
         setSelectedOrdersForBill(sessionOrders);
         setShowBill(true);
     };
@@ -261,6 +295,13 @@ const AdminOrders = () => {
         bill_requested: 'Generate Bill'
     }[status]);
 
+    const groupsAtTable = (order) => (order.table
+        ? new Set(orders.filter(o => o.table === order.table && !['paid', 'cancelled'].includes(o.status)).map(o => o.user?._id || o._id)).size
+        : 1);
+    const confirmHeld = async (order) => {
+        try { afterChange((await confirmTableOrder(order._id)).data); } catch (err) { alert(errText(err)); }
+    };
+
     if (loading) return <Loader message="Cooking up some orders..." />;
 
     return (
@@ -283,6 +324,11 @@ const AdminOrders = () => {
                                     </span>
                                 </div>
 
+                                {order.held && (
+                                    <div className="pay-request held">
+                                        First order on Table {order.tableNumber}. Check someone is sitting there, then confirm. The kitchen gets it after that.
+                                    </div>
+                                )}
                                 {order.paymentRequest && (
                                     <div className={`pay-request ${order.paymentRequest}`}>
                                         {order.paymentRequest === 'qr' ? `Wants to pay ${inr(order.total - (order.amountPaid || 0))} by UPI — take the QR to the table`
@@ -292,7 +338,7 @@ const AdminOrders = () => {
                                 <div className="order-customer">
                                     <strong>{order.user?.name || 'Customer'}</strong>
                                     <span>{order.user?.phone}</span>
-                                    {order.tableNumber && <span>Table: {order.tableNumber}</span>}
+                                    {order.tableNumber && <span>Table: {order.tableNumber}{groupsAtTable(order) > 1 && <> · <FiUsers /> {groupsAtTable(order)} groups</>}</span>}
                                     {!order.tableNumber && order.tokenNumber && <span>Token: {order.tokenNumber}</span>}
                                     <span className="channel-tag">{CHANNEL[order.channel] || 'QR'}{order.staffName ? ` · ${order.staffName}` : ''}</span>
                                 </div>
@@ -332,7 +378,12 @@ const AdminOrders = () => {
                                 </div>
 
                                 <div className="order-actions">
-                                    {getNextStatus(order.status) && (
+                                    {order.held && hasPerm('orders.edit') && (
+                                        <button className="btn btn-primary btn-sm" onClick={() => confirmHeld(order)}>
+                                            <FiCheck /> Confirm table
+                                        </button>
+                                    )}
+                                    {!order.held && getNextStatus(order.status) && (
                                         <button
                                             className="btn btn-primary btn-sm"
                                             onClick={() => handleStatusChange(order._id, getNextStatus(order.status))}
@@ -366,6 +417,16 @@ const AdminOrders = () => {
                                     >
                                         <FiFileText /> Bill
                                     </button>
+                                    {groupsAtTable(order) > 1 && (
+                                        <button className="btn btn-ghost btn-sm" onClick={() => handleShowBill(order, true)} title="One bill for every group at this table">
+                                            <FiFileText /> Whole table
+                                        </button>
+                                    )}
+                                    {hasPerm('orders.edit') && order.channel !== 'kiosk' && (
+                                        <button className="btn btn-ghost btn-sm" onClick={() => setMoving(order)} title="Move to another table">
+                                            <FiMove /> Move
+                                        </button>
+                                    )}
                                 </div>
 
                                 <div className="order-time">
@@ -378,6 +439,7 @@ const AdminOrders = () => {
             </div>
 
             {settling && <SettleModal order={settling} onClose={() => setSettling(null)} onDone={afterChange} />}
+            {moving && <MoveModal order={moving} onClose={() => setMoving(null)} onDone={(o) => { setMoving(null); afterChange(o); fetchOrders(); }} />}
             {cancelling && <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)} onDone={afterChange} />}
 
             {showBill && selectedOrdersForBill.length > 0 && (

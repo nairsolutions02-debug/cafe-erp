@@ -114,9 +114,12 @@
 .header-title {
     font-size: 1.125rem;
     font-weight: 600;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
+    flex: 1;
+    min-width: 0;
+    margin: 0 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-actions {
