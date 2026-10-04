@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-04)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -47,3 +47,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 ## 8. Help guide and support tickets (2026-10-04)
 - [x] 8.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-support-tickets.sql` → Run → Success
 - [x] 8.2 Phone: tap **?** at the top → send a test ticket → reply to it from `/superadmin` → the reply arrives on the phone
+
+## 9. Kitchen stations (2026-10-04)
+- [ ] 9.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-kitchen-stations.sql` → Run → Success
+- [ ] 9.2 Admin → Menu → Categories → check each category's **Kitchen station** (Hot kitchen, Coffee bar, Cold)

@@ -4,6 +4,41 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Phone app redesign, part 2: Orders and Kitchen (2026-10-04)
+
+Second of four parts of the approved mobile redesign. Orders changes on phones only. Kitchen gets the new tickets on every screen size (phone, tablet, TV).
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Orders (phone) | Filter chips with counts: **Needs action** (new, waiting for staff, wants the bill, wants to pay), **Cooking**, **Ready**, **Unpaid**, **All**. Opens on Needs action when something is waiting. Oldest order first. |
+| Order cards (phone) | Four to five per screen: big token or table (T5, Q3), customer, dishes on one line, minutes waiting (orange after 8, red after 15), status, Paid / Unpaid and amount. One main button with the next step: Confirm table, Confirm, Start, Mark ready, Served, Make bill, or Take payment once nothing else is left. |
+| Swipe (phone) | Swipe a card to the right to do its next step. Payment and Make bill never happen by swipe. |
+| Order sheet (phone) | Tap a card: dishes with prices, total, paid and balance, note, then Take payment, KOT, Print bill, Bill, Whole table and Move. **Cancel this order…** is at the bottom in red and still asks for a reason (and a manager PIN where needed). |
+| Kitchen | Oldest ticket first with a coloured top edge (green, orange after 8 min, red after 15). Big token, table or channel, customer. Each dish is a large tap row: waiting → cooking (•••) → ready (✓). **All ready** and **Served** buttons, KOT, sound on/off. |
+| Kitchen stations | Chips **All · Hot kitchen · Coffee bar · Cold** with counts. The coffee bar phone taps Coffee bar once and sees only drinks; the choice is remembered on that device. "All ready" at a station marks only that station's dishes. |
+| Categories | Menu → Categories → edit → **Kitchen station** (Hot kitchen, Coffee bar, Cold, or same as parent). The SQL makes a first guess from category names (coffee, tea, shake, juice… → Coffee bar; dessert, cake, ice cream… → Cold; everything else → Hot kitchen). |
+| Languages | Orders and Kitchen chips, buttons, tags and messages, and the bottom bar labels, follow English / हिन्दी / Hinglish. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → **New query** → paste **`supabase/upgrades/2026-10-kitchen-stations.sql`** → Run → *Success*. Do this right after the push: until it runs, saving a category shows an error and the kitchen shows no station chips.
+2. Vercel redeploys from `main` by itself. No new APK.
+3. Menu → Categories: check the station of each category.
+
+**Test checklist**
+- [ ] Phone → Orders: chips show counts; a new QR order appears under Needs action with a red count
+- [ ] Swipe a Cooking card right → it moves to Ready; the main button on a Ready card says Served
+- [ ] Tap a card → sheet with dishes and balance → Take payment works → Cancel this order… asks for a reason
+- [ ] Kitchen on the phone: oldest ticket first; an order older than 15 minutes has a red edge
+- [ ] Tap Coffee bar → only drinks; tap a drink twice → ✓; All ready marks only the drinks; reload the page → still on Coffee bar
+- [ ] Menu → Categories → change a category to Cold → its dishes move to the Cold chip
+- [ ] More → हिन्दी → Orders and Kitchen buttons and chips are in Hindi
+- [ ] Laptop: the Orders page looks as before; Kitchen shows the new tickets in a grid
+
+---
+
 ## Phone app redesign, part 1: the new phone shell (2026-10-04)
 
 First of four parts of the approved mobile redesign (demo: "FiKA Staff App Redesign"). This part changes the frame around every admin page on phones (up to 768 px wide). Desktop and tablets look the same as before.

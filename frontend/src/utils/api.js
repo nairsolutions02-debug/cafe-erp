@@ -60,6 +60,7 @@ const conv = {
     int: (v) => (v === '' || v == null || Number.isNaN(Number(v)) ? undefined : Math.trunc(Number(v))),
     bool: (v) => (v === undefined || v === '' ? undefined : v === true || v === 'true'),
     uuid: (v) => (v === '' || v == null ? null : v),
+    textOrNull: (v) => (v === '' || v == null ? null : String(v)),
     list: (v) => (typeof v === 'string' ? (v ? JSON.parse(v) : []) : v || []),
     date: (v) => (v === '' || v == null ? undefined : v),
 };
@@ -112,6 +113,7 @@ const searchTerm = (s) => String(s || '').replace(/[,()*%\\]/g, ' ').trim();
 const CATEGORY = {
     name: ['name', 'text'], description: ['description', 'text'], order: ['sort_order', 'int'],
     isActive: ['is_active', 'bool'], parentId: ['parent_id', 'uuid'], stockLocationId: ['stock_location_id', 'uuid'],
+    kitchenStation: ['kitchen_station', 'textOrNull'],
 };
 
 // Customer menu shows top-level categories; sub-categories' items appear under their parent

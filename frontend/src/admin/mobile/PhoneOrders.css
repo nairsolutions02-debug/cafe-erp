@@ -1,0 +1,62 @@
+/* Phone Orders (mobile redesign, part 2) */
+.po { display: flex; flex-direction: column; gap: 8px; }
+.po-chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 0 4px; }
+.po-chips::-webkit-scrollbar { display: none; }
+.po-chips button { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 13px; border: 1.5px solid #E6D9C6; border-radius: 99px; background: white; font: inherit; font-size: 0.84rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
+.po-chips button span { font-size: 0.72rem; font-weight: 700; background: #F1E8DA; color: var(--text-primary); border-radius: 99px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+.po-chips button.hot span { background: #B42318; color: white; }
+.po-chips button[aria-pressed="true"] { background: var(--text-primary); border-color: var(--text-primary); color: white; }
+.po-chips button[aria-pressed="true"] span { background: var(--primary); color: white; }
+.po-hint { margin: 0; text-align: center; font-size: 0.72rem; color: var(--text-muted); }
+.po-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 48px 16px; color: var(--text-muted); text-align: center; }
+.po-empty span { font-size: 2rem; }
+
+.po-card { position: relative; border-radius: 18px; background: #157F3D; touch-action: pan-y; }
+.po-swipe { position: absolute; inset: 0; display: flex; align-items: center; padding-left: 18px; color: white; font-weight: 700; font-size: 0.85rem; border-radius: 18px; }
+.po-in { position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 3px 12px; background: white; border-radius: 18px; padding: 12px; box-shadow: 0 1px 2px rgba(40, 25, 10, 0.1); cursor: pointer; transition: transform 0.2s; user-select: none; -webkit-user-select: none; }
+.po-in.drag { transition: none; }
+.po-in:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.po-tok { grid-row: span 3; width: 56px; height: 56px; border-radius: 15px; background: #F1E8DA; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; overflow: hidden; }
+.po-tok b { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; max-width: 52px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.po-tok small { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
+.s-pending .po-tok, .s-bill_requested .po-tok { background: #FBEBD6; color: var(--primary-dark); }
+.held .po-tok { background: #FCEBD2; color: #B45309; }
+.s-ready .po-tok { background: #DDF2E3; color: #157F3D; }
+.po-top { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.po-who { flex: 1; min-width: 0; font-weight: 600; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.po-age { font-size: 0.72rem; font-weight: 700; padding: 2px 8px; border-radius: 99px; background: #F1E8DA; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.po-age.warn { background: #FCEBD2; color: #B45309; }
+.po-age.late { background: #FBE2DE; color: #B42318; }
+.po-items { font-size: 0.82rem; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.po-foot { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
+.po-tag { display: inline-flex; align-items: center; gap: 3px; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: #F4EDE2; color: var(--text-secondary); text-transform: capitalize; white-space: nowrap; }
+.po-tag.held, .po-tag.pay { background: #FCEBD2; color: #B45309; }
+.po-tag.unpaid { background: #FBE2DE; color: #B42318; }
+.po-tag.paid { background: #DDF2E3; color: #157F3D; }
+.po-amt { margin-left: auto; font-weight: 700; font-size: 0.85rem; font-variant-numeric: tabular-nums; }
+.po-act { grid-column: 1 / -1; margin-top: 8px; min-height: 46px; border: 0; border-radius: 13px; background: var(--primary); color: white; font: inherit; font-weight: 700; font-size: 0.92rem; cursor: pointer; }
+.po-act:active { transform: scale(0.98); }
+.po-act.ok { background: #157F3D; }
+.po-act.ghost { background: #F1E8DA; color: var(--text-primary); }
+.po-act.pay { background: #157F3D; }
+
+.po-scrim { position: fixed; inset: 0; background: rgba(20, 12, 4, 0.45); z-index: 130; }
+.po-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 131; background: white; border-radius: 24px 24px 0 0; padding: 8px 16px calc(18px + env(safe-area-inset-bottom)); max-height: 88vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; animation: po-up 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes po-up { from { transform: translateY(100%); } }
+.po-grab { width: 40px; height: 5px; border-radius: 99px; background: #E6D9C6; margin: 2px auto 0; flex: none; }
+.po-sh-head { display: flex; align-items: center; gap: 12px; }
+.po-sh-head .po-tok { grid-row: auto; flex: none; }
+.po-sh-who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.po-sh-who b { font-size: 1.1rem; }
+.po-sh-who small { color: var(--text-muted); font-size: 0.78rem; overflow-wrap: anywhere; }
+.po-x { width: 40px; height: 40px; border-radius: 50%; border: 0; background: #F4EDE2; display: grid; place-items: center; font-size: 1.1rem; cursor: pointer; flex: none; }
+.po-note { margin: 0; background: #FCEBD2; color: #8A4B06; border-radius: 12px; padding: 9px 11px; font-size: 0.85rem; display: flex; gap: 6px; align-items: flex-start; }
+.po-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.po-lines li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 6px; }
+.po-lines li span:last-child { font-variant-numeric: tabular-nums; }
+.po-lines .tot { border-top: 1px dashed #E6D9C6; padding-top: 8px; font-weight: 700; }
+.po-lines .due { color: #B42318; font-weight: 700; }
+.po-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.po-grid button { min-height: 48px; border: 1.5px solid #E6D9C6; background: white; border-radius: 13px; font: inherit; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; color: var(--text-primary); }
+.po-cancel { border: 0; background: none; color: #B42318; font: inherit; font-weight: 600; font-size: 0.88rem; padding: 10px; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { .po-sheet { animation: none; } .po-in { transition: none; } }

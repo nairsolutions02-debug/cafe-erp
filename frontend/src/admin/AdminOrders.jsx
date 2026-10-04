@@ -4,6 +4,8 @@ import { getActiveOrders, updateOrderStatus, settleOrder, cancelOrder, removeSer
 import { useAuth } from '../context/AuthContext';
 import OrderBill from '../components/OrderBill';
 import Skeleton from './mobile/Skeleton';
+import PhoneOrders from './mobile/PhoneOrders';
+import useIsPhone from './mobile/useIsPhone';
 import Modal from './inventory/Modal';
 import { printKot, printBill } from '../lib/print';
 import { inr } from './pos/money';
@@ -152,6 +154,7 @@ const AdminOrders = () => {
     const [loading, setLoading] = useState(true);
     const [selectedOrdersForBill, setSelectedOrdersForBill] = useState([]);
     const [showBill, setShowBill] = useState(false);
+    const isPhone = useIsPhone();
     useEffect(() => {
         fetchOrders();
     }, []);
@@ -304,6 +307,38 @@ const AdminOrders = () => {
 
     if (loading) return <Skeleton label="Cooking up some orders..." />;
 
+    const modals = (
+        <>
+            {settling && <SettleModal order={settling} onClose={() => setSettling(null)} onDone={afterChange} />}
+            {moving && <MoveModal order={moving} onClose={() => setMoving(null)} onDone={(o) => { setMoving(null); afterChange(o); fetchOrders(); }} />}
+            {cancelling && <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)} onDone={afterChange} />}
+
+            {showBill && selectedOrdersForBill.length > 0 && (
+                <OrderBill
+                    orders={selectedOrdersForBill}
+                    onCancel={() => {
+                        setShowBill(false);
+                        setSelectedOrdersForBill([]);
+                        fetchOrders(); // Refresh to remove paid ones
+                    }}
+                />
+            )}
+        </>
+    );
+
+    if (isPhone) {
+        const canEdit = hasPerm('orders.edit');
+        return (
+            <div className="admin-orders">
+                <PhoneOrders orders={orders} canEdit={canEdit} hasNext={(o) => !!getNextStatus(o.status)} groupsAtTable={groupsAtTable}
+                    onNext={(o) => (o.held ? confirmHeld(o) : handleStatusChange(o._id, getNextStatus(o.status)))}
+                    onPay={setSettling} onCancel={setCancelling} onMove={setMoving}
+                    onBill={(o, whole) => handleShowBill(o, whole)} onKot={printKot} onPrint={printBill} />
+                {modals}
+            </div>
+        );
+    }
+
     return (
         <div className="admin-orders">
             <h1>Orders Management</h1>
@@ -438,20 +473,7 @@ const AdminOrders = () => {
                 )}
             </div>
 
-            {settling && <SettleModal order={settling} onClose={() => setSettling(null)} onDone={afterChange} />}
-            {moving && <MoveModal order={moving} onClose={() => setMoving(null)} onDone={(o) => { setMoving(null); afterChange(o); fetchOrders(); }} />}
-            {cancelling && <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)} onDone={afterChange} />}
-
-            {showBill && selectedOrdersForBill.length > 0 && (
-                <OrderBill
-                    orders={selectedOrdersForBill}
-                    onCancel={() => {
-                        setShowBill(false);
-                        setSelectedOrdersForBill([]);
-                        fetchOrders(); // Refresh to remove paid ones
-                    }}
-                />
-            )}
+            {modals}
         </div>
     );
 };

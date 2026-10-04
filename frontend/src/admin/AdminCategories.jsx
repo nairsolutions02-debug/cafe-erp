@@ -3,6 +3,7 @@ import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { getAllCategories, createCategory, updateCategory, deleteCategory, getStockLocations } from '../utils/api';
 import { getImageUrl } from '../utils/config';
 import { useAuth } from '../context/AuthContext';
+import { STATIONS } from './pos/stations';
 import './AdminCategories.css';
 
 const AdminCategories = () => {
@@ -11,7 +12,7 @@ const AdminCategories = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState(null);
-    const [formData, setFormData] = useState({ name: '', description: '', order: 1, parentId: '', stockLocationId: '' });
+    const [formData, setFormData] = useState({ name: '', description: '', order: 1, parentId: '', stockLocationId: '', kitchenStation: '' });
     const [image, setImage] = useState(null);
     const [locations, setLocations] = useState([]);
 
@@ -65,13 +66,13 @@ const AdminCategories = () => {
     const openEdit = (item) => {
         setEditItem(item);
         setFormData({ name: item.name, description: item.description || '', order: item.order || 1, parentId: item.parentId || '',
-            stockLocationId: item.stockLocationId || '' });
+            stockLocationId: item.stockLocationId || '', kitchenStation: item.kitchenStation || '' });
         setShowModal(true);
     };
 
     const resetForm = () => {
         setEditItem(null);
-        setFormData({ name: '', description: '', order: 1, parentId: '', stockLocationId: '' });
+        setFormData({ name: '', description: '', order: 1, parentId: '', stockLocationId: '', kitchenStation: '' });
         setImage(null);
     };
 
@@ -103,6 +104,7 @@ const AdminCategories = () => {
                         <div className="category-info">
                             <h3>{cat.parentId && <span className="sub-mark">↳ </span>}{cat.name}</h3>
                             {cat.parentId && <small className="muted">in {categories.find(p => p._id === cat.parentId)?.name}</small>}
+                            {cat.kitchenStation && <small className="muted"> · {STATIONS.find(([k]) => k === cat.kitchenStation)?.[1]}</small>}
                             <p>{cat.description || 'No description'}</p>
                         </div>
                         <div className="category-actions">
@@ -146,6 +148,14 @@ const AdminCategories = () => {
                                         </select>
                                     </div>
                                 )}
+                                <div className="input-group">
+                                    <label htmlFor="cat-station">Kitchen station</label>
+                                    <select id="cat-station" className="input" value={formData.kitchenStation}
+                                        onChange={e => setFormData({ ...formData, kitchenStation: e.target.value })}>
+                                        <option value="">{formData.parentId ? 'Same as parent category' : 'Hot kitchen'}</option>
+                                        {STATIONS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+                                    </select>
+                                </div>
                                 <div className="input-group">
                                     <label>Description</label>
                                     <textarea className="input" value={formData.description}

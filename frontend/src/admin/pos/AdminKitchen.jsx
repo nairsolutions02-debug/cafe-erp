@@ -3,17 +3,26 @@ import { FiMaximize, FiPrinter, FiVolume2 } from 'react-icons/fi';
 import { getKitchenOrders, setKitchenStatus } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { printKot } from '../../lib/print';
+import useMenuLang, { tableToken } from '../mobile/useMenuLang';
+import { W } from '../mobile/staffText';
 import './POS.css';
 
 const NEXT = { queued: 'preparing', preparing: 'ready', ready: 'queued' };
 const minutes = (iso) => Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+const LABEL = { queued: 'waiting', preparing: 'cooking', ready: 'ready' };
+const STATION_SHORT = { hot: 'Hot', bar: 'Bar', cold: 'Cold' };
+const CHANNEL = { qr: 'QR', dine_in: 'Dine-in', takeaway: 'Takeaway', counter: 'Counter', aggregator: 'Delivery' };
+const readStation = () => { try { return localStorage.getItem('kds-station') || 'all'; } catch { return 'all'; } };
 
-// Kitchen display: one ticket per order. Tap a line to move it queued → preparing → ready.
+// Kitchen display: one ticket per order, oldest first. Tap a line to move it waiting → cooking → ready.
+// Station chips (Menu, Categories) let the coffee bar phone show only drinks; the choice is kept on this device.
 const AdminKitchen = () => {
     const { socket, hasPerm } = useAuth();
     const [orders, setOrders] = useState([]);
     const [, tick] = useState(0);
     const [sound, setSound] = useState(() => localStorage.getItem('kds-sound') !== '0');
+    const [station, setStation] = useState(readStation);
+    const { t } = useMenuLang();
     const known = useRef(null);
     const canEdit = hasPerm('orders.edit');
 
@@ -62,46 +71,79 @@ const AdminKitchen = () => {
         }
     };
 
+    const age = (o) => minutes(o.createdAt);
+    const ageCls = (m) => (m >= 15 ? 'late' : m >= 8 ? 'warn' : '');
+    const open = (i) => i.status !== 'served';
+    const inStation = (i, st) => st === 'all' || (i.station || 'hot') === st;
+    const used = ['hot', 'bar', 'cold'].map(k => [k, t(W[k])]).filter(([k]) => orders.some(o => o.items.some(i => open(i) && inStation(i, k))));
+    const view = used.some(([k]) => k === station) ? station : 'all';
+    const tickets = orders
+        .map(o => ({ o, items: o.items.filter(i => open(i) && inStation(i, view)) }))
+        .filter(t => t.items.length > 0);
+    const pick = (k) => { setStation(k); try { localStorage.setItem('kds-station', k); } catch { /* private mode */ } };
+    const allReadyAt = async (o, items) => {
+        if (view === 'all') return set(o.id, null, 'ready');
+        for (const i of items) if (i.status !== 'ready') await set(o.id, i.id, 'ready');
+        return undefined;
+    };
+
     return (
         <div className="kds">
             <div className="kds-head">
                 <h1>Kitchen</h1>
-                <span className="muted">{orders.length} open ticket{orders.length === 1 ? '' : 's'}</span>
-                <label className="check small"><input type="checkbox" checked={sound}
-                    onChange={e => { setSound(e.target.checked); localStorage.setItem('kds-sound', e.target.checked ? '1' : '0'); }} /> <FiVolume2 /> Sound</label>
-                <button className="btn btn-ghost btn-sm" onClick={() => document.documentElement.requestFullscreen?.()}><FiMaximize /> Full screen</button>
+                <span className="kds-sum">{tickets.length} {t(W.tickets)}{tickets.length > 0 ? ` · ${t(W.oldest)} ${age(tickets[0].o)} min` : ''}</span>
+                <button type="button" className={`kds-icon${sound ? ' on' : ''}`} aria-pressed={sound} aria-label="Sound for new orders"
+                    onClick={() => { setSound(!sound); localStorage.setItem('kds-sound', sound ? '0' : '1'); }}><FiVolume2 /> <span>{t(sound ? W.soundOn : W.soundOff)}</span></button>
+                <button type="button" className="kds-icon kds-full" onClick={() => document.documentElement.requestFullscreen?.()}><FiMaximize /> <span>{t(W.fullScreen)}</span></button>
             </div>
+            {used.length > 1 && (
+                <div className="kds-chips" role="group" aria-label="Station">
+                    {[['all', t(W.all)], ...used].map(([k, l]) => {
+                        const n = orders.filter(o => o.items.some(i => open(i) && i.status !== 'ready' && inStation(i, k))).length;
+                        return <button key={k} type="button" aria-pressed={view === k} onClick={() => pick(k)}>{l}<span>{n}</span></button>;
+                    })}
+                </div>
+            )}
             <div className="kds-grid">
-                {orders.map(o => {
-                    const age = minutes(o.createdAt);
-                    const allReady = o.items.every(i => i.status === 'ready' || i.status === 'served');
+                {tickets.map(({ o, items }) => {
+                    const m = age(o);
+                    const allReady = items.every(i => i.status === 'ready');
                     return (
-                        <div key={o.id} className={`ticket${allReady ? ' ready' : age >= 20 ? ' late' : age >= 10 ? ' warn' : ''}`}>
+                        <article key={o.id} className={`ticket ${allReady ? 'ready' : ageCls(m)}`}>
                             <div className="ticket-head">
-                                <strong>{o.tableNumber ? `Table ${o.tableNumber}` : o.tokenNumber ? `Token ${o.tokenNumber}` : o.orderNumber.slice(-6)}{o.tableNumber && o.customer && o.tableGroups > 1 ? ` · ${o.customer.split(' ')[0]}` : ''}</strong>
-                                <span className="muted">{age} min</span>
+                                <span className="ticket-tok">{o.tableNumber ? tableToken(o.tableNumber) : o.tokenNumber || o.orderNumber.slice(-4)}</span>
+                                <span className="ticket-who">
+                                    <b>{o.tableNumber ? `${t(W.table)} ${o.tableNumber}` : CHANNEL[o.channel] || o.channel.replace('_', ' ')}</b>
+                                    {o.customer ? (o.tableNumber && o.tableGroups > 1 ? `${o.customer.split(' ')[0]} · ${o.tableGroups} groups` : o.customer) : o.orderNumber}
+                                </span>
+                                <span className={`ticket-age ${ageCls(m)}`}>{m}m</span>
                             </div>
-                            <div className="muted small">{o.channel.replace('_', ' ')} · {o.orderNumber}{o.customer ? ` · ${o.customer}` : ''}</div>
-                            {o.items.filter(i => i.status !== 'served').map(i => (
-                                <button key={i.id} className={`ticket-item ${i.status}`} disabled={!canEdit}
-                                    onClick={() => set(o.id, i.id, NEXT[i.status] || 'ready')}>
-                                    <span>{i.quantity} × {i.name}{i.note && <small>{i.note}</small>}</span>
-                                    <span className="small">{i.status}</span>
-                                </button>
-                            ))}
                             {o.note && <div className="ticket-note">{o.note}</div>}
+                            <ul className="ticket-items">
+                                {items.map(i => (
+                                    <li key={i.id}>
+                                        <button type="button" className={`ticket-item ${i.status}`} disabled={!canEdit} aria-label={`${i.quantity} ${i.name}: ${LABEL[i.status] || i.status}. Tap for ${LABEL[NEXT[i.status]] || 'ready'}`}
+                                            onClick={() => set(o.id, i.id, NEXT[i.status] || 'ready')}>
+                                            <span className="ti-q">{i.quantity}</span>
+                                            <span className="ti-name">{i.name}{i.note && <small>{i.note}</small>}</span>
+                                            {view === 'all' && used.length > 1 && <span className="ti-st">{STATION_SHORT[i.station || 'hot']}</span>}
+                                            <span className="ti-check" aria-hidden="true">{i.status === 'ready' ? '✓' : i.status === 'preparing' ? '•••' : ''}</span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
                             {canEdit && (
                                 <div className="ticket-actions">
-                                    {allReady
-                                        ? <button className="btn btn-success btn-sm" onClick={() => set(o.id, null, 'served')}>Served</button>
-                                        : <button className="btn btn-primary btn-sm" onClick={() => set(o.id, null, 'ready')}>All ready</button>}
-                                    <button className="btn btn-ghost btn-sm" onClick={() => printKot({ ...o, specialInstructions: o.note })}><FiPrinter /> KOT</button>
+                                    {allReady && view === 'all'
+                                        ? <button className="btn btn-success" onClick={() => set(o.id, null, 'served')}>{t(W.served)}</button>
+                                        : <button className="btn btn-success" disabled={allReady} onClick={() => allReadyAt(o, items)}>{t(W.allReady)}</button>}
+                                    <button className="btn btn-ghost" aria-label="Print kitchen ticket" onClick={() => printKot({ ...o, specialInstructions: o.note })}><FiPrinter /> KOT</button>
                                 </div>
                             )}
-                        </div>
+                        </article>
                     );
                 })}
-                {orders.length === 0 && <p className="muted">No orders in the kitchen. New orders appear here with a sound.</p>}
+                {tickets.length === 0 && <p className="kds-empty">{t(view === 'all' ? W.kitchenEmpty : W.stationEmpty)}</p>}
             </div>
         </div>
     );

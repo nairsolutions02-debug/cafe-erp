@@ -256,7 +256,7 @@ const AdminLayout = () => {
                             const on = isActive(item.path, item.exact);
                             return (
                                 <Link key={item.path} to={item.path} className={`quick-link${on ? ' active' : ''}`} aria-current={on ? 'page' : undefined}>
-                                    <span className="ql-pill"><item.icon /></span><span>{tr(item.label, lang)}</span>
+                                    <span className="ql-pill"><item.icon /></span><span>{tr(item.labels || item.label, lang)}</span>
                                 </Link>
                             );
                         })}
