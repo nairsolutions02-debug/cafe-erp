@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { printKot } from '../../lib/print';
 import useMenuLang, { tableToken } from '../mobile/useMenuLang';
 import { W } from '../mobile/staffText';
-import { readKdsTheme, setKdsTheme } from '../mobile/useAdminTheme';
+import { readKdsTheme, setKdsTheme, onThemeChange } from '../mobile/useAdminTheme';
 import './POS.css';
 
 const NEXT = { queued: 'preparing', preparing: 'ready', ready: 'queued' };
@@ -30,6 +30,7 @@ const AdminKitchen = () => {
         setTheme(v);
         setKdsTheme(v);
     };
+    useEffect(() => onThemeChange(() => setTheme(readKdsTheme())), []);
     const known = useRef(null);
     const canEdit = hasPerm('orders.edit');
 

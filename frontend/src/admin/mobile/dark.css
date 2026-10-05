@@ -477,6 +477,12 @@
         background: var(--d-accent-soft);
     }
 
+    /* Side menu: language and screen colour pills stay readable */
+    .theme-dark .lang-switch button.on {
+        background: var(--d-ink);
+        color: var(--d-bg);
+    }
+
     .theme-dark .ca-swatches button.on {
         box-shadow: 0 0 0 2px var(--d-bg) inset;
     }

@@ -4,7 +4,7 @@ import { FiHelpCircle, FiLogOut, FiChevronRight } from 'react-icons/fi';
 import { NAV_SECTIONS, LANGS, tr } from '../adminNav';
 import { useAuth } from '../../context/AuthContext';
 import { SHELL } from './shellText';
-import { readAppTheme, setAppTheme } from './useAdminTheme';
+import { readAppTheme, setAppTheme, onThemeChange } from './useAdminTheme';
 import './mobile.css';
 
 const readLang = () => {
@@ -18,6 +18,7 @@ const AdminMore = () => {
     const [lang, setLang] = useState(readLang);
     const [theme, setTheme] = useState(readAppTheme);
     const chooseTheme = (v) => { setTheme(v); setAppTheme(v); };
+    useEffect(() => onThemeChange(() => setTheme(readAppTheme())), []);
     useEffect(() => {
         const sync = () => setLang(readLang());
         window.addEventListener('menulang', sync);

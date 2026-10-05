@@ -584,6 +584,11 @@
 /* Help: guide and report a problem to N.A.I.R. */
 .header-help { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; font-size: 1.25rem; color: var(--text-primary); text-decoration: none; }
 .header-help:hover { background: rgba(0, 0, 0, .05); }
+/* Light / dark one-tap button (admin/mobile/ThemeToggle.jsx) */
+.header-theme { display: grid; place-items: center; width: 38px; height: 38px; border: 0; border-radius: 50%; background: none; font-size: 1.2rem; color: var(--text-primary); cursor: pointer; }
+.header-theme:hover { background: rgba(0, 0, 0, .05); }
+.theme-switch { margin-top: 0; }
+@media (max-height: 760px) { .lang-switch { margin-bottom: 6px; } .lang-switch button { padding: 4px; } }
 
 .sidebar-logo img {
     width: 36px;

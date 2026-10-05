@@ -4,6 +4,31 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Light / dark button on every staff screen (2026-10-05)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Header button | A sun / moon button at the top of every staff screen (laptop, phone browser and the Android app) switches Light / Dark in one tap. Each device remembers its own choice. |
+| Laptop side menu | **Auto / Light / Dark** under the language switch (Auto follows the computer setting). Phones keep the same choice in More → Screen colours; both stay in step with the header button. |
+| Kitchen | The header button flips the Kitchen screen only, so the kitchen tablet can stay dark while the counter stays light. The Kitchen own button keeps working. |
+| Kiosk | No button: the Kiosk faces customers and always stays light. |
+| Small fixes | The chosen pill in the side menu (language, screen colours) is readable in dark mode; the phone browser top bar turns dark with the screen. |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK (the app opens the live website).
+
+**Test checklist**
+- [ ] Laptop: tap the moon at the top → the whole screen turns dark; tap the sun → light again; refresh: the choice stays
+- [ ] Laptop side menu: Auto / Light / Dark works and matches the header button
+- [ ] Phone (browser or Android app): tap the moon → dark; More → Screen colours shows Dark
+- [ ] Kitchen: tap the button → only the Kitchen changes; go to Orders: it keeps its own setting
+- [ ] Kiosk: no sun / moon button, screen stays light
+
+---
+
 ## Brand & look, part 3: customer dark mode, Kiosk name bar, logo on bills, readable audit log (2026-10-05)
 
 Last of the three parts of the approved Brand & look plan.

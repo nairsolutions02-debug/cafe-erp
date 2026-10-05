@@ -9,6 +9,7 @@ import { useAuth } from '../context/AuthContext';
 import { useOutbox } from '../lib/outbox';
 import usePullToRefresh from './mobile/usePullToRefresh';
 import useAdminTheme from './mobile/useAdminTheme';
+import ThemeToggle, { ThemeSwitch } from './mobile/ThemeToggle';
 import { SHELL } from './mobile/shellText';
 import './mobile/mobile.css';
 import './mobile/dark-auto.css';
@@ -39,6 +40,14 @@ const AdminLayout = () => {
     const [refreshKey, setRefreshKey] = useState(0);
     const { online, pending } = useOutbox();
     const dark = useAdminTheme(location.pathname);
+    // Phone browser top bar matches the screen colours
+    useEffect(() => {
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (!meta) return undefined;
+        const before = meta.getAttribute('content');
+        if (dark) meta.setAttribute('content', '#15110D');
+        return () => { if (before !== null) meta.setAttribute('content', before); };
+    }, [dark]);
     const { pull, busy, ready } = usePullToRefresh(REFRESHABLE.includes(location.pathname), () => setRefreshKey(k => k + 1));
     const current = sectionFor(location.pathname);
     const [openSection, setOpenSection] = useState(current?.section.key || 'home');
@@ -161,6 +170,7 @@ const AdminLayout = () => {
                             onClick={() => chooseLang(l.key)}>{l.label}</button>
                     ))}
                 </div>
+                <ThemeSwitch lang={lang} />
 
                 <div className="sidebar-footer">
                     <button onClick={handleLogout} className="logout-link">
@@ -191,6 +201,7 @@ const AdminLayout = () => {
                         <button type="button" className="header-search" aria-label={tr(SHELL.search, lang)} onClick={() => setSearchOpen(true)}><FiSearch /></button>
                         <Link className="header-help" to={location.pathname === '/admin/help' ? '/admin/help?tab=tickets' : `/admin/help?from=${encodeURIComponent(location.pathname + location.search)}`}
                             aria-label="Help and report a problem" title="Help · report a problem"><FiHelpCircle /></Link>
+                        <ThemeToggle pathname={location.pathname} dark={dark} lang={lang} />
                         <Notifications />
                         <div className="admin-user">
                             <span className="admin-name">{user?.name || 'Admin'}</span>

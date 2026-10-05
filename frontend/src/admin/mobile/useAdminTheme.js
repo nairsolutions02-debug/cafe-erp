@@ -24,6 +24,16 @@ export const setAppTheme = (v) => {
     try { localStorage.setItem(APP_KEY, v); } catch { /* private mode */ }
     window.dispatchEvent(new Event(EVENT));
 };
+// Which switch a page uses: 'kds' for the Kitchen, null for light-only pages, otherwise 'app'
+export const themeKeyFor = (pathname) => {
+    if (pathname.startsWith('/admin/kitchen')) return 'kds';
+    if (LIGHT_ONLY.some(p => pathname === p || pathname.startsWith(`${p}/`))) return null;
+    return 'app';
+};
+export const onThemeChange = (fn) => {
+    window.addEventListener(EVENT, fn);
+    return () => window.removeEventListener(EVENT, fn);
+};
 const phoneIsDark = () => typeof window !== 'undefined' && window.matchMedia?.(DARK_QUERY).matches;
 const resolve = (pref) => pref === 'dark' || (pref === 'auto' && phoneIsDark());
 
@@ -40,7 +50,6 @@ export default function useAdminTheme(pathname) {
         m?.addEventListener?.('change', onScheme);
         return () => { window.removeEventListener(EVENT, sync); m?.removeEventListener?.('change', onScheme); };
     }, []);
-    if (pathname.startsWith('/admin/kitchen')) return resolve(kds);
-    if (LIGHT_ONLY.some(p => pathname === p || pathname.startsWith(`${p}/`))) return false;
-    return resolve(app);
+    const key = themeKeyFor(pathname);
+    return key === 'kds' ? resolve(kds) : key === 'app' ? resolve(app) : false;
 }
