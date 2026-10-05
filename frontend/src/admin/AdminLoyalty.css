@@ -182,7 +182,7 @@
 }
 
 .section-info {
-    background: rgba(200, 115, 22, 0.1);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
     border-left: 4px solid var(--primary);
     padding: 16px;
     border-radius: var(--radius-md);

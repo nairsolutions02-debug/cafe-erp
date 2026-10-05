@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
 import { mergeBrand, readBrandCache, fetchBrandSettings, BRAND_EVENT } from '../lib/brandStore';
+import { applyTheme } from '../lib/theme';
 
 const BrandContext = createContext(mergeBrand(readBrandCache()));
 
@@ -26,6 +27,9 @@ export const BrandProvider = ({ children }) => {
     useEffect(() => {
         document.title = brand.name;
     }, [brand.name]);
+    // Colours, font and corners for every screen (customer app, staff app, kiosk, pickup TV)
+    const themeKey = JSON.stringify(brand.theme);
+    useEffect(() => { applyTheme(JSON.parse(themeKey)); }, [themeKey]);
     return <BrandContext.Provider value={brand}>{children}</BrandContext.Provider>;
 };
 

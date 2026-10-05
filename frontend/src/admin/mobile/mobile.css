@@ -77,7 +77,7 @@
     width: 46px;
     height: 46px;
     border-radius: 50%;
-    background: #FBEBD6;
+    background: var(--primary-soft);
     color: var(--primary-dark);
     display: grid;
     place-items: center;
@@ -151,7 +151,7 @@
     width: 40px;
     height: 40px;
     border-radius: 13px;
-    background: #FBEBD6;
+    background: var(--primary-soft);
     color: var(--primary-dark);
     display: grid;
     place-items: center;
@@ -443,7 +443,7 @@
     }
 
     .quick-link.active .ql-pill {
-        background: #FBEBD6;
+        background: var(--primary-soft);
         color: var(--primary-dark);
     }
 
@@ -716,8 +716,8 @@
 }
 
 .theme-dark .quick-link.active .ql-pill {
-    background: #3B2611;
-    color: #F2A14E;
+    background: color-mix(in srgb, var(--primary) 24%, #15110D);
+    color: color-mix(in srgb, var(--primary) 62%, white);
 }
 
 .theme-dark .net-pill {

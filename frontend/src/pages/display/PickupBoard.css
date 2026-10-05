@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap');
 
 /* Collect-your-order TV screen. Sizes follow the screen (vmin / vw), so a 32" or a 65" TV both read from 10 m. */
-:root { --pb-accent: #E08A2E; }
+:root { --pb-accent: var(--primary-light); }
 .pb {
     --ready: #22C55E;
     --ready-deep: #15803D;

@@ -4,6 +4,36 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Brand & look, part 2: colours, corners and fonts (2026-10-05)
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Colours | Settings → Brand & look → **Colours**: six ready-made sets (FiKA orange, Teal, Coffee, Green, Berry, Navy) or your own main and second colour. One save recolours the customer app, staff app (laptop and phone), Kitchen buttons, Kiosk and pickup TV. |
+| Readability check | Prices, links and outline buttons are drawn in the main colour on white, and button text is white on it, so the main colour must score at least 3 : 1 against white. A paler colour (light yellow, pastel pink) shows a warning, Save stays off, and **Use a deeper shade** fixes it in one tap. |
+| Corners | Round, Soft (today's look) or Square, for buttons, cards, fields, chips and pop-ups. |
+| Fonts | Poppins (today), Mukta, Baloo 2 or Hind. All four read Hindi well. |
+| Preview | The phone previews show the colours, corners and font before saving. **Reset colours and look to the FiKA default** puts everything back. |
+| Fixed on purpose | Late / cooking / ready colours on the Kitchen, paid / unpaid tags, error red and success green do not follow the brand colour. Dark mode keeps working with any brand colour. |
+| Customer app page | The old single "Main colour" picker moved here; a colour chosen there before still applies until the owner picks one on Brand & look. |
+| Under the hood | `lib/theme.js` sets the colour variables, corner style and font for the whole app; the last hard-coded oranges in the stylesheets now use those variables. |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK.
+2. Optional: Settings → Brand & look → pick colours, corners and font → Save.
+
+**Test checklist**
+- [ ] Brand & look → Teal → the previews turn teal → Save → Orders on the phone: Confirm buttons and the bottom bar highlight are teal
+- [ ] Customer app on another phone (refresh): header, buttons and prices are teal
+- [ ] Pick a light yellow as the main colour: warning shows, Save is off; tap "Use a deeper shade": Save works
+- [ ] Corners → Square, Font → Mukta → Save: buttons and cards are square, text uses Mukta (try हिन्दी in the side menu)
+- [ ] Kitchen: late tickets are still red, ready dishes still green
+- [ ] Reset colours and look to the FiKA default → Save: the orange look is back
+
+---
+
 ## Brand & look, part 1: name, logo and details set by the owner (2026-10-05)
 
 First of three parts of the approved Brand & look plan (demo: "FiKA Brand Studio").

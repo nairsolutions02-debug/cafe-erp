@@ -16,8 +16,9 @@
         --d-warn-soft: #3D2A12;
         --d-late: #F87171;
         --d-late-soft: #3D1714;
-        --d-accent-soft: #3B2611;
-        --d-accent-ink: #F2A14E;
+        --d-accent-soft: color-mix(in srgb, var(--primary) 24%, #15110D);
+        --d-accent-ink: color-mix(in srgb, var(--primary) 62%, white);
+        --primary-soft: color-mix(in srgb, var(--primary) 24%, #1F1A15);
     }
 
     /* Shared building blocks */

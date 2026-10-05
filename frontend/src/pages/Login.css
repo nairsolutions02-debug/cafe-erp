@@ -109,7 +109,7 @@
 }
 
 .dev-otp-notice {
-    background: rgba(200, 115, 22, 0.1);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
     padding: 12px;
     border-radius: var(--radius-md);
     text-align: center;
@@ -203,7 +203,7 @@
 .spinner-small {
     width: 18px;
     height: 18px;
-    border: 2px solid rgba(200, 115, 22, 0.2);
+    border: 2px solid color-mix(in srgb, var(--primary) 20%, transparent);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;

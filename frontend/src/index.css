@@ -5,6 +5,8 @@
   --primary: #C87316;
   --primary-dark: #A85F10;
   --primary-light: #E08A2E;
+  --primary-soft: color-mix(in srgb, var(--primary) 14%, white);
+  --font-body: 'Poppins';
 
   /* Accent Color - Olive Gold */
   --accent: #A8A06D;
@@ -68,7 +70,7 @@ html {
 }
 
 body {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body, 'Poppins'), 'Poppins', system-ui, sans-serif;
   background: var(--bg-secondary);
   color: var(--text-primary);
   line-height: 1.6;
@@ -247,7 +249,7 @@ h6 {
 .input:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(200, 115, 22, 0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .input::placeholder {
@@ -451,7 +453,7 @@ h6 {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(200, 115, 22, 0.2);
+  border: 3px solid color-mix(in srgb, var(--primary) 20%, transparent);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -632,7 +634,7 @@ tr:last-child td {
 }
 
 tr:hover td {
-  background: rgba(200, 115, 22, 0.02);
+  background: color-mix(in srgb, var(--primary) 2%, transparent);
 }
 
 /* Empty State */
@@ -764,4 +766,22 @@ tr:hover td {
 .page-header .muted {
     color: inherit;
     opacity: 0.85;
+}
+
+/* Corner style from Settings → Brand & look (Soft is the normal look; data-corners is set on <html>) */
+html[data-corners="square"] :is(.btn, .input, .card, .modal, .po-in, .po-card, .po-act, .po-grid button, .po-sheet, .tile, .pos-cart, .pos-menu,
+    .ticket, .ticket-item, .day-card, .more-tile, .more-list, .stat-card, .stat-tile, .settings-card, .menu-card, .category-card, .chips button,
+    .section-tab, .po-chips button, .kds-chips button, .cx-card, .bl-sec, .order-card, .panel, .hp-sec, .tk-item, select, textarea,
+    input:not([type="checkbox"]):not([type="radio"]):not([type="color"])) {
+    border-radius: 4px !important;
+}
+html[data-corners="square"] :is(.po-sheet, .pos.is-phone .pos-cart) {
+    border-radius: 8px 8px 0 0 !important;
+}
+html[data-corners="round"] :is(.btn, .chips button, .section-tab, .po-chips button, .kds-chips button, .po-act, .seg button) {
+    border-radius: 999px !important;
+}
+html[data-corners="round"] :is(.card, .po-in, .po-card, .tile, .ticket, .day-card, .more-tile, .stat-card, .settings-card, .menu-card,
+    .category-card, .order-card, .panel, .bl-sec, .hp-sec, .tk-item) {
+    border-radius: 22px !important;
 }

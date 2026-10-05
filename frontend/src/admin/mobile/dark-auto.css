@@ -580,6 +580,32 @@
         color: var(--d-ink);
     }
 
+    .theme-dark .bl-preset {
+        border: 2px solid var(--d-line);
+    }
+
+    .theme-dark .bl-picker {
+        border: 1.5px solid var(--d-line);
+    }
+
+    .theme-dark .bl-check.ok {
+        background: hsl(137 45% 17%);
+        color: hsl(143 72% 72%);
+    }
+
+    .theme-dark .bl-check.bad {
+        background: hsl(36 45% 17%);
+        color: hsl(31 80% 72%);
+    }
+
+    .theme-dark .bl-seg {
+        background: hsl(37 45% 17%);
+    }
+
+    .theme-dark .bl-font {
+        border: 2px solid var(--d-line);
+    }
+
     /* admin/club/Club.css */
     .theme-dark .cb-tag {
         background: hsl(43 45% 17%);
@@ -805,11 +831,6 @@
         background: hsl(37 45% 17%);
     }
 
-    .theme-dark .s-pending .po-tok,
-    .theme-dark .s-bill_requested .po-tok {
-        background: hsl(34 45% 17%);
-    }
-
     .theme-dark .held .po-tok {
         background: hsl(36 45% 17%);
         color: hsl(26 80% 72%);
@@ -903,16 +924,8 @@
         color: hsl(214 67% 72%);
     }
 
-    .theme-dark .more-av {
-        background: hsl(34 45% 17%);
-    }
-
     .theme-dark .more-tile {
         background: var(--d-surface);
-    }
-
-    .theme-dark .more-ti {
-        background: hsl(34 45% 17%);
     }
 
     .theme-dark .more-list {
@@ -940,12 +953,6 @@
     @media (max-width: 768px) {
         .theme-dark .admin-main .quick-bar {
             border-top: 1px solid var(--d-line);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .theme-dark .quick-link.active .ql-pill {
-            background: hsl(34 45% 17%);
         }
     }
 

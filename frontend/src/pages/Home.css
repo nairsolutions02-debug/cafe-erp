@@ -106,12 +106,12 @@
     text-decoration: none;
     transition: all var(--transition-normal);
     animation: fadeInUp 0.6s ease 0.4s backwards;
-    box-shadow: 0 4px 15px rgba(200, 115, 22, 0.3);
+    box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .hero-cta:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(200, 115, 22, 0.4);
+    box-shadow: 0 6px 20px color-mix(in srgb, var(--primary) 40%, transparent);
 }
 
 .hero-image-container {
@@ -267,7 +267,7 @@
     align-items: center;
     text-decoration: none;
     font-weight: 600;
-    box-shadow: 0 4px 20px rgba(200, 115, 22, 0.4);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--primary) 40%, transparent);
     z-index: 90;
     animation: slideUp 0.3s ease;
 }

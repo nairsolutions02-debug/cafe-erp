@@ -125,7 +125,7 @@
     align-items: center;
     gap: 12px;
     padding: 16px;
-    background: rgba(200, 115, 22, 0.1);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
     border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--primary);
@@ -134,7 +134,7 @@
 }
 
 .admin-link:hover {
-    background: rgba(200, 115, 22, 0.2);
+    background: color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .logout-btn {

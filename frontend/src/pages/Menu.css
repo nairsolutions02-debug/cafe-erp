@@ -21,7 +21,7 @@
 .menu-search-bar:focus-within {
     border-color: var(--primary);
     background: white;
-    box-shadow: 0 4px 12px rgba(200, 115, 22, 0.15);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
 .menu-search-icon {

@@ -1,4 +1,4 @@
-# Pending setup
+# Pending setup — ALL DONE (2026-10-05)
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -57,5 +57,5 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 10.2 Owner phone: My day → Today's tasks → **Edit** → type the cafe's daily jobs (one per line) → Save
 
 ## 11. Brand & look (2026-10-05)
-- [ ] 11.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-brand-identity.sql` → Run → Success
-- [ ] 11.2 Admin → Settings → **Brand & look** → check name, short line, address, phone and hours, upload the FiKA logo → Save
+- [x] 11.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-brand-identity.sql` → Run → Success
+- [x] 11.2 Admin → Settings → **Brand & look** → check name, short line, address, phone and hours, upload the FiKA logo → Save

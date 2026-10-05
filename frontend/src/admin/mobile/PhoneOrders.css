@@ -19,7 +19,7 @@
 .po-tok { grid-row: span 3; width: 56px; height: 56px; border-radius: 15px; background: #F1E8DA; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; overflow: hidden; }
 .po-tok b { font-size: 1.15rem; font-weight: 800; font-variant-numeric: tabular-nums; max-width: 52px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .po-tok small { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); margin-top: 4px; }
-.s-pending .po-tok, .s-bill_requested .po-tok { background: #FBEBD6; color: var(--primary-dark); }
+.s-pending .po-tok, .s-bill_requested .po-tok { background: var(--primary-soft); color: var(--primary-dark); }
 .held .po-tok { background: #FCEBD2; color: #B45309; }
 .s-ready .po-tok { background: #DDF2E3; color: #157F3D; }
 .po-top { display: flex; align-items: center; gap: 6px; min-width: 0; }

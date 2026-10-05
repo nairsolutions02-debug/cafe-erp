@@ -30,7 +30,7 @@
 
 .status-step.completed .step-icon {
     background: var(--primary);
-    box-shadow: 0 0 0 4px rgba(200, 115, 22, 0.2);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 .status-step.current .step-icon {
@@ -41,11 +41,11 @@
 
     0%,
     100% {
-        box-shadow: 0 0 0 4px rgba(200, 115, 22, 0.2);
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
     }
 
     50% {
-        box-shadow: 0 0 0 8px rgba(200, 115, 22, 0.1);
+        box-shadow: 0 0 0 8px color-mix(in srgb, var(--primary) 10%, transparent);
     }
 }
 

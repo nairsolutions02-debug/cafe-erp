@@ -14,15 +14,6 @@ const DEFAULT_SHOW = {
 };
 const NUDGE_MS = 5000;
 
-const applyTheme = (color) => {
-    if (!/^#[0-9a-f]{6}$/i.test(color || '')) return;
-    const root = document.documentElement.style;
-    root.setProperty('--primary', color);
-    root.setProperty('--bg-primary', color);
-    root.setProperty('--primary-dark', `color-mix(in srgb, ${color} 80%, black)`);
-    root.setProperty('--primary-light', `color-mix(in srgb, ${color} 80%, white)`);
-};
-
 export const PortalProvider = ({ children }) => {
     const { user, socket } = useAuth();
     const navigate = useNavigate();
@@ -32,7 +23,6 @@ export const PortalProvider = ({ children }) => {
 
     const refresh = useCallback(() => getPortalConfig().then(r => {
         setCfg(r.data);
-        applyTheme(r.data?.theme);
     }).catch(() => {}), []);
     useEffect(() => { refresh(); }, [refresh, user?._id]);
 

@@ -146,7 +146,6 @@ const AdminCustomerApp = () => {
     const [tables, setTables] = useState({});
     const [banners, setBanners] = useState([]);
     const [announce, setAnnounce] = useState({ on: false, text: '' });
-    const [theme, setTheme] = useState('');
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [editing, setEditing] = useState(null);
@@ -160,7 +159,6 @@ const AdminCustomerApp = () => {
             setTables(cfg.data.tables || {});
             setBanners(Array.isArray(s.data.portal_banners) ? s.data.portal_banners : []);
             setAnnounce({ on: false, text: '', ...(s.data.portal_announcement || {}) });
-            setTheme(typeof s.data.portal_theme === 'string' ? s.data.portal_theme : '');
             getAllMenuItems().then(r => setItems(r.data.filter(i => i.soldInShop !== false && !i.isRestricted))).catch(() => {});
             getAllCategories().then(r => setCategories(r.data)).catch(() => {});
         })().catch(err => setMsg(errorText(err)));
@@ -273,10 +271,8 @@ const AdminCustomerApp = () => {
                 <h2>What customers see</h2>
                 {SHOW.map(([k, l, h]) => <Toggle key={k} disabled={!canEdit} checked={show[k] !== false} label={l} hint={h} onChange={v => setShowKey(k, v)} />)}
                 <div className="ca-theme">
-                    <span className="ca-toggle-copy"><strong>Main colour</strong><small>Buttons, header and highlights</small></span>
-                    <input type="color" disabled={!canEdit} value={/^#[0-9a-f]{6}$/i.test(theme) ? theme : '#C87316'}
-                        onChange={e => setTheme(e.target.value)} onBlur={() => theme && saveSetting('portal_theme', theme)} aria-label="Main colour" />
-                    {theme && <button className="btn btn-ghost btn-sm" disabled={!canEdit} onClick={() => saveSetting('portal_theme', '', () => { setTheme(''); window.location.reload(); })}>Reset</button>}
+                    <span className="ca-toggle-copy"><strong>Colours, logo and font</strong><small>Set once for the customer app, staff app, kiosk and pickup TV</small></span>
+                    <Link className="btn btn-ghost btn-sm" to="/admin/brand">Brand &amp; look →</Link>
                 </div>
                 <p className="muted small">Slogans on the Rewards page are edited under <Link to="/admin/rewards?tab=portal">Rewards → Customer portal</Link>.</p>
             </section>

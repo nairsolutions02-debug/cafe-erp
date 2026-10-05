@@ -12,7 +12,7 @@
     align-items: center;
     text-decoration: none;
     font-weight: 600;
-    box-shadow: 0 4px 20px rgba(200, 115, 22, 0.4);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--primary) 40%, transparent);
     z-index: 90;
     animation: slideUp 0.3s ease;
 }

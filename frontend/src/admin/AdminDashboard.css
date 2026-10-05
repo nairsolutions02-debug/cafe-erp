@@ -47,7 +47,7 @@
 }
 
 .stat-icon.month {
-    background: rgba(200, 115, 22, 0.1);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
     color: var(--primary);
 }
 

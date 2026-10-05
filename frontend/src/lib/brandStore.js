@@ -8,7 +8,10 @@ export const BRAND_KEYS = {
     tagline: 'brand_tagline', heroText: 'brand_hero', logo: 'brand_logo', email: 'brand_email',
     instagram: 'brand_instagram', facebook: 'brand_facebook', hoursDays: 'brand_hours_days', hoursTime: 'brand_hours_time',
 };
-const CACHE = 'brand-cache-v1';
+// Colours, corners and font (part 2). brand_main falls back to the older customer-app colour (portal_theme).
+export const THEME_KEYS = { main: 'brand_main', accent: 'brand_accent', corners: 'brand_corners', font: 'brand_font' };
+const ALL_KEYS = [...Object.values(BRAND_KEYS), ...Object.values(THEME_KEYS), 'portal_theme'];
+const CACHE = 'brand-cache-v2';
 export const BRAND_EVENT = 'brandchanged';
 
 const text = (v) => (typeof v === 'string' ? v.trim() : v == null ? '' : String(v).trim());
@@ -20,6 +23,8 @@ export const mergeBrand = (settings) => {
         if (v) out[field] = v;
     }
     out.logoIsCustom = !!text(settings?.[BRAND_KEYS.logo]);
+    out.theme = Object.fromEntries(Object.entries(THEME_KEYS).map(([field, key]) => [field, text(settings?.[key])]));
+    if (!out.theme.main) out.theme.main = text(settings?.portal_theme);
     return out;
 };
 
@@ -31,7 +36,7 @@ export const readBrandCache = () => {
 export const fetchBrandSettings = async () => {
     try {
         const s = (await getSettings()).data;
-        const picked = Object.fromEntries(Object.values(BRAND_KEYS).map(k => [k, s[k] ?? '']));
+        const picked = Object.fromEntries(ALL_KEYS.map(k => [k, s[k] ?? '']));
         try { localStorage.setItem(CACHE, JSON.stringify(picked)); } catch { /* private mode */ }
         return picked;
     } catch {

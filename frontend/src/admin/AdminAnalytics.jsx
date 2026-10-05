@@ -7,7 +7,13 @@ import Skeleton from './mobile/Skeleton';
 import { FiUsers, FiUserPlus, FiActivity, FiRepeat, FiSettings, FiDownload } from 'react-icons/fi';
 import './AdminAnalytics.css';
 
-const COLORS = ['#C87316', '#E08A2E', '#22C55E', '#3B82F6', '#9333EA', '#EC4899'];
+// The first two follow the cafe's main colour (Settings → Brand & look)
+const cssVar = (name, fallback) => (typeof document === 'undefined' ? fallback
+    : getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback);
+const brandColors = () => {
+    const main = cssVar('--primary', '#C87316');
+    return [main, `color-mix(in srgb, ${main} 60%, white)`, '#22C55E', '#3B82F6', '#9333EA', '#EC4899'];
+};
 
 const AdminAnalytics = () => {
     const { socket } = useAuth();
@@ -234,7 +240,7 @@ const AdminAnalytics = () => {
                                 contentStyle={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '8px' }}
                             />
                             <Legend />
-                            <Line type="monotone" dataKey="revenue" stroke="#C87316" strokeWidth={3} dot={{ fill: '#C87316' }} name="Revenue" />
+                            <Line type="monotone" dataKey="revenue" stroke={brandColors()[0]} strokeWidth={3} dot={{ fill: brandColors()[0] }} name="Revenue" />
                             <Line type="monotone" dataKey="profit" stroke="#22C55E" strokeWidth={3} dot={{ fill: '#22C55E' }} name="Profit" />
                         </LineChart>
                     </ResponsiveContainer>
@@ -260,7 +266,7 @@ const AdminAnalytics = () => {
                                     label={({ _id, percent }) => `${_id} (${(percent * 100).toFixed(0)}%)`}
                                 >
                                     {categorySales.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        <Cell key={`cell-${index}`} fill={brandColors()[index % 6]} />
                                     ))}
                                 </Pie>
                                 <Tooltip formatter={(value) => `₹${value.toFixed(2)}`} />
@@ -279,7 +285,7 @@ const AdminAnalytics = () => {
                                 <XAxis type="number" stroke="#666" />
                                 <YAxis dataKey="name" type="category" width={100} stroke="#666" tick={{ fontSize: 12 }} />
                                 <Tooltip />
-                                <Bar dataKey="totalQuantity" fill="#C87316" radius={[0, 4, 4, 0]} name="Quantity Sold" />
+                                <Bar dataKey="totalQuantity" fill={brandColors()[0]} radius={[0, 4, 4, 0]} name="Quantity Sold" />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
