@@ -16,7 +16,7 @@ First of three parts of the approved Brand & look plan (demo: "FiKA Brand Studio
 | Logo | PNG / JPG / WebP, shrunk automatically and stored with the cafe's images. It appears in the customer app (header, sign-in, footer, table QR page), the staff sidebar on laptops and the pickup TV. Without an uploaded logo the app keeps the logo set in Vercel. |
 | Out of Vercel | These details used to come only from the Vercel settings (VITE_CAFE_*). They now come from the database; anything left empty still falls back to the Vercel value, so nothing changes until the owner saves. |
 | Cafe settings | Name, address and phone moved to Brand & look (Cafe settings shows them with a link). GSTIN, FSSAI, tax, service charge and bill footer stay in Cafe settings. |
-| Everywhere | Customer app, staff app, kiosk, pickup TV, table QR page, browser tab title and bills read the same values. Open screens update the next time they are opened or refreshed. |
+| Everywhere | Customer app, staff app, pickup TV, table QR page, browser tab title and bills read the same values (the Kiosk follows in part 3). Open screens update the next time they are opened or refreshed. |
 | Coming next | Part 2: colours (six ready-made sets or your own, with the readability check), corners and fonts. Part 3: customer app light / dark choice, logo on kiosk and printed bill, audit log entry. |
 
 **Deploy**

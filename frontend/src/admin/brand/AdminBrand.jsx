@@ -97,7 +97,7 @@ const AdminBrand = () => {
             await saveSettingsBatch(Object.fromEntries(Object.entries(BRAND_KEYS).map(([field, key]) => [key, clean[field]])));
             setForm(clean); setSaved(clean);
             brandChanged();
-            setMsg({ type: 'ok', text: 'Saved. Phones, laptops, the kiosk and the pickup TV show it the next time they open or refresh.' });
+            setMsg({ type: 'ok', text: 'Saved. Phones, laptops and the pickup TV show it the next time they open or refresh.' });
         } catch (err) { setMsg({ type: 'error', text: errorText(err) }); }
         finally { setBusy(false); }
     };
@@ -113,7 +113,7 @@ const AdminBrand = () => {
             <div className="bl-head">
                 <div>
                     <h1>Brand &amp; look</h1>
-                    <p className="muted">Your cafe's name, logo and details, saved once for every phone, laptop, kiosk, pickup TV and bill. Colours, corners and fonts come in the next update.</p>
+                    <p className="muted">Your cafe's name, logo and details, saved once for every phone, laptop, pickup TV and bill. Colours, corners and fonts come in the next update.</p>
                 </div>
             </div>
             {!canEdit && <p className="bl-msg info">Your role can see this page but not change it.</p>}
