@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom';
 import { FiMaximize, FiVolume2, FiVolumeX, FiWifiOff } from 'react-icons/fi';
 import { getPickupBoard } from '../../utils/api';
-import brand from '../../brand';
+import { useBrand } from '../../context/BrandContext';
 import './PickupBoard.css';
 
 // Collect-your-order screen for a big TV in the cafe (/display/<screen key>).
@@ -50,6 +50,7 @@ const Clock = ({ offset }) => {
 };
 
 const PickupBoard = () => {
+    const brand = useBrand();
     const { key } = useParams();
     const preview = useSearchParams()[0].get('preview') === '1';
     const [data, setData] = useState(null);

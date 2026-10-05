@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiUsers, FiPrinter, FiRefreshCw } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 import { tableQrUrl } from '../lib/qrTable';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 import { getTables, createTable, createBulkTables, updateTable, deleteTable, getTableCodes, reissueTableCode, getTableGroups } from '../utils/api';
 import { inr } from './pos/money';
 import { useAuth } from '../context/AuthContext';
 import './AdminTables.css';
 
 const AdminTables = () => {
+    const brand = useBrand();
     const { socket, hasPerm } = useAuth();
     const [codes, setCodes] = useState({});
     const [groups, setGroups] = useState([]);

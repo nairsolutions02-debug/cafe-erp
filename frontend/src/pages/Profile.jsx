@@ -4,9 +4,10 @@ import { FiUser, FiPhone, FiMail, FiLogOut, FiSettings } from 'react-icons/fi';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import './Profile.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 
 const Profile = () => {
+    const brand = useBrand();
     const { user, isAuthenticated, logout, updateProfile } = useAuth();
     const navigate = useNavigate();
     const [editing, setEditing] = useState(false);

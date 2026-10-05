@@ -2,9 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { FiMapPin, FiPhone, FiMail, FiClock, FiInstagram, FiFacebook } from 'react-icons/fi';
 import './Footer.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 
 const Footer = () => {
+    const brand = useBrand();
     return (
         <footer className="footer">
             <div className="footer-content">

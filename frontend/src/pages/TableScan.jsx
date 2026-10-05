@@ -4,7 +4,7 @@ import { FiMapPin, FiAlertCircle } from 'react-icons/fi';
 import { resolveTable, moveMyTable, getCheckoutInfo } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { getQrTable, saveQrTable } from '../lib/qrTable';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 import './TableScan.css';
 
 const MESSAGES = {
@@ -15,6 +15,7 @@ const MESSAGES = {
 
 // Landing page for a table QR (/t/5-K7Q2): remembers the table, then opens the menu
 const TableScan = () => {
+    const brand = useBrand();
     const { code } = useParams();
     const navigate = useNavigate();
     const { isAuthenticated, isAdmin } = useAuth();

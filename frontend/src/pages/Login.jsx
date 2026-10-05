@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './Login.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 import QuickLoginForm from '../components/QuickLoginForm';
 import { OTP_LOGIN_ENABLED } from '../lib/supabase';
 
 const Login = () => {
+    const brand = useBrand();
     const [step, setStep] = useState('phone'); // phone, otp, profile
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');

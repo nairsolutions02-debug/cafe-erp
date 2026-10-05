@@ -5,10 +5,11 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { getMenuItems, getMyLoyaltyPoints } from '../utils/api';
 import './Header.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 import TableChip from './cx/TableChip';
 
 const Header = ({ title, showCart = true, showBack = false }) => {
+    const brand = useBrand();
     const { isAuthenticated } = useAuth();
     const { itemCount } = useCart();
     const navigate = useNavigate();

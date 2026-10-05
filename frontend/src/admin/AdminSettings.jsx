@@ -1,12 +1,14 @@
+import { Link } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import { FiSettings, FiSave, FiPlus, FiTrash2, FiInfo } from 'react-icons/fi';
 import { getAllSettings, updateSetting } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import Skeleton from './mobile/Skeleton';
 import './AdminSettings.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 
 const AdminSettings = () => {
+    const brand = useBrand();
     const { hasPerm } = useAuth();
     const [settings, setSettings] = useState({});
     const [loading, setLoading] = useState(true);
@@ -69,7 +71,8 @@ const AdminSettings = () => {
         setSaving(true);
         try {
             // Save basic settings
-            const basicKeys = ['restaurant_name', 'restaurant_address', 'restaurant_phone', 'gst_number', 'fssai_number', 'gst_rate',
+            // Name, address and phone are edited on Brand & look
+            const basicKeys = ['gst_number', 'fssai_number', 'gst_rate',
                 'service_charge_pct', 'round_off', 'bill_footer', 'shift_tolerance'];
             for (const key of basicKeys) {
                 if (settings[key] !== undefined) {
@@ -115,23 +118,10 @@ const AdminSettings = () => {
                 {/* Restaurant Profile */}
                 <div className="settings-card">
                     <h2>Restaurant Profile</h2>
-                    <div className="form-group">
-                        <label>Restaurant Name</label>
-                        <input
-                            type="text"
-                            value={settings.restaurant_name || ''}
-                            onChange={(e) => handleBasicChange('restaurant_name', e.target.value)}
-                            placeholder={`e.g. ${brand.name}`}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Store Address</label>
-                        <textarea
-                            value={settings.restaurant_address || ''}
-                            onChange={(e) => handleBasicChange('restaurant_address', e.target.value)}
-                            placeholder="Full address for bills"
-                        />
-                    </div>
+                    <Link to="/admin/brand" className="brand-link-card">
+                        <span><b>{brand.name}</b><small>{settings.restaurant_address || 'No address yet'}{settings.restaurant_phone ? ` · ${settings.restaurant_phone}` : ''}</small></span>
+                        <span>Name, logo, address, phone and hours are on <b>Brand &amp; look</b> →</span>
+                    </Link>
                     <div className="form-group">
                         <label>FSSAI licence number (printed on bills)</label>
                         <input
@@ -173,15 +163,6 @@ const AdminSettings = () => {
                             onChange={(e) => handleBasicChange('shift_tolerance', Number(e.target.value))}
                         />
                         <small className="hint">A bigger difference needs a reason and alerts the owner.</small>
-                    </div>
-                    <div className="form-group">
-                        <label>Contact Phone</label>
-                        <input
-                            type="text"
-                            value={settings.restaurant_phone || '+91 '}
-                            onChange={(e) => handleBasicChange('restaurant_phone', e.target.value)}
-                            placeholder="+91 XXXXX XXXXX"
-                        />
                     </div>
                 </div>
 

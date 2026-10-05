@@ -1,9 +1,10 @@
 import React from 'react';
 import './OrderBill.css';
 import { FiCheck, FiX, FiFileText } from 'react-icons/fi';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 
 const OrderBill = ({ order, orders, onCancel }) => {
+    const brand = useBrand();
     // Determine the list of orders to display
     const ordersList = orders || (order ? [order] : []);
 

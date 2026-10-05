@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { PortalProvider } from './context/PortalContext';
+import { BrandProvider } from './context/BrandContext';
 import './components/cx/CustomerApp.css';
 import TableScan from './pages/TableScan';
 import PickupBoard from './pages/display/PickupBoard';
@@ -23,6 +24,7 @@ import AdminRewards from './admin/rewards/AdminRewards';
 import AdminClub from './admin/club/AdminClub';
 import AdminHelp from './admin/help/AdminHelp';
 import AdminMore from './admin/mobile/AdminMore';
+import AdminBrand from './admin/brand/AdminBrand';
 import AdminProfit from './admin/profit/AdminProfit';
 import BottomNav from './components/BottomNav';
 
@@ -170,6 +172,7 @@ function AppRoutes() {
         <Route path="club" element={<RequirePerm path="/admin/club"><AdminClub /></RequirePerm>} />
         <Route path="help" element={<AdminHelp />} />
         <Route path="more" element={<AdminMore />} />
+        <Route path="brand" element={<RequirePerm path="/admin/brand"><AdminBrand /></RequirePerm>} />
         <Route path="rewards" element={<RequirePerm path="/admin/rewards"><AdminRewards /></RequirePerm>} />
         <Route path="audit" element={<RequirePerm path="/admin/audit"><AdminAudit /></RequirePerm>} />
       </Route>
@@ -187,11 +190,13 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <BrandProvider>
         <CartProvider>
           <PortalProvider>
             <AppRoutes />
           </PortalProvider>
         </CartProvider>
+        </BrandProvider>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -518,6 +518,68 @@
         background: hsl(36 45% 17%);
     }
 
+    /* admin/brand/Brand.css */
+    .theme-dark .bl-field input,
+    .theme-dark .bl-field textarea {
+        border: 1.5px solid var(--d-line);
+    }
+
+    .theme-dark .bl-msg.ok {
+        background: hsl(137 45% 17%);
+        color: hsl(143 72% 72%);
+    }
+
+    .theme-dark .bl-msg.info {
+        background: hsl(212 45% 17%);
+        color: hsl(214 67% 72%);
+    }
+
+    .theme-dark .bl-msg.error {
+        background: hsl(8 45% 17%);
+        color: hsl(4 76% 72%);
+    }
+
+    .theme-dark .bl-screen {
+        background: hsl(37 45% 17%);
+        color: hsl(28 35% 72%);
+    }
+
+    .theme-dark .bl-st-top {
+        border-bottom: 1px solid var(--d-line);
+    }
+
+    .theme-dark .bl-name small {
+        color: hsl(35 26% 72%);
+    }
+
+    .theme-dark .bl-item {
+        background: var(--d-surface);
+        border: 1px solid var(--d-line);
+    }
+
+    .theme-dark .bl-foot {
+        border-top: 1px solid var(--d-line);
+        color: hsl(35 26% 72%);
+    }
+
+    .theme-dark .bl-foot b {
+        color: hsl(28 35% 72%);
+    }
+
+    .theme-dark .bl-st-card {
+        background: var(--d-surface);
+        border: 1px solid var(--d-line);
+    }
+
+    .theme-dark .bl-st-card small {
+        color: hsl(35 26% 72%);
+    }
+
+    .theme-dark .bl-bill {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
     /* admin/club/Club.css */
     .theme-dark .cb-tag {
         background: hsl(43 45% 17%);

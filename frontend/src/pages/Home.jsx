@@ -11,13 +11,14 @@ import { useCart } from '../context/CartContext';
 import Loader from '../components/Loader';
 import FloatingCartBtn from '../components/FloatingCartBtn';
 import './Home.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 import { usePortal } from '../context/PortalContext';
 import AnnouncementStrip from '../components/cx/AnnouncementStrip';
 import BannerCarousel from '../components/cx/BannerCarousel';
 import RewardBar from '../components/cx/RewardBar';
 
 const Home = () => {
+    const brand = useBrand();
     const { user, isAuthenticated } = useAuth();
     const { itemCount } = useCart();
     const navigate = useNavigate();

@@ -236,3 +236,9 @@
     border-top: 1px solid #000;
     padding-top: 4px;
 }
+/* Link to Brand & look (name, logo, address and phone moved there) */
+.brand-link-card { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1.5px dashed var(--accent-light, #ddd); text-decoration: none; color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 14px; }
+.brand-link-card b { color: var(--text-primary); }
+.brand-link-card span:first-child { display: flex; flex-direction: column; }
+.brand-link-card small { color: var(--text-muted); }
+.brand-link-card:hover { border-color: var(--primary); }

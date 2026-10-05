@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import './AdminLogin.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 
 // Staff sign in with phone + PIN (default); the owner can also use email + password.
 const AdminLogin = () => {
+    const brand = useBrand();
     const [mode, setMode] = useState('pin');
     const [phone, setPhone] = useState('');
     const [pin, setPin] = useState('');

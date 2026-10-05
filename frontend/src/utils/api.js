@@ -958,3 +958,8 @@ export const saGetSupportTickets = async (status = 'active') => ok(await rpc('sa
 export const getMyDayExtras = async () => ok(await rpc('my_day_extras'));
 export const tickDailyTask = async (id, done) => ok(await rpc('tick_daily_task', { p_id: id, p_done: done }));
 export const saveDailyTasks = async (tasks) => ok(await rpc('save_daily_tasks', { p: tasks }));
+
+// Brand & look: several settings in one save, and the cafe logo (shrunk, in images/brand/)
+export const saveSettingsBatch = async (values) =>
+    ok(unwrap(await supabase.from('settings').upsert(Object.entries(values).map(([key, value]) => ({ key, value }))).select('key')));
+export const uploadBrandLogo = async (file) => uploadImage(file, 'brand');

@@ -14,7 +14,7 @@ import './mobile/mobile.css';
 import './mobile/dark-auto.css';
 import './mobile/dark.css';
 import './AdminLayout.css';
-import brand from '../brand';
+import { useBrand } from '../context/BrandContext';
 
 // Menu language (English / हिन्दी / Hinglish), remembered on this device
 const readLang = () => {
@@ -28,6 +28,7 @@ const REFRESHABLE = ['/admin', '/admin/orders', '/admin/history', '/admin/kitche
 const MORE = { path: '/admin/more', icon: FiGrid, label: SHELL.more };
 
 const AdminLayout = () => {
+    const brand = useBrand();
     const { user, logout, socket, hasPerm } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
@@ -112,7 +113,7 @@ const AdminLayout = () => {
             {/* Sidebar */}
             <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
-                    <span className="sidebar-logo">🍽️</span>
+                    <span className="sidebar-logo">{brand.logoIsCustom ? <img src={brand.logo} alt="" /> : "🍽️"}</span>
                     <h2>{brand.name}</h2>
                     <button className="sidebar-close" onClick={() => setSidebarOpen(false)}>
                         <FiX />

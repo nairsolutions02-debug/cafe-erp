@@ -4,6 +4,37 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Brand & look, part 1: name, logo and details set by the owner (2026-10-05)
+
+First of three parts of the approved Brand & look plan (demo: "FiKA Brand Studio").
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Settings → Brand & look | New page (`/admin/brand`, Settings permission to change it). Cafe name, short line under the name, banner text on the customer app, logo upload, address, phone, email, opening days and hours, Instagram and Facebook links. A live preview shows the customer app, the staff app and the printed bill as you type. One **Save for the whole cafe**; **Undo changes** before saving. |
+| Logo | PNG / JPG / WebP, shrunk automatically and stored with the cafe's images. It appears in the customer app (header, sign-in, footer, table QR page), the staff sidebar on laptops and the pickup TV. Without an uploaded logo the app keeps the logo set in Vercel. |
+| Out of Vercel | These details used to come only from the Vercel settings (VITE_CAFE_*). They now come from the database; anything left empty still falls back to the Vercel value, so nothing changes until the owner saves. |
+| Cafe settings | Name, address and phone moved to Brand & look (Cafe settings shows them with a link). GSTIN, FSSAI, tax, service charge and bill footer stay in Cafe settings. |
+| Everywhere | Customer app, staff app, kiosk, pickup TV, table QR page, browser tab title and bills read the same values. Open screens update the next time they are opened or refreshed. |
+| Coming next | Part 2: colours (six ready-made sets or your own, with the readability check), corners and fonts. Part 3: customer app light / dark choice, logo on kiosk and printed bill, audit log entry. |
+
+**Deploy**
+
+1. Supabase → SQL Editor → **New query** → paste **`supabase/upgrades/2026-10-brand-identity.sql`** → Run → *Success*. Until it runs, saving works but the logo upload is refused.
+2. Vercel redeploys from `main` by itself. No new APK.
+3. Owner: Settings → **Brand & look** → check the name and details, upload the logo → Save.
+
+**Test checklist**
+- [ ] Brand & look: change the short line → the preview changes as you type → Save → green "Saved" message
+- [ ] Upload a square logo → preview shows it → Save → open the customer app on a phone: header and sign-in show the new logo and name
+- [ ] Laptop sidebar shows the logo; the browser tab shows the cafe name
+- [ ] Cafe settings shows name, address and phone with a link to Brand & look; GSTIN and FSSAI still save there
+- [ ] A cashier login can open Brand & look only if their role has Settings view, and cannot save
+- [ ] Clear the short line and save: the Vercel value comes back
+
+---
+
 ## Dark mode, step 3: every admin page (2026-10-04)
 
 **What's new**
