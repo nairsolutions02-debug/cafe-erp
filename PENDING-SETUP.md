@@ -1,4 +1,4 @@
-# Pending setup
+# Pending setup — ALL DONE (2026-10-05)
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -61,5 +61,5 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 11.2 Admin → Settings → **Brand & look** → check name, short line, address, phone and hours, upload the FiKA logo → Save
 
 ## 12. Brand & look, part 3 (2026-10-05)
-- [ ] 12.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-brand-audit.sql` → Run → Success
-- [ ] 12.2 (optional) Admin → Settings → **Brand & look** → **Customer app opens in** → keep "Customer's phone setting" or pick one → Save
+- [x] 12.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-brand-audit.sql` → Run → Success
+- [x] 12.2 (optional) Admin → Settings → **Brand & look** → **Customer app opens in** → keep "Customer's phone setting" or pick one → Save
