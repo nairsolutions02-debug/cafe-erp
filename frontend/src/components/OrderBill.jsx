@@ -79,6 +79,7 @@ const OrderBill = ({ order, orders, onCancel }) => {
         <div className="bill-modal-overlay" onClick={onCancel}>
             <div className="bill-container print-bill-overlay" onClick={e => e.stopPropagation()}>
                 <div className="bill-header">
+                    {brand.logoIsCustom && <img className="bill-logo" src={brand.logo} alt="" />}
                     <h2>{restaurant.name}</h2>
                     <p>{brand.tagline}</p>
                     <p>{restaurant.address}</p>

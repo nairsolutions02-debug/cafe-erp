@@ -88,3 +88,11 @@ test('a cashier cannot change the brand; only Settings people can upload a logo,
     assert.ok(bad.error);
     await service.storage.from('images').remove([`brand/${run}.png`]);
 });
+
+test('the audit log names brand changes in plain words', async () => {
+    await must(owner.from('settings').upsert({ key: 'brand_main', value: '#0F766E' }));
+    const log = await must(owner.from('audit_log').select('summary, actor_name').eq('entity', 'settings')
+        .order('at', { ascending: false }).limit(1).single());
+    assert.equal(log.summary, 'Brand & look: main colour');
+    assert.equal(log.actor_name, 'Owner');
+});

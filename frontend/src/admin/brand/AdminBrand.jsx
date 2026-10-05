@@ -3,7 +3,7 @@ import { FiUpload, FiSave, FiRotateCcw, FiTrash2 } from 'react-icons/fi';
 import { getSettings, saveSettingsBatch, uploadBrandLogo } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { BRAND_KEYS, THEME_KEYS, mergeBrand, brandChanged } from '../../lib/brandStore';
-import { DEFAULT_THEME, PRESETS, FONTS, CORNERS, isHex, contrast, readable, deeper, themeVars, loadFont, MIN_CONTRAST } from '../../lib/theme';
+import { DEFAULT_THEME, PRESETS, FONTS, CORNERS, CX_MODES, isHex, contrast, readable, deeper, themeVars, loadFont, MIN_CONTRAST } from '../../lib/theme';
 import defaults from '../../brand';
 import Skeleton from '../mobile/Skeleton';
 import './Brand.css';
@@ -24,7 +24,7 @@ const Logo = ({ brand, className }) => {
 
 // Live preview: the customer app, the staff app header and the printed bill with the values being typed
 const Preview = ({ brand, theme }) => (
-    <div className={`bl-preview bl-c-${theme.corners}`} aria-label="Preview" style={{ ...themeVars(theme), fontFamily: `'${theme.font}', sans-serif` }}>
+    <div className={`bl-preview bl-c-${theme.corners}${theme.cxMode === 'dark' ? ' bl-cx-dark' : ''}`} aria-label="Preview" style={{ ...themeVars(theme), fontFamily: `'${theme.font}', sans-serif` }}>
         <div className="bl-dev">
             <span className="bl-dev-label">Customer app</span>
             <div className="bl-phone"><div className="bl-screen">
@@ -78,13 +78,14 @@ const AdminBrand = () => {
             f.accent = isHex(str(r.data[THEME_KEYS.accent])) ? str(r.data[THEME_KEYS.accent]).toUpperCase() : DEFAULT_THEME.accent;
             f.corners = CORNERS.some(([k]) => k === r.data[THEME_KEYS.corners]) ? r.data[THEME_KEYS.corners] : DEFAULT_THEME.corners;
             f.font = FONTS.includes(r.data[THEME_KEYS.font]) ? r.data[THEME_KEYS.font] : DEFAULT_THEME.font;
+            f.cxMode = CX_MODES.some(([k]) => k === r.data[THEME_KEYS.cxMode]) ? r.data[THEME_KEYS.cxMode] : DEFAULT_THEME.cxMode;
             setForm(f); setSaved(f);
         }).catch(err => setMsg({ type: 'error', text: errorText(err) }));
     }, []);
 
     const brand = useMemo(() => mergeBrand(form && Object.fromEntries(Object.entries(BRAND_KEYS).map(([field, key]) => [key, form[field]]))), [form]);
     if (!form) return msg ? <p className="error-message">{msg.text}</p> : <Skeleton rows={3} />;
-    const theme = { main: isHex(form.main) ? form.main : DEFAULT_THEME.main, accent: isHex(form.accent) ? form.accent : DEFAULT_THEME.accent, corners: form.corners, font: form.font };
+    const theme = { main: isHex(form.main) ? form.main : DEFAULT_THEME.main, accent: isHex(form.accent) ? form.accent : DEFAULT_THEME.accent, corners: form.corners, font: form.font, cxMode: form.cxMode };
     const okColour = readable(theme.main);
     const ratio = contrast(theme.main, '#ffffff');
     const setTheme = (patch) => { setForm({ ...form, ...patch }); setMsg(null); if (patch.font) loadFont(patch.font); };
@@ -199,7 +200,13 @@ const AdminBrand = () => {
                                 ))}
                             </div>
                         </div>
-                        {canEdit && (theme.main !== DEFAULT_THEME.main || theme.accent !== DEFAULT_THEME.accent || theme.corners !== DEFAULT_THEME.corners || theme.font !== DEFAULT_THEME.font) && (
+                        <div className="bl-field">Customer app opens in
+                            <span className="bl-seg" role="group" aria-label="Customer app colours">
+                                {CX_MODES.map(([k, l]) => <button key={k} type="button" disabled={!canEdit} aria-pressed={theme.cxMode === k} onClick={() => setTheme({ cxMode: k })}>{l}</button>)}
+                            </span>
+                            <small className="bl-hint">Staff choose their own Light / Dark in More. The Kiosk always stays light.</small>
+                        </div>
+                        {canEdit && (theme.main !== DEFAULT_THEME.main || theme.accent !== DEFAULT_THEME.accent || theme.corners !== DEFAULT_THEME.corners || theme.font !== DEFAULT_THEME.font || theme.cxMode !== DEFAULT_THEME.cxMode) && (
                             <button type="button" className="btn btn-ghost bl-reset" onClick={() => setTheme({ ...DEFAULT_THEME })}>Reset colours and look to the FiKA default</button>
                         )}
                     </section>

@@ -1,0 +1,125 @@
+/* Customer app in dark (Settings → Brand & look → "Customer app opens in"). The class .cx-dark sits on <html>
+   only on customer screens; the staff app has its own .theme-dark. Generated colours are in cx-dark-auto.css;
+   these hand-written rules load after it. Screen only: printing is never dark. */
+@media screen {
+    html.cx-dark {
+        --d-bg: #15110D;
+        --d-surface: #1F1A15;
+        --d-surface-2: #2A231C;
+        --d-line: #3A3027;
+        --d-ink: #F5EBDD;
+        --d-ink-2: #CDBBA2;
+        --d-muted: #A8957B;
+        --bg-secondary: #15110D;
+        --bg-card: #1F1A15;
+        --text-primary: #F5EBDD;
+        --text-secondary: #CDBBA2;
+        --text-muted: #A8957B;
+        --text-light: #FFFAEF;
+        --primary-soft: color-mix(in srgb, var(--primary) 24%, #1F1A15);
+        color-scheme: dark;
+    }
+
+    html.cx-dark body {
+        background: #15110D;
+        color: #F5EBDD;
+    }
+
+    .cx-dark .input,
+    .cx-dark input:where(:not([type="checkbox"], [type="radio"], [type="range"], [type="color"])),
+    .cx-dark select,
+    .cx-dark textarea {
+        background: var(--d-surface-2);
+        border-color: var(--d-line);
+        color: var(--d-ink);
+    }
+
+    .cx-dark input::placeholder,
+    .cx-dark textarea::placeholder {
+        color: var(--d-muted);
+    }
+
+    .cx-dark .modal,
+    .cx-dark .card,
+    .cx-dark .toast {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
+    .cx-dark .btn-secondary {
+        background: transparent;
+        color: color-mix(in srgb, var(--primary) 62%, white);
+        border-color: color-mix(in srgb, var(--primary) 62%, white);
+    }
+
+    .cx-dark .btn-ghost {
+        color: color-mix(in srgb, var(--primary) 62%, white);
+    }
+
+    .cx-dark .btn-success {
+        background: #15803D;
+    }
+
+    /* Prices and links drawn in the brand colour need a lighter shade on dark */
+    .cx-dark :is(.price, .menu-card-price, .item-price, .cart-item-price, .text-primary, .view-all, .link-btn) {
+        color: color-mix(in srgb, var(--primary) 62%, white);
+    }
+
+    /* Header search sits on the coloured header: keep it see-through */
+    .cx-dark .animated-search-input,
+    .cx-dark .header-search input {
+        background: transparent;
+        border: 0;
+    }
+
+    .cx-dark .header-search:focus-within {
+        background: var(--d-surface);
+    }
+
+    /* Brand-tinted panels: a deep tint of the brand colour instead of a pale one */
+    .cx-dark .announce,
+    .cx-dark .item-sheet-badges span {
+        background: color-mix(in srgb, var(--primary) 22%, #1F1A15);
+        color: color-mix(in srgb, var(--primary) 60%, white);
+    }
+
+    .cx-dark .milestone-card,
+    .cx-dark .pickup-card {
+        background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 26%, #1F1A15), #1F1A15);
+    }
+
+    .cx-dark .reward-ring .ring-bg {
+        stroke: color-mix(in srgb, var(--primary) 25%, #1F1A15);
+    }
+
+    .cx-dark .hero-section {
+        background: linear-gradient(135deg, #15110D 0%, color-mix(in srgb, var(--primary) 18%, #15110D) 100%);
+    }
+
+    .cx-dark .loyalty-section {
+        background: linear-gradient(135deg, #2E2610 0%, #241E10 100%);
+        border-color: #6B5410;
+    }
+
+    /* Birthday boxes: deep pink to gold instead of pale */
+    .cx-dark :is(.cl-ask, .cl-gift, .my-gift) {
+        background: linear-gradient(135deg, #3E1A29, #3A2F14);
+        color: #F5EBDD;
+    }
+
+    .cx-dark .cl-ask p,
+    .cx-dark .cl-gift small {
+        color: #F3C6D8;
+    }
+
+    .cx-dark .cl-gift button {
+        background: #1F1A15;
+        color: #F07AA6;
+    }
+
+    .cx-dark .cl-dob select {
+        background: var(--d-surface-2);
+        border-color: var(--d-line);
+        color: var(--d-ink);
+    }
+}

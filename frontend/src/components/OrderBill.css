@@ -183,3 +183,12 @@
     background: #e0e0e0;
     color: #333;
 }
+/* Cafe logo (Settings → Brand & look), grey like a thermal print */
+.bill-logo {
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 6px;
+    object-fit: contain;
+    filter: grayscale(1);
+}

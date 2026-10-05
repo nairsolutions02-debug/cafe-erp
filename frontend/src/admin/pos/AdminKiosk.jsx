@@ -9,6 +9,7 @@ import { printBill } from '../../lib/print';
 import { SyncPill } from './AdminPOS';
 import { estimateTotal, inr } from './money';
 import './POS.css';
+import { useBrand } from '../../context/BrandContext';
 import './Kiosk.css';
 
 const TABS_KEY = 'kiosk-tabs-v1';
@@ -55,6 +56,7 @@ const NumPad = ({ item, onAdd, onClose }) => {
 // Quick kiosk: several customers at once (tabs), big tiles, Cash · UPI · Khata in one tap
 const AdminKiosk = () => {
     const { user } = useAuth();
+    const brand = useBrand();
     const { online } = useOutbox();
     const [items, setItems] = useState(() => cacheGet('kiosk-items') || []);
     const [tax, setTax] = useState(() => cacheGet('pos-catalogue'));
@@ -199,6 +201,11 @@ const AdminKiosk = () => {
 
     return (
         <div className="kiosk">
+            <div className="kiosk-brand">
+                <img src={brand.logo} alt="" onError={e => { e.currentTarget.style.display = 'none'; }} />
+                <b>{brand.name}</b>
+                {brand.tagline && <span>{brand.tagline}</span>}
+            </div>
             <div className="kiosk-tabs">
                 {tabs.map((t, i) => (
                     <button key={t.id} className={`ktab${i === active ? ' active' : ''}`} onClick={() => setActive(i)}>

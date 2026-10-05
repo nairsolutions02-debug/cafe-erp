@@ -5,6 +5,8 @@ import { CartProvider } from './context/CartContext';
 import { PortalProvider } from './context/PortalContext';
 import { BrandProvider } from './context/BrandContext';
 import './components/cx/CustomerApp.css';
+import './components/cx/cx-dark-auto.css';
+import './components/cx/cx-dark.css';
 import TableScan from './pages/TableScan';
 import PickupBoard from './pages/display/PickupBoard';
 

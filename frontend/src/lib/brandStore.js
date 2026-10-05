@@ -9,7 +9,7 @@ export const BRAND_KEYS = {
     instagram: 'brand_instagram', facebook: 'brand_facebook', hoursDays: 'brand_hours_days', hoursTime: 'brand_hours_time',
 };
 // Colours, corners and font (part 2). brand_main falls back to the older customer-app colour (portal_theme).
-export const THEME_KEYS = { main: 'brand_main', accent: 'brand_accent', corners: 'brand_corners', font: 'brand_font' };
+export const THEME_KEYS = { main: 'brand_main', accent: 'brand_accent', corners: 'brand_corners', font: 'brand_font', cxMode: 'brand_cx_mode' };
 const ALL_KEYS = [...Object.values(BRAND_KEYS), ...Object.values(THEME_KEYS), 'portal_theme'];
 const CACHE = 'brand-cache-v2';
 export const BRAND_EVENT = 'brandchanged';

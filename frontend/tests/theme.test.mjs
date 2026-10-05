@@ -18,6 +18,7 @@ test('pale colours are refused and the deeper shade passes', () => {
 test('saved values are cleaned: bad or pale colours, unknown fonts and corners fall back to the default', () => {
     assert.deepEqual(normaliseTheme({}), DEFAULT_THEME);
     assert.deepEqual(normaliseTheme({ main: '#f5d90a', accent: 'red', corners: 'wavy', font: 'Comic Sans' }), DEFAULT_THEME);
-    assert.deepEqual(normaliseTheme({ main: '#0f766e', accent: '#f59e0b', corners: 'round', font: 'Mukta' }),
-        { main: '#0F766E', accent: '#F59E0B', corners: 'round', font: 'Mukta' });
+    assert.deepEqual(normaliseTheme({ main: '#0f766e', accent: '#f59e0b', corners: 'round', font: 'Mukta', cxMode: 'dark' }),
+        { main: '#0F766E', accent: '#F59E0B', corners: 'round', font: 'Mukta', cxMode: 'dark' });
+    assert.equal(normaliseTheme({ cxMode: 'sepia' }).cxMode, 'auto');
 });

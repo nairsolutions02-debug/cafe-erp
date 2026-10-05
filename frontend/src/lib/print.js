@@ -1,3 +1,5 @@
+import { mergeBrand, readBrandCache } from './brandStore';
+
 // 80 mm thermal prints (kitchen ticket and bill) through the browser's print dialog.
 // Works with any printer installed on the computer, including USB thermal printers.
 
@@ -51,8 +53,13 @@ export function printBill(order) {
     const rows = (order.items || []).map(i => `<tr><td>${esc(i.name)}</td><td class="r">${esc(i.quantity)}</td><td class="r">${money(i.total)}</td></tr>`).join('');
     const taxes = (order.taxDetails || []).map(t => `<tr><td>${esc(t.name)} ${esc(t.rate)}%</td><td></td><td class="r">${money(t.amount)}</td></tr>`).join('');
     const pays = (order.payments || []).map(p => `<tr><td>Paid ${esc(String(p.method).toUpperCase())}</td><td></td><td class="r">${money(p.amount)}</td></tr>`).join('');
+    // The cafe logo (Settings → Brand & look), printed in grey; only an uploaded logo, never the standard one
+    const brand = mergeBrand(readBrandCache());
+    const logo = brand.logoIsCustom && /^https?:\/\//.test(brand.logo)
+        ? `<div class="c"><img src="${esc(brand.logo)}" alt="" style="width:80px;height:80px;object-fit:contain;filter:grayscale(1)"></div>` : '';
     const body = `
-      <h1>${esc(r.name)}</h1>
+      ${logo}
+      <h1>${esc(r.name || brand.name)}</h1>
       ${r.address ? `<div class="c">${esc(r.address)}</div>` : ''}
       ${r.phone ? `<div class="c">Ph: ${esc(r.phone)}</div>` : ''}
       ${r.gstNumber ? `<div class="c">GSTIN: ${esc(r.gstNumber)}</div>` : ''}

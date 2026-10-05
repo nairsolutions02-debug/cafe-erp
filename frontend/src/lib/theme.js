@@ -1,7 +1,7 @@
 // Turns the cafe's brand choices (Settings → Brand & look) into the app's look: colour variables,
 // the body font and the corner style. Status colours (late, cooking, ready, paid) are never changed.
 
-export const DEFAULT_THEME = { main: '#C87316', accent: '#A8A06D', corners: 'soft', font: 'Poppins' };
+export const DEFAULT_THEME = { main: '#C87316', accent: '#A8A06D', corners: 'soft', font: 'Poppins', cxMode: 'auto' };
 
 export const PRESETS = [
     { key: 'fika', name: 'FiKA orange', main: '#C87316', accent: '#A8A06D' },
@@ -15,6 +15,8 @@ export const PRESETS = [
 // All four read Hindi (Devanagari) well
 export const FONTS = ['Poppins', 'Mukta', 'Baloo 2', 'Hind'];
 export const CORNERS = [['round', 'Round'], ['soft', 'Soft'], ['square', 'Square']];
+// How the customer app opens: by the customer's phone setting, always light or always dark
+export const CX_MODES = [['auto', "Customer's phone setting"], ['light', 'Always light'], ['dark', 'Always dark']];
 
 const HEX = /^#[0-9a-f]{6}$/i;
 export const isHex = (v) => HEX.test(v || '');
@@ -40,6 +42,7 @@ export const normaliseTheme = (t = {}) => ({
     accent: isHex(t.accent) ? t.accent.toUpperCase() : DEFAULT_THEME.accent,
     corners: CORNERS.some(([k]) => k === t.corners) ? t.corners : DEFAULT_THEME.corners,
     font: FONTS.includes(t.font) ? t.font : DEFAULT_THEME.font,
+    cxMode: CX_MODES.some(([k]) => k === t.cxMode) ? t.cxMode : DEFAULT_THEME.cxMode,
 });
 
 // The CSS variables for a theme (also used on the Brand & look preview before saving)
