@@ -261,7 +261,7 @@ const AdminEmployees = () => {
                                 maxDate={new Date()}
                             />
                             <div className="attendance-info">
-                                <p>Selected: {selectedDate.toLocaleDateString()}</p>
+                                <p>Selected: {selectedDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                                 <p>Status: {getAttendanceForDate(selectedDate)?.status || 'Not marked'}</p>
                             </div>
                             <div className="attendance-actions">

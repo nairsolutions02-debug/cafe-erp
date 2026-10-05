@@ -597,3 +597,13 @@
     object-fit: cover;
     display: block;
 }
+
+/* Pages a person can see but not change (admin/ViewOnlyNote.jsx) */
+.view-only-note { display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 10px 12px; border-radius: 10px; background: var(--bg-secondary); color: var(--text-secondary); font-size: .9rem; }
+.theme-dark .view-only-note { background: #2A231C; color: #CDBBA2; }
+
+/* Setup gaps that stop a feature from working (cafe location, unlinked logins) */
+.setup-warn { margin: 0 0 16px; padding: 10px 14px; border-radius: 10px; background: #FEF3C7; color: #78350F; font-size: .92rem; line-height: 1.45; }
+.setup-warn a { color: inherit; font-weight: 700; }
+.theme-dark .setup-warn { background: #3D2A12; color: #F6B867; }
+.setup-nudge { display: block; text-decoration: none; }

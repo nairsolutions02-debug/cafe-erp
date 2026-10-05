@@ -1,6 +1,6 @@
 // This device's short code (C1, K1, D1…) used in offline order numbers, and a local
 // copy of data the counter needs when the internet drops.
-import { registerDevice } from '../utils/api';
+import { registerDevice, touchDevice } from '../utils/api';
 
 const DEVICE_KEY = 'cafe-device-v1';
 const SEQ_KEY = 'cafe-order-seq-v1';
@@ -16,8 +16,23 @@ export const getDevice = (kind) => {
 
 const inFlight = {};
 
-export async function ensureDevice(kind, name) {
+// The saved code, after telling the server this device is in use. A device the owner turned off
+// (Settings → Devices) is forgotten here, so it has to be set up again. Offline keeps the saved code.
+export async function confirmDevice(kind) {
     const existing = getDevice(kind);
+    if (!existing) return null;
+    try {
+        const r = (await touchDevice(existing.code)).data;
+        if (r && r.ok === false) {
+            forgetDevice(kind);
+            return null;
+        }
+    } catch { /* offline or blocked: keep using the saved code */ }
+    return existing;
+}
+
+export async function ensureDevice(kind, name) {
+    const existing = await confirmDevice(kind);
     if (existing) return existing;
     if (!inFlight[kind]) inFlight[kind] = registerDevice(kind, name).finally(() => { delete inFlight[kind]; });
     const res = await inFlight[kind];

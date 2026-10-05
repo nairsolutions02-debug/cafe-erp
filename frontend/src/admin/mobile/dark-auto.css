@@ -252,6 +252,11 @@
         }
     }
 
+    .theme-dark .setup-warn {
+        background: hsl(48 45% 17%);
+        color: hsl(22 78% 72%);
+    }
+
     /* admin/AdminLogin.css */
     .theme-dark .admin-login-card {
         background: var(--d-surface);
@@ -1116,6 +1121,11 @@
         }
     }
 
+    .theme-dark .sound-chip {
+        background: hsl(48 45% 17%);
+        color: hsl(22 78% 72%);
+    }
+
     /* admin/pos/PickupScreen.css */
     .theme-dark .pk-count {
         background: hsl(48 45% 17%);
@@ -1168,6 +1178,11 @@
 
     .theme-dark .row-warn td {
         background: hsl(41 45% 17%);
+    }
+
+    /* admin/setup/Setup.css */
+    .theme-dark .setup-ic.ok {
+        color: hsl(142 72% 72%);
     }
 
     /* admin/staffapp/StaffApp.css */

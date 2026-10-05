@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FiMaximize, FiPrinter, FiVolume2, FiMoon, FiSun } from 'react-icons/fi';
+import { FiMaximize, FiMinimize, FiPrinter, FiVolume2, FiMoon, FiSun } from 'react-icons/fi';
 import { getKitchenOrders, setKitchenStatus } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { printKot } from '../../lib/print';
 import useMenuLang, { tableToken } from '../mobile/useMenuLang';
 import { W } from '../mobile/staffText';
 import { readKdsTheme, setKdsTheme, onThemeChange } from '../mobile/useAdminTheme';
+import { playTones } from '../../lib/sound';
 import './POS.css';
 
 const NEXT = { queued: 'preparing', preparing: 'ready', ready: 'queued' };
+const OLD_MINUTES = 360;
 const minutes = (iso) => Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
 const LABEL = { queued: 'waiting', preparing: 'cooking', ready: 'ready' };
 const STATION_SHORT = { hot: 'Hot', bar: 'Bar', cold: 'Cold' };
@@ -37,14 +39,7 @@ const AdminKitchen = () => {
     const beep = useCallback(() => {
         if (!sound) return;
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            [0, 0.25, 0.5].forEach(t => {
-                const o = ctx.createOscillator();
-                o.frequency.value = 880;
-                o.connect(ctx.destination);
-                o.start(ctx.currentTime + t);
-                o.stop(ctx.currentTime + t + 0.15);
-            });
+            playTones([[0, 880], [0.25, 880], [0.5, 880]], 0.15, 0.5);
         } catch { /* audio blocked until the first tap */ }
     }, [sound]);
 
@@ -80,14 +75,33 @@ const AdminKitchen = () => {
     };
 
     const age = (o) => minutes(o.createdAt);
+    // Full screen on the kitchen hides the side menu and header, for a TV or tablet on the wall
+    const [display, setDisplay] = useState(() => !!document.fullscreenElement);
+    useEffect(() => {
+        const onChange = () => setDisplay(!!document.fullscreenElement);
+        document.addEventListener('fullscreenchange', onChange);
+        return () => document.removeEventListener('fullscreenchange', onChange);
+    }, []);
+    useEffect(() => {
+        document.documentElement.classList.toggle('kds-display', display);
+        return () => document.documentElement.classList.remove('kds-display');
+    }, [display]);
+    const toggleFull = () => (document.fullscreenElement ? document.exitFullscreen?.() : document.documentElement.requestFullscreen?.())?.catch?.(() => {});
     const ageCls = (m) => (m >= 15 ? 'late' : m >= 8 ? 'warn' : '');
     const open = (i) => i.status !== 'served';
     const inStation = (i, st) => st === 'all' || (i.station || 'hot') === st;
     const used = ['hot', 'bar', 'cold'].map(k => [k, t(W[k])]).filter(([k]) => orders.some(o => o.items.some(i => open(i) && inStation(i, k))));
     const view = used.some(([k]) => k === station) ? station : 'all';
-    const tickets = orders
+    const all = orders
         .map(o => ({ o, items: o.items.filter(i => open(i) && inStation(i, view)) }))
         .filter(t => t.items.length > 0);
+    // Tickets older than 6 hours were almost always served without a tap: keep them out of the way
+    const tickets = all.filter(({ o }) => age(o) < OLD_MINUTES);
+    const earlier = all.filter(({ o }) => age(o) >= OLD_MINUTES);
+    const clearEarlier = async () => {
+        if (!window.confirm(`${earlier.length} old tickets: mark them as served? Payments are not changed.`)) return;
+        for (const { o } of earlier) await set(o.id, null, 'served');
+    };
     const pick = (k) => { setStation(k); try { localStorage.setItem('kds-station', k); } catch { /* private mode */ } };
     const allReadyAt = async (o, items) => {
         if (view === 'all') return set(o.id, null, 'ready');
@@ -104,12 +118,12 @@ const AdminKitchen = () => {
                     onClick={() => { setSound(!sound); localStorage.setItem('kds-sound', sound ? '0' : '1'); }}><FiVolume2 /> <span>{t(sound ? W.soundOn : W.soundOff)}</span></button>
                 <button type="button" className="kds-icon" onClick={nextTheme} aria-label={`${t(W.themeLabel)}: ${t(W[`theme${theme[0].toUpperCase()}${theme.slice(1)}`])}`}
                     title={t(W.themeLabel)}>{theme === 'light' ? <FiSun /> : <FiMoon />} <span>{t(W[`theme${theme[0].toUpperCase()}${theme.slice(1)}`])}</span></button>
-                <button type="button" className="kds-icon kds-full" onClick={() => document.documentElement.requestFullscreen?.()}><FiMaximize /> <span>{t(W.fullScreen)}</span></button>
+                <button type="button" className="kds-icon kds-full" onClick={toggleFull}>{display ? <FiMinimize /> : <FiMaximize />} <span>{t(display ? W.exitFull : W.fullScreen)}</span></button>
             </div>
             {used.length > 1 && (
                 <div className="kds-chips" role="group" aria-label="Station">
                     {[['all', t(W.all)], ...used].map(([k, l]) => {
-                        const n = orders.filter(o => o.items.some(i => open(i) && i.status !== 'ready' && inStation(i, k))).length;
+                        const n = orders.filter(o => age(o) < OLD_MINUTES && o.items.some(i => open(i) && i.status !== 'ready' && inStation(i, k))).length;
                         return <button key={k} type="button" aria-pressed={view === k} onClick={() => pick(k)}>{l}<span>{n}</span></button>;
                     })}
                 </div>
@@ -155,6 +169,21 @@ const AdminKitchen = () => {
                 })}
                 {tickets.length === 0 && <p className="kds-empty">{t(view === 'all' ? W.kitchenEmpty : W.stationEmpty)}</p>}
             </div>
+            {earlier.length > 0 && (
+                <details className="kds-earlier">
+                    <summary>{t(W.earlier)} ({earlier.length}) · {t(W.earlierHint)}</summary>
+                    <ul>
+                        {earlier.map(({ o, items }) => (
+                            <li key={o.id}>
+                                <b>{o.tableNumber ? `${t(W.table)} ${o.tableNumber}` : o.tokenNumber || o.orderNumber}</b>
+                                <span>{items.map(i => `${i.quantity}× ${i.name}`).join(', ')}</span>
+                                <small>{Math.round(age(o) / 60)}h</small>
+                            </li>
+                        ))}
+                    </ul>
+                    {canEdit && <button type="button" className="btn btn-secondary" onClick={clearEarlier}>{t(W.clearEarlier)}</button>}
+                </details>
+            )}
         </div>
     );
 };

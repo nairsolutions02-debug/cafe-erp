@@ -1,6 +1,8 @@
+import { createPortal } from 'react-dom';
+import { playTones, soundReady, unlockSound, onSoundReady } from '../lib/sound';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiBell } from 'react-icons/fi';
+import { FiBell, FiVolumeX } from 'react-icons/fi';
 import { getMyNotifications, ackNotification, runDailyReminders, getMyNotificationPrefs, runRewardChecks } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './pos/POS.css';
@@ -15,7 +17,6 @@ const ago = (iso) => {
 
 // A looping alarm tone made in the browser (no sound file needed)
 function useAlarmTone() {
-    const ctx = useRef(null);
     const timer = useRef(null);
     const stop = useCallback(() => {
         clearInterval(timer.current);
@@ -24,27 +25,26 @@ function useAlarmTone() {
     const start = useCallback(() => {
         if (timer.current) return;
         const ring = () => {
-            try {
-                ctx.current = ctx.current || new (window.AudioContext || window.webkitAudioContext)();
-                const c = ctx.current;
-                [0, 0.2, 0.4].forEach((t, i) => {
-                    const o = c.createOscillator();
-                    const g = c.createGain();
-                    o.frequency.value = i % 2 ? 660 : 990;
-                    g.gain.value = 0.3;
-                    o.connect(g);
-                    g.connect(c.destination);
-                    o.start(c.currentTime + t);
-                    o.stop(c.currentTime + t + 0.16);
-                });
-                navigator.vibrate?.([300, 100, 300]);
-            } catch { /* audio is blocked until someone taps the page */ }
+            playTones([[0, 990], [0.2, 660], [0.4, 990]]);
+            if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.([300, 100, 300]);
         };
         ring();
         timer.current = setInterval(ring, 1500);
     }, []);
     useEffect(() => stop, [stop]);
     return useMemo(() => ({ start, stop }), [start, stop]);
+}
+
+// Until someone taps the page the browser keeps alarms silent: say so, one tap fixes it
+function SoundChip() {
+    const [ready, setReady] = useState(soundReady);
+    useEffect(() => onSoundReady(() => setReady(soundReady())), []);
+    if (ready) return null;
+    return (
+        <button type="button" className="sound-chip" onClick={unlockSound} title="The browser keeps alarm sound off until the screen is tapped once">
+            <FiVolumeX /> <span>Tap for alarm sound</span>
+        </button>
+    );
 }
 
 // Bell with recent alerts; alarm-level alerts (payment requested, staff left…) take over the screen
@@ -140,6 +140,7 @@ const Notifications = () => {
 
     return (
         <div className="bell">
+            <SoundChip />
             <button className="bell-btn" aria-label={`Alerts${unread ? ` (${unread} new)` : ''}`} onClick={() => setOpen(o => !o)}>
                 <FiBell />{unread > 0 && <span className="bell-count">{unread}</span>}
             </button>
@@ -155,7 +156,8 @@ const Notifications = () => {
                     ))}
                 </div>
             )}
-            {alarm && (
+            {/* Drawn on <body> so it covers the whole screen, side menu included, even in full screen */}
+            {alarm && createPortal(
                 <div className="alarm-overlay" role="alertdialog" aria-label={alarm.title}>
                     <FiBell size={64} />
                     <h2>{alarm.title}</h2>
@@ -164,7 +166,8 @@ const Notifications = () => {
                     <div className="alarm-snooze">
                         {[5, 10, 15].map(m => <button key={m} onClick={() => snooze(m)}>Snooze {m} min</button>)}
                     </div>
-                </div>
+                </div>,
+                document.body,
             )}
         </div>
     );

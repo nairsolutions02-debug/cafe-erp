@@ -187,7 +187,7 @@ const AdminLayout = () => {
                         <FiMenu />
                     </button>
                     <div className="ah-title">
-                        <small>{user?.tenant?.name || brand.name}</small>
+                        <small>{brand.name || user?.tenant?.name}</small>
                         <b>{pageTitle}</b>
                     </div>
                     <GlobalSearch />

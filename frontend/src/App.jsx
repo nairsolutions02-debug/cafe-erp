@@ -27,6 +27,7 @@ import AdminClub from './admin/club/AdminClub';
 import AdminHelp from './admin/help/AdminHelp';
 import AdminMore from './admin/mobile/AdminMore';
 import AdminBrand from './admin/brand/AdminBrand';
+import AdminSetup from './admin/setup/AdminSetup';
 import AdminProfit from './admin/profit/AdminProfit';
 import BottomNav from './components/BottomNav';
 
@@ -175,6 +176,7 @@ function AppRoutes() {
         <Route path="help" element={<AdminHelp />} />
         <Route path="more" element={<AdminMore />} />
         <Route path="brand" element={<RequirePerm path="/admin/brand"><AdminBrand /></RequirePerm>} />
+        <Route path="setup" element={<RequirePerm path="/admin/setup"><AdminSetup /></RequirePerm>} />
         <Route path="rewards" element={<RequirePerm path="/admin/rewards"><AdminRewards /></RequirePerm>} />
         <Route path="audit" element={<RequirePerm path="/admin/audit"><AdminAudit /></RequirePerm>} />
       </Route>

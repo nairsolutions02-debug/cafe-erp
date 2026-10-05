@@ -12,9 +12,15 @@ import {
 } from '../utils/api';
 import { getImageUrl } from '../utils/config';
 import Skeleton from './mobile/Skeleton';
+import { useAuth } from '../context/AuthContext';
+import ViewOnlyNote from './ViewOnlyNote';
 import './AdminCollections.css';
 
 const AdminCollections = () => {
+    const { hasPerm } = useAuth();
+    const canCreate = hasPerm('collections.create');
+    const canEdit = hasPerm('collections.edit');
+    const canDelete = hasPerm('collections.delete');
     const [collections, setCollections] = useState([]);
     const [menuItems, setMenuItems] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -182,10 +188,13 @@ const AdminCollections = () => {
                     <h1>Homepage Sections</h1>
                     <p>Create and manage custom sections for your homepage</p>
                 </div>
-                <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                    <FiPlus /> New Section
-                </button>
+                {canCreate && (
+                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                        <FiPlus /> New Section
+                    </button>
+                )}
             </div>
+            {!canCreate && !canEdit && !canDelete && <ViewOnlyNote what="change the homepage sections" />}
 
             <div className="collections-grid">
                 {collections.map(collection => (
@@ -226,8 +235,9 @@ const AdminCollections = () => {
                             )}
                         </div>
 
+                        {(canEdit || canDelete) && (
                         <div className="collection-actions">
-                            <button
+                            {canEdit && <><button
                                 className="action-btn"
                                 onClick={() => openProductModal(collection)}
                                 title="Manage Products"
@@ -247,15 +257,16 @@ const AdminCollections = () => {
                                 title="Edit"
                             >
                                 <FiEdit2 />
-                            </button>
-                            <button
+                            </button></>}
+                            {canDelete && <button
                                 className="action-btn danger"
                                 onClick={() => handleDelete(collection._id)}
                                 title="Delete"
                             >
                                 <FiTrash2 />
-                            </button>
+                            </button>}
                         </div>
+                        )}
                     </div>
                 ))}
             </div>
@@ -265,9 +276,11 @@ const AdminCollections = () => {
                     <FiPackage size={48} />
                     <h3>No Sections Yet</h3>
                     <p>Create your first homepage section to showcase your products</p>
-                    <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-                        <FiPlus /> Create Section
-                    </button>
+                    {canCreate && (
+                        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+                            <FiPlus /> Create Section
+                        </button>
+                    )}
                 </div>
             )}
 

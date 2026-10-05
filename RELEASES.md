@@ -4,6 +4,60 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Fix pack: everything found in the full test run (2026-10-05)
+
+The app was tested as Owner, Manager, Cashier, Chef, Waiter, Accountant and Kiosk operator, on laptop and phone,
+plus real flows (QR order → full-screen alarm, counter sale, shift open/close, check-in). This release fixes all of it.
+
+**Bugs fixed**
+
+| Area | Before | Now |
+| --- | --- | --- |
+| Sales trends | Page hit an error while loading; the saved profit margin was ignored (always ~30%) | Saved margin is used; only people who can edit settings see the margin gear; save errors are shown |
+| View-only staff | Cashiers saw Add / Edit / Delete on Coupons, Homepage sections and Loyalty; Delete said "Coupon deleted" but nothing was deleted | Buttons hidden without the right permission, with a short "You can look" note. Any blocked delete or save now says so plainly everywhere in the app |
+| Payroll | A Manager without "See salaries" saw a raw error | The Payroll tab is hidden for them with a note; Leave, Advances and Incentives still work |
+| Full-screen alarm | The side menu stayed on top of the red alarm | Alarm covers the whole screen, side menu included, also in full screen |
+| Alarm sound | Browsers keep sound off until the screen is tapped once; the app set up its sound before that tap, so alarms could stay silent until the page was reloaded | Sound switches on at the first tap anywhere. Until then a yellow **Tap for alarm sound** button shows next to the bell. Kitchen beeps use the same sound |
+| Phone header | Showed the old account name ("Cafe ERP") | Shows the cafe name from Brand & look |
+| Dates | US style (10/5/2026) on coupons, the customer order page and bills | Indian style (5 Oct 2026, 6:19 pm) |
+| Coupons | Expired coupons still said "Active" | Say "Expired" |
+| FiKA Club | Part of the page failed for roles without "View rewards" | Loads cleanly for them |
+| Devices | "Last used" was never recorded and a turned-off device kept working | Recorded every time; a turned-off device has to be set up again |
+
+**Improvements**
+
+| Area | Change |
+| --- | --- |
+| Kiosk slots | Opening the Kiosk page on a new phone or laptop no longer takes a kiosk slot by itself. It asks **"Use this screen as a kiosk?"** first. If the plan limit is reached, it says how to free a slot |
+| Settings → Devices | New card listing every counter, kiosk and kitchen screen (C1, K1…), when each was last used, and **Turn off / Turn on**. Shows kiosk slots in use (e.g. 3 of 5) |
+| Staff ↔ employee | A new staff login is linked to the employee with the same phone, or gets an employee record (salary 0, to fill in), so check-in works straight away. Owners are left out |
+| Setup checklist | New page **Settings → Setup checklist**: cafe name and logo, bill details, GST/FSSAI, menu, tables, staff, staff linked to employees (one tap **Link them now**), cafe location, first shift, phone alerts. The Dashboard shows "Setup: N steps left" until the main steps are done |
+| Attendance | Warning at the top when the cafe location is not set (check-in cannot confirm staff are at the cafe) |
+| Kitchen | **Full screen** now hides the side menu and header: tickets only, for a TV or tablet. Tickets older than 6 hours move to a folded **From earlier** group with **Mark these as served** (payments unchanged) |
+| Staff logins on a phone | One card per person instead of a cramped table |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack.sql` → Run → Success.
+2. Vercel redeploys from `main` by itself. No new APK.
+3. Owner: open **Settings → Setup checklist** and finish the steps it shows (tap **Link them now** if staff are listed as not linked; set the cafe location in Attendance).
+4. Owner: **Settings → Cafe settings → Devices**: turn off old test kiosks / counters you no longer use.
+
+**Test checklist**
+- [ ] Cashier login → Customers → Coupons: no Add / Edit / Delete, a "You can look" note; expired coupons say Expired; dates read like "5 Oct 2026"
+- [ ] Manager login → Team → Payroll: no error; Leave, Advances & penalties and Incentives tabs open
+- [ ] Owner → Money → Sales trends: no error; gear → change margin → Save → refresh: the new margin stays
+- [ ] Settings → Setup checklist: ticks match reality; **Link them now** links staff; Dashboard shows the steps left
+- [ ] Team → Staff logins → Add staff → the new person appears in Team → Employees and can check in from My day
+- [ ] Open Sell → Kiosk on a new phone: it asks "Use this screen as a kiosk?" instead of taking a slot
+- [ ] Settings → Cafe settings → Devices: list shows codes and "Used today"; Turn off an old kiosk → the slot count drops
+- [ ] Kitchen → Full screen: only tickets, no side menu; old tickets under "From earlier"; Exit full screen brings the menu back
+- [ ] Open the app fresh on the counter laptop: a yellow "Tap for alarm sound" button shows by the bell; tap anywhere and it goes away
+- [ ] Customer orders from a table QR while the laptop Kitchen is in full screen: the red alarm covers the whole screen; Acknowledge clears it
+- [ ] Attendance with no cafe location: the yellow warning shows; set the location → Save → it goes away
+
+---
+
 ## Light / dark button on every staff screen (2026-10-05)
 
 **What's new**

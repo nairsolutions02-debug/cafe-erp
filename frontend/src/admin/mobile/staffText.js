@@ -56,6 +56,10 @@ export const W = {
     themeLight: T('Light', 'लाइट', 'Light'),
     themeLabel: T('Screen colours: tap to change', 'स्क्रीन के रंग: बदलने के लिए दबाएँ', 'Screen ke rang: badalne ke liye dabao'),
     fullScreen: T('Full screen', 'पूरी स्क्रीन', 'Full screen'),
+    exitFull: T('Exit full screen', 'पूरी स्क्रीन बंद', 'Full screen band'),
+    earlier: T('From earlier', 'पहले के', 'Pehle ke'),
+    earlierHint: T('more than 6 hours old, probably already served', '6 घंटे से पुराने, शायद परोसे जा चुके', '6 ghante se purane, shayad serve ho chuke'),
+    clearEarlier: T('Mark these as served', 'इन्हें परोसा हुआ करें', 'Inhe served karo'),
     kitchenEmpty: T('No orders in the kitchen. New orders appear here with a sound.', 'किचन में कोई ऑर्डर नहीं। नए ऑर्डर आवाज़ के साथ यहाँ आएँगे।', 'Kitchen mein koi order nahi. Naye order sound ke saath yahan aayenge.'),
     stationEmpty: T('No orders for this station.', 'इस स्टेशन के लिए कोई ऑर्डर नहीं।', 'Is station ke liye koi order nahi.'),
 };

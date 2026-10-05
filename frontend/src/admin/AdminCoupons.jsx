@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { getAllCoupons, createCoupon, updateCoupon, deleteCoupon } from '../utils/api';
+import { useAuth } from '../context/AuthContext';
+import ViewOnlyNote from './ViewOnlyNote';
 import './AdminCoupons.css';
 
 const AdminCoupons = () => {
+    const { hasPerm } = useAuth();
+    const canCreate = hasPerm('coupons.create');
+    const canEdit = hasPerm('coupons.edit');
+    const canDelete = hasPerm('coupons.delete');
     const [coupons, setCoupons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -49,7 +55,7 @@ const AdminCoupons = () => {
                 await deleteCoupon(id);
                 fetchData();
             } catch (error) {
-                alert('Failed to delete');
+                alert(error.response?.data?.message || error.message || 'Failed to delete');
             }
         }
     };
@@ -81,24 +87,32 @@ const AdminCoupons = () => {
         <div className="admin-coupons">
             <div className="page-header">
                 <h1>Coupons & Offers</h1>
-                <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                    <FiPlus /> Add Coupon
-                </button>
+                {canCreate && (
+                    <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
+                        <FiPlus /> Add Coupon
+                    </button>
+                )}
             </div>
+            {!canCreate && !canEdit && !canDelete && <ViewOnlyNote what="add or change coupons" />}
 
             <div className="coupons-grid">
-                {coupons.map(coupon => (
-                    <div key={coupon._id} className={`coupon-card ${!coupon.isActive ? 'inactive' : ''}`}>
+                {coupons.map(coupon => {
+                    const expired = coupon.validUntil && new Date(coupon.validUntil) < new Date();
+                    const live = coupon.isActive && !expired;
+                    return (
+                    <div key={coupon._id} className={`coupon-card ${!live ? 'inactive' : ''}`}>
                         <div className="coupon-header">
                             <span className="coupon-code">{coupon.code}</span>
                             <div className="coupon-header-right">
-                                <span className={`coupon-status ${coupon.isActive ? 'active' : 'inactive'}`}>
-                                    {coupon.isActive ? 'Active' : 'Inactive'}
+                                <span className={`coupon-status ${live ? 'active' : 'inactive'}`}>
+                                    {expired ? 'Expired' : coupon.isActive ? 'Active' : 'Inactive'}
                                 </span>
-                                <div className="coupon-actions">
-                                    <button onClick={() => openEdit(coupon)} className="icon-btn edit"><FiEdit2 /></button>
-                                    <button onClick={() => handleDelete(coupon._id)} className="icon-btn delete"><FiTrash2 /></button>
-                                </div>
+                                {(canEdit || canDelete) && (
+                                    <div className="coupon-actions">
+                                        {canEdit && <button onClick={() => openEdit(coupon)} className="icon-btn edit" aria-label={`Edit ${coupon.code}`}><FiEdit2 /></button>}
+                                        {canDelete && <button onClick={() => handleDelete(coupon._id)} className="icon-btn delete" aria-label={`Delete ${coupon.code}`}><FiTrash2 /></button>}
+                                    </div>
+                                )}
                             </div>
                         </div>
                         <p className="coupon-desc">{coupon.description || 'No description'}</p>
@@ -110,10 +124,11 @@ const AdminCoupons = () => {
                             <span>Used: {coupon.usedCount}/{coupon.usageLimit === -1 ? '∞' : coupon.usageLimit}</span>
                         </div>
                         <div className="coupon-validity">
-                            Valid: {new Date(coupon.validFrom).toLocaleDateString()} - {new Date(coupon.validUntil).toLocaleDateString()}
+                            Valid: {new Date(coupon.validFrom).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })} - {new Date(coupon.validUntil).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </div>
                     </div>
-                ))}
+                    );
+                })}
             </div>
 
             {showModal && (

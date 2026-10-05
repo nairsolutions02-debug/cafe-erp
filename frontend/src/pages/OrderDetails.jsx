@@ -284,7 +284,7 @@ const OrderDetails = () => {
                 )}
                 <div className="info-row">
                     <span>Order Time</span>
-                    <span>{new Date(order.createdAt).toLocaleString()}</span>
+                    <span>{new Date(order.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 {order.paymentMethod !== 'pending' && (
                     <div className="info-row">

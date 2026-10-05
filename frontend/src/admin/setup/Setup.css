@@ -1,0 +1,15 @@
+.setup-bar { height: 8px; border-radius: 99px; background: var(--bg-secondary); overflow: hidden; margin: 0 0 16px; }
+.setup-bar i { display: block; height: 100%; background: var(--primary); border-radius: inherit; }
+.setup-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.setup-list li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 12px; padding: 14px; background: var(--bg-card, #fff); border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .06); }
+.setup-list li p { margin: 2px 0 0; color: var(--text-secondary); font-size: .9rem; line-height: 1.4; }
+.setup-list li small { font-weight: 400; color: var(--text-secondary); }
+.setup-list li.done b { color: var(--text-secondary); }
+.setup-ic { font-size: 1.4rem; color: var(--text-secondary); }
+.setup-ic.ok { color: #15803D; }
+@media (max-width: 600px) {
+    .setup-list li { grid-template-columns: 28px 1fr; }
+    .setup-list li .btn { grid-column: 2; justify-self: start; }
+}
+.theme-dark .setup-list li { background: #1F1A15; box-shadow: none; }
+.theme-dark .setup-ic.ok { color: #4ADE80; }

@@ -271,7 +271,7 @@ const AdminStaff = () => {
         setError('');
         try {
             await createStaff(form);
-            alert(`Added ${form.name}. Their login: mobile ${form.phone}, PIN ${form.pin}. Share the PIN privately.`);
+            alert(`Added ${form.name}. Their login: mobile ${form.phone}, PIN ${form.pin}. Share the PIN privately.\n\nThey are also listed under Team → Employees (for attendance and pay): add their salary there.`);
             setForm({ name: '', phone: '', roleId: '', pin: randomPin() });
             setShowAdd(false);
             await reload();
@@ -331,7 +331,7 @@ const AdminStaff = () => {
 
             {tab === 'staff' ? (
                 <div className="table-scroll">
-                    <table className="staff-table">
+                    <table className="staff-table staff-cards">
                         <thead>
                             <tr>
                                 <th>Name</th><th>Mobile</th><th>Role</th><th>Status</th><th>Last login</th><th>Consent</th><th></th>
@@ -342,19 +342,19 @@ const AdminStaff = () => {
                                 const self = p._id === user?.staffId;
                                 return (
                                     <tr key={p._id} className={p.isActive ? '' : 'inactive'}>
-                                        <td>
+                                        <td data-label="Name">
                                             <strong>{p.name}</strong>
                                             {Object.keys(p.overrides || {}).length > 0 && <span className="pill">exceptions</span>}
                                         </td>
-                                        <td>{p.phone}</td>
-                                        <td>
+                                        <td data-label="Mobile">{p.phone}</td>
+                                        <td data-label="Role">
                                             {canEdit && !self ? (
                                                 <select className="input compact" value={p.roleId} onChange={e => patch(p, { roleId: e.target.value })}>
                                                     {roles.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
                                                 </select>
                                             ) : p.roleName}
                                         </td>
-                                        <td>
+                                        <td data-label="Status">
                                             {canEdit && !self ? (
                                                 <button className={`status-chip ${p.isActive ? 'on' : 'off'}`}
                                                     onClick={() => patch(p, { isActive: !p.isActive })}>
@@ -363,8 +363,8 @@ const AdminStaff = () => {
                                             ) : (p.isActive ? 'Active' : 'Disabled')}
                                             {p.lockedUntil && new Date(p.lockedUntil) > new Date() && <span className="pill warn">PIN locked</span>}
                                         </td>
-                                        <td>{fmt(p.lastLoginAt)}</td>
-                                        <td>
+                                        <td data-label="Last login">{fmt(p.lastLoginAt)}</td>
+                                        <td data-label="Consent">
                                             {p.acceptedTerms
                                                 ? <button className="link-btn" onClick={() => setConsentFor(p)}><FiFileText /> v{p.acceptedTerms.version}</button>
                                                 : <span className="muted">Not yet</span>}

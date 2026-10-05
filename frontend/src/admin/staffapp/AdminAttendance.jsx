@@ -50,7 +50,7 @@ const AdminAttendance = () => {
     const [date, setDate] = useState('');
     const [rows, setRows] = useState([]);
     const [staff, setStaff] = useState([]);
-    const [geo, setGeo] = useState({ lat: '', lng: '', radius: 75, grace: 10, ping: 10, appCode: '', appUrl: '' });
+    const [geo, setGeo] = useState({ lat: '', lng: '', radius: 75, grace: 10, ping: 10, appCode: '', appUrl: '', loaded: false });
     const [trail, setTrail] = useState(null);
     const [msg, setMsg] = useState('');
     const canEdit = hasPerm('employees.edit');
@@ -65,7 +65,7 @@ const AdminAttendance = () => {
         if (hasPerm('staff.view')) getStaff().then(r => setStaff(Array.isArray(r.data) ? r.data : (r.data.staff || []))).catch(() => {});
         getSettings().then(r => setGeo({ lat: r.data.geofence_lat ?? '', lng: r.data.geofence_lng ?? '', radius: r.data.geofence_radius_m ?? 75,
             grace: r.data.leave_grace_minutes ?? 10, ping: r.data.ping_minutes ?? 10,
-            appCode: r.data.app_version_code ?? '', appUrl: r.data.app_download_url ?? '' })).catch(() => {});
+            appCode: r.data.app_version_code ?? '', appUrl: r.data.app_download_url ?? '', loaded: true })).catch(() => {});
     }, [hasPerm]);
 
     const here = async () => {
@@ -98,6 +98,12 @@ const AdminAttendance = () => {
     return (
         <div className="attendance-page inv">
             <div className="page-header"><h1>Attendance</h1><p>Check-ins with selfie and location, who is on the premises, breaks and late arrivals.</p></div>
+            {geo.loaded && (geo.lat === '' || geo.lat === null) && (
+                <p className="setup-warn" role="alert">
+                    The cafe location is not set, so check-in cannot confirm that staff are at the cafe.
+                    {hasPerm('settings.edit') ? <> Stand inside the cafe and use <a href="#cafe-location">Cafe location</a> below, then Save.</> : ' Ask the owner to set it.'}
+                </p>
+            )}
             <div className="inv-toolbar">
                 <input className="input compact" type="date" value={date} onChange={e => setDate(e.target.value)} aria-label="Day" />
                 <button className="btn btn-ghost btn-sm" onClick={load}>Refresh</button>
@@ -133,7 +139,7 @@ const AdminAttendance = () => {
             </div>
 
             {hasPerm('settings.edit') && (
-                <section className="panel" style={{ marginTop: 16 }}>
+                <section className="panel" style={{ marginTop: 16 }} id="cafe-location">
                     <h2>Cafe location (geofence)</h2>
                     <p className="muted small">Stand inside the cafe with your phone and tap <strong>Use my location</strong>. Staff can check in only within the radius.</p>
                     <div className="form-grid three">

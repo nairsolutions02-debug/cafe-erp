@@ -16,7 +16,8 @@ const brandColors = () => {
 };
 
 const AdminAnalytics = () => {
-    const { socket } = useAuth();
+    const { socket, hasPerm } = useAuth();
+    const canEditMargin = hasPerm('settings.edit');
     const [period, setPeriod] = useState('week');
     const [stats, setStats] = useState(null);
     const [revenueData, setRevenueData] = useState([]);
@@ -57,8 +58,8 @@ const AdminAnalytics = () => {
             setTopItems(topRes.data);
             setUserStats(userRes.data);
 
-            const marginSetting = settingsRes.data.find(s => s.key === 'profit_margin');
-            if (marginSetting) setMargin(marginSetting.value);
+            const savedMargin = Number(settingsRes.data?.profit_margin);
+            if (savedMargin > 0) setMargin(savedMargin);
         } catch (error) {
             console.error('Error:', error);
         } finally {
@@ -72,7 +73,7 @@ const AdminAnalytics = () => {
             setShowMarginInput(false);
             fetchData();
         } catch (error) {
-            console.error('Error updating margin:', error);
+            alert(error.response?.data?.message || error.message || 'Could not save the margin');
         }
     };
 
@@ -119,9 +120,12 @@ const AdminAnalytics = () => {
                 <div className="summary-card profit">
                     <div className="card-header-with-action">
                         <h3>Estimated Profit</h3>
-                        <button className="settings-btn" onClick={() => setShowMarginInput(!showMarginInput)}>
-                            <FiSettings />
-                        </button>
+                        {canEditMargin && (
+                            <button className="settings-btn" aria-label="Change the profit margin" title="Change the profit margin"
+                                onClick={() => setShowMarginInput(!showMarginInput)}>
+                                <FiSettings />
+                            </button>
+                        )}
                     </div>
                     <p className="value">₹{totalProfit.toFixed(2)}</p>
                     {showMarginInput ? (

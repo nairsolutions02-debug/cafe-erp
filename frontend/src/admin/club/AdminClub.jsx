@@ -388,7 +388,9 @@ const AdminClub = () => {
     const [msg, setMsg] = useState('');
     const canEdit = hasPerm('settings.edit');
     const flash = (t) => { setMsg(t); setTimeout(() => setMsg(''), 3000); };
-    const loadRules = useCallback(() => getRewardRules().then(r => setRules(r.data)).catch(() => {}), []);
+    // Reward rules need "View rewards"; without it the tabs show the club settings only
+    const seeRules = hasPerm('rewards.view');
+    const loadRules = useCallback(() => (seeRules ? getRewardRules().then(r => setRules(r.data)).catch(() => {}) : Promise.resolve()), [seeRules]);
     useEffect(() => {
         getClubConfig().then(r => setCfg(r.data)).catch(err => flash(errorText(err)));
         loadRules();

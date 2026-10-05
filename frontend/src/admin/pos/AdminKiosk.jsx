@@ -4,7 +4,7 @@ import { FiPlus, FiMinus, FiX, FiAlertTriangle } from 'react-icons/fi';
 import { getKioskItems, getKioskRegulars, findCustomers, getPosCatalogue, getCurrentShifts, getSettings } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { useOutbox, runOrQueue, newClientId } from '../../lib/outbox';
-import { ensureDevice, getDevice, nextOrderNumber, cacheGet, cacheSet } from '../../lib/device';
+import { ensureDevice, confirmDevice, getDevice, nextOrderNumber, cacheGet, cacheSet } from '../../lib/device';
 import { printBill } from '../../lib/print';
 import { SyncPill } from './AdminPOS';
 import { estimateTotal, inr } from './money';
@@ -63,6 +63,9 @@ const AdminKiosk = () => {
     const [regulars, setRegulars] = useState(() => cacheGet('kiosk-regulars') || []);
     const [device, setDevice] = useState(() => getDevice('kiosk'));
     const [deviceError, setDeviceError] = useState('');
+    // A screen only takes a kiosk slot when someone chooses to set it up as a kiosk
+    const [needSetup, setNeedSetup] = useState(false);
+    const [settingUp, setSettingUp] = useState(false);
     const [tabs, setTabs] = useState(loadTabs);
     const [active, setActive] = useState(0);
     const [filter, setFilter] = useState('');
@@ -110,7 +113,7 @@ const AdminKiosk = () => {
     useEffect(() => {
         if (!online) return;
         load();
-        ensureDevice('kiosk', 'Kiosk').then(setDevice).catch(err => setDeviceError(err.response?.data?.message || err.message));
+        confirmDevice('kiosk').then(d => { setDevice(d); setNeedSetup(!d); }).catch(() => {});
     }, [online, load]);
 
     useEffect(() => {
@@ -196,7 +199,27 @@ const AdminKiosk = () => {
         }
     };
 
-    if (deviceError) return <div className="pos-empty">{deviceError}</div>;
+    const setUpKiosk = async () => {
+        setSettingUp(true);
+        setDeviceError('');
+        try {
+            setDevice(await ensureDevice('kiosk', 'Kiosk'));
+            setNeedSetup(false);
+        } catch (err) {
+            setDeviceError(err.response?.data?.message || err.message);
+        } finally {
+            setSettingUp(false);
+        }
+    };
+    if (needSetup && online) return (
+        <div className="pos-empty kiosk-setup">
+            <h2>Use this screen as a kiosk?</h2>
+            <p>The kiosk is the self-order screen customers use at the shop. Setting it up uses one of the kiosk slots in your plan.
+                Staff phones and laptops do not need this: use Counter to take orders.</p>
+            {deviceError && <p className="error-message">{deviceError} Turn off an old kiosk in Settings → Cafe settings → Devices, then try again.</p>}
+            <button type="button" className="btn btn-primary btn-lg" disabled={settingUp} onClick={setUpKiosk}>{settingUp ? 'Setting up…' : 'Set up this screen as a kiosk'}</button>
+        </div>
+    );
     if (!items.length) return <div className="pos-empty">{online ? 'Loading…' : 'Open the kiosk once with internet to store the items on this device.'}</div>;
 
     return (

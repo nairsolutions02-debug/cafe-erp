@@ -5,6 +5,7 @@ import { getDashboardStats, getActiveOrders, getInventoryAlerts, getGstRate, upd
 import { fmtMoney, fmtQty } from './inventory/shared';
 import { useAuth } from '../context/AuthContext';
 import Skeleton from './mobile/Skeleton';
+import SetupNudge from './setup/SetupNudge';
 import './AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -90,6 +91,7 @@ const AdminDashboard = () => {
     return (
         <div className="admin-dashboard">
             <h1>Dashboard</h1>
+            {hasPerm('settings.edit') && <SetupNudge />}
 
             {/* Stats Cards */}
             <div className="stats-grid">

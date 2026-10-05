@@ -303,3 +303,17 @@
         display: none;
     }
 }
+
+/* Staff logins on a phone: one card per person instead of a wide table */
+@media (max-width: 600px) {
+    .staff-cards thead { display: none; }
+    .staff-cards, .staff-cards tbody, .staff-cards tr, .staff-cards td { display: block; width: 100%; }
+    .staff-cards tr { margin: 0 0 10px; padding: 10px 12px; border: 1px solid var(--border-color, #E8E0D5); border-radius: 12px; background: var(--bg-card, #fff); }
+    .staff-cards td { padding: 4px 0; border: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .staff-cards td[data-label]::before { content: attr(data-label); color: var(--text-secondary); font-size: .8rem; }
+    .staff-cards td[data-label="Name"]::before { content: none; }
+    .staff-cards td[data-label="Name"] { font-size: 1.05rem; }
+    .staff-cards td.row-actions { justify-content: flex-end; }
+    .staff-cards td .input.compact { max-width: 60%; }
+    .theme-dark .staff-cards tr { background: #1F1A15; border-color: #3A3027; }
+}

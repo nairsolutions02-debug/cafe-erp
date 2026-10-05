@@ -91,10 +91,10 @@ const OrderBill = ({ order, orders, onCancel }) => {
                 <div className="bill-info">
                     <div className="bill-info-row">
                         <span>Bill No: {mainOrder.orderNumber} {ordersList.length > 1 ? `(+${ordersList.length - 1} others)` : ''}</span>
-                        <span>Date: {new Date(mainOrder.createdAt).toLocaleDateString()}</span>
+                        <span>Date: {new Date(mainOrder.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </div>
                     <div className="bill-info-row">
-                        <span>Time: {new Date(mainOrder.createdAt).toLocaleTimeString()}</span>
+                        <span>Time: {new Date(mainOrder.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
                         {mainOrder.tableNumber && <span>Table: {mainOrder.tableNumber}</span>}
                     </div>
                     <div className="bill-info-row">

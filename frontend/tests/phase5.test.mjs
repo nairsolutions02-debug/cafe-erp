@@ -75,6 +75,8 @@ for (const [k, v] of [['geofence_lat', CAFE.lat], ['geofence_lng', CAFE.lng], ['
 }
 const staffRows = await rpc(owner, 'list_staff');
 const ravi = staffRows.staff.find(s => s.phone === ph(10));
+// New logins get an employee record automatically (fix pack); remove it to test an unlinked login
+await must(owner.from('employees').delete().eq('phone', ph(10)));
 const emp = await must(owner.from('employees').insert({ name: 'Cashier Ravi', phone: ph(10), role: 'cashier', salary: 15000, shift_start: '00:00' }).select().single());
 
 test('a login not linked to an employee cannot check in', async () => {
@@ -89,7 +91,9 @@ test('check-in only inside the geofence, with a selfie; late minutes recorded', 
     await assert.rejects(rpc(cashier, 'staff_check_in', { p_lat: far.lat, p_lng: far.lng, p_accuracy: 10, p_selfie: 's.jpg' }), /m from the cafe/);
     const d = await rpc(cashier, 'staff_check_in', { p_lat: near.lat, p_lng: near.lng, p_accuracy: 10, p_selfie: 'selfie-in.jpg' });
     assert.ok(d.today.checkInAt);
-    assert.ok(d.today.lateMinutes > 0, 'shift starts 00:00 so the check-in is late');
+    // Shift starts 00:00 (cafe time, IST) with 10 grace minutes: late unless the test runs in the first minutes after midnight
+    const istMinutes = Math.floor(((Date.now() / 60000) + 330) % 1440);
+    if (istMinutes > 11) assert.ok(d.today.lateMinutes > 0, 'shift starts 00:00 so the check-in is late');
     await assert.rejects(rpc(cashier, 'staff_check_in', { p_lat: near.lat, p_lng: near.lng, p_accuracy: 10, p_selfie: 's.jpg' }), /already checked in/);
 });
 

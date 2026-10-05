@@ -23,13 +23,19 @@ const DUPLICATE_MESSAGES = {
 const unwrap = ({ data, error }, table) => {
     if (error) {
         if (error.code === '23505') throw apiError(DUPLICATE_MESSAGES[table] || 'Already exists');
-        if (error.code === 'PGRST116') throw apiError('Not found', 404);
+        if (error.code === 'PGRST116') throw apiError('Not saved: you may not be allowed to change this, or it was already removed', 404);
         throw apiError(error.message);
     }
     return data;
 };
 
 const ok = (data) => ({ data });
+// A delete that removed nothing was blocked by permissions (or the row was already gone): say so instead of "deleted"
+const removed = (res, table) => {
+    const rows = unwrap(res, table);
+    if (Array.isArray(rows) && rows.length === 0) throw apiError('Not deleted: you may not be allowed to remove this, or it was already removed', 403);
+    return rows;
+};
 
 // The signed-in staff member's cafe (set by AuthContext); used where an update needs a row filter
 let sessionTenantId = null;
@@ -134,7 +140,7 @@ export const updateCategory = async (id, data) => {
     return ok(toClient(unwrap(await supabase.from('categories').update(row).eq('id', id).select().single(), 'categories')));
 };
 export const deleteCategory = async (id) => {
-    unwrap(await supabase.from('categories').delete().eq('id', id));
+    removed(await supabase.from('categories').delete().eq('id', id).select('id'));
     return ok({ message: 'Category deleted' });
 };
 
@@ -214,7 +220,7 @@ export const setSoldAt = async (id, data) => {
     return ok(menuToClient(unwrap(await supabase.from('menu_items').update(row).eq('id', id).select(MENU_SELECT).single())));
 };
 export const deleteMenuItem = async (id) => {
-    unwrap(await supabase.from('menu_items').delete().eq('id', id));
+    removed(await supabase.from('menu_items').delete().eq('id', id).select('id'));
     return ok({ message: 'Menu item deleted' });
 };
 
@@ -277,7 +283,7 @@ export const createCoupon = async (data) => {
 export const updateCoupon = async (id, data) =>
     ok(toClient(unwrap(await supabase.from('coupons').update(toDb(data, COUPON)).eq('id', id).select().single(), 'coupons')));
 export const deleteCoupon = async (id) => {
-    unwrap(await supabase.from('coupons').delete().eq('id', id));
+    removed(await supabase.from('coupons').delete().eq('id', id).select('id'));
     return ok({ message: 'Coupon deleted' });
 };
 
@@ -296,7 +302,7 @@ export const saveStockLocation = async ({ id, name, sortOrder, isActive }) => {
     const q = id ? supabase.from('stock_locations').update(row).eq('id', id) : supabase.from('stock_locations').insert(row);
     return ok(toClient(unwrap(await q.select().single())));
 };
-export const deleteStockLocation = async (id) => ok(unwrap(await supabase.from('stock_locations').delete().eq('id', id)));
+export const deleteStockLocation = async (id) => ok(removed(await supabase.from('stock_locations').delete().eq('id', id).select('id')));
 export const setLocationDefault = async (id, kind) => ok(await rpc('set_location_default', { p_location: id, p_kind: kind }));
 
 const VENDOR = {
@@ -310,7 +316,7 @@ export const saveVendor = async ({ id, ...data }) => {
     const q = id ? supabase.from('vendors').update(row).eq('id', id) : supabase.from('vendors').insert(row);
     return ok(toClient(unwrap(await q.select().single(), 'vendors')));
 };
-export const deleteVendor = async (id) => ok(unwrap(await supabase.from('vendors').delete().eq('id', id)));
+export const deleteVendor = async (id) => ok(removed(await supabase.from('vendors').delete().eq('id', id).select('id')));
 
 export const recordPurchase = async (data) => ok(await rpc('record_purchase', { p: data }));
 export const getPurchases = async ({ from, to, vendorId } = {}) =>
@@ -370,7 +376,7 @@ export const createEmployee = async (data) =>
 export const updateEmployee = async (id, data) =>
     ok(toClient(unwrap(await supabase.from('employees').update(toDb(data, EMPLOYEE)).eq('id', id).select().single())));
 export const deleteEmployee = async (id) => {
-    unwrap(await supabase.from('employees').delete().eq('id', id));
+    removed(await supabase.from('employees').delete().eq('id', id).select('id'));
     return ok({ message: 'Employee deleted' });
 };
 export const getEmployeeAttendance = async (id, params = {}) => {
@@ -395,7 +401,7 @@ export const addHoliday = async (data) => {
     return ok(toClient(unwrap(await supabase.from('holidays').insert(row).select().single(), 'holidays')));
 };
 export const deleteHoliday = async (id) => {
-    unwrap(await supabase.from('holidays').delete().eq('id', id));
+    removed(await supabase.from('holidays').delete().eq('id', id).select('id'));
     return ok({ message: 'Holiday deleted' });
 };
 
@@ -436,7 +442,7 @@ export const updateTable = async (id, data) => {
     return ok(tableToClient(unwrap(await supabase.from('dining_tables').update(row).eq('id', id).select().single(), 'dining_tables')));
 };
 export const deleteTable = async (id) => {
-    unwrap(await supabase.from('dining_tables').delete().eq('id', id));
+    removed(await supabase.from('dining_tables').delete().eq('id', id).select('id'));
     return ok({ message: 'Table deleted' });
 };
 
@@ -508,7 +514,7 @@ export const createCollection = async (data) => {
 export const updateCollection = async (id, data) =>
     ok(toClient(unwrap(await supabase.from('collections').update(toDb(data, COLLECTION)).eq('id', id).select().single())));
 export const deleteCollection = async (id) => {
-    unwrap(await supabase.from('collections').delete().eq('id', id));
+    removed(await supabase.from('collections').delete().eq('id', id).select('id'));
     return ok({ message: 'Collection deleted successfully' });
 };
 export const addProductToCollection = async (collectionId, productId) => {
@@ -562,7 +568,7 @@ export const createLoyaltyOffer = async (data) =>
 export const updateLoyaltyOffer = async (id, data) =>
     ok(toClient(unwrap(await supabase.from('loyalty_offers').update(toDb(data, LOYALTY_OFFER)).eq('id', id).select().single())));
 export const deleteLoyaltyOffer = async (id) => {
-    unwrap(await supabase.from('loyalty_offers').delete().eq('id', id));
+    removed(await supabase.from('loyalty_offers').delete().eq('id', id).select('id'));
     return ok({ message: 'Offer deleted' });
 };
 
@@ -620,7 +626,7 @@ export const createRole = async ({ name, description }) =>
 export const updateRole = async (id, { name, description }) =>
     ok(toClient(unwrap(await supabase.from('roles').update({ name, description }).eq('id', id).select().single(), 'roles')));
 export const deleteRole = async (id) => {
-    unwrap(await supabase.from('roles').delete().eq('id', id));
+    removed(await supabase.from('roles').delete().eq('id', id).select('id'));
     return ok(true);
 };
 export const setRolePermission = async (roleId, perm, on) => {
@@ -632,14 +638,14 @@ export const setRolePermission = async (roleId, perm, on) => {
 // Brands and tax groups
 export const getBrands = async () => ok(listToClient(unwrap(await supabase.from('brands').select().order('name'))));
 export const createBrand = async (name) => ok(toClient(unwrap(await supabase.from('brands').insert({ name }).select().single(), 'brands')));
-export const deleteBrand = async (id) => { unwrap(await supabase.from('brands').delete().eq('id', id)); return ok(true); };
+export const deleteBrand = async (id) => { removed(await supabase.from('brands').delete().eq('id', id).select('id')); return ok(true); };
 export const getTaxGroups = async () => ok(listToClient(unwrap(await supabase.from('tax_groups').select().order('name'))));
 export const saveTaxGroup = async ({ id, name, components }) => {
     const row = { name, components: components.map(c => ({ name: c.name, rate: Number(c.rate) || 0 })) };
     const q = id ? supabase.from('tax_groups').update(row).eq('id', id) : supabase.from('tax_groups').insert(row);
     return ok(toClient(unwrap(await q.select().single(), 'tax_groups')));
 };
-export const deleteTaxGroup = async (id) => { unwrap(await supabase.from('tax_groups').delete().eq('id', id)); return ok(true); };
+export const deleteTaxGroup = async (id) => { removed(await supabase.from('tax_groups').delete().eq('id', id).select('id')); return ok(true); };
 
 // Pack units for an item (1 Pack = 10 pieces)
 export const getItemUnits = async (menuItemId) =>
@@ -648,7 +654,7 @@ export const createItemUnit = async (menuItemId, { name, factor, salePrice }) =>
     ok(toClient(unwrap(await supabase.from('item_units').insert({
         menu_item_id: menuItemId, name, factor: Number(factor), sale_price: salePrice === '' || salePrice == null ? null : Number(salePrice),
     }).select().single())));
-export const deleteItemUnit = async (id) => { unwrap(await supabase.from('item_units').delete().eq('id', id)); return ok(true); };
+export const deleteItemUnit = async (id) => { removed(await supabase.from('item_units').delete().eq('id', id).select('id')); return ok(true); };
 
 // Audit log
 export const getAuditLog = async ({ entity, page = 1, limit = 50 } = {}) => {
@@ -717,7 +723,9 @@ export const findCustomers = async (q) => ok(await rpc('find_customers', { p_que
 export const registerDevice = async (kind, name) => ok(await rpc('register_device', { p_kind: kind, p_name: name }));
 export const touchDevice = async (code) => ok(await rpc('touch_device', { p_code: code }));
 export const getDevices = async () => ok(listToClient(unwrap(await supabase.from('devices').select().order('code'))));
-export const setDeviceActive = async (id, isActive) => ok(unwrap(await supabase.from('devices').update({ is_active: isActive }).eq('id', id)));
+export const setDeviceActive = async (id, isActive) => ok(unwrap(await supabase.from('devices').update({ is_active: isActive }).eq('id', id).select('id').single()));
+export const getSetupStatus = async () => ok(await rpc('setup_status'));
+export const linkAllStaffEmployees = async () => ok(await rpc('link_all_staff_employees'));
 
 export const getKitchenOrders = async () => ok(await rpc('kitchen_orders'));
 export const setKitchenStatus = async (orderId, itemId, status) =>
@@ -748,7 +756,7 @@ export const saveRecurringExpense = async ({ id, name, categoryId, amount, dayOf
     const q = id ? supabase.from('recurring_expenses').update(row).eq('id', id) : supabase.from('recurring_expenses').insert(row);
     return ok(unwrap(await q.select().single()));
 };
-export const deleteRecurringExpense = async (id) => ok(unwrap(await supabase.from('recurring_expenses').delete().eq('id', id)));
+export const deleteRecurringExpense = async (id) => ok(removed(await supabase.from('recurring_expenses').delete().eq('id', id).select('id')));
 export const getPayables = async () => ok(await rpc('payables'));
 export const getAccountBalances = async () => ok(await rpc('account_balances'));
 export const getLedger = async (filters = {}) => ok(await rpc('list_ledger', { p: filters }));

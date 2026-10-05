@@ -4,6 +4,7 @@ import { FiSettings, FiSave, FiPlus, FiTrash2, FiInfo } from 'react-icons/fi';
 import { getAllSettings, updateSetting } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import Skeleton from './mobile/Skeleton';
+import DevicesCard from './DevicesCard';
 import './AdminSettings.css';
 import { useBrand } from '../context/BrandContext';
 
@@ -247,6 +248,8 @@ const AdminSettings = () => {
                         </div>
                     </div>
                 </div>
+
+                <DevicesCard canEdit={hasPerm('settings.edit')} />
             </div>
         </div>
     );

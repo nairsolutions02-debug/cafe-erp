@@ -1,7 +1,7 @@
 import {
     FiHome, FiGrid, FiShoppingBag, FiTag, FiPackage, FiUsers, FiBarChart2, FiLayout, FiActivity,
     FiSettings, FiShield, FiLayers, FiFileText, FiBookOpen, FiMonitor, FiCoffee, FiDollarSign, FiBriefcase, FiZap, FiBook,
-    FiPieChart, FiDroplet, FiSmartphone, FiTv, FiAward, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck,
+    FiPieChart, FiDroplet, FiSmartphone, FiTv, FiAward, FiCreditCard, FiClock, FiBell, FiSun, FiGift, FiTrendingUp, FiList, FiStar, FiUserCheck, FiCheckSquare,
 } from 'react-icons/fi';
 
 // Menu labels in English, Hindi and Hinglish: [en, hi, hinglish]
@@ -86,6 +86,7 @@ export const NAV_SECTIONS = [
         key: 'settings', icon: FiSettings, label: L('Settings', 'सेटिंग्स', 'Settings'),
         items: [
             { path: '/admin/settings', icon: FiSettings, label: L('Cafe settings', 'कैफ़े सेटिंग्स', 'Cafe settings'), perm: 'settings.view' },
+            { path: '/admin/setup', icon: FiCheckSquare, label: L('Setup checklist', 'सेटअप चेकलिस्ट', 'Setup checklist'), perm: 'settings.view' },
             { path: '/admin/brand', icon: FiDroplet, label: L('Brand & look', 'ब्रांड और रंग-रूप', 'Brand aur look'), perm: 'settings.view' },
             { path: '/admin/alerts', icon: FiBell, label: L('Alerts', 'अलर्ट', 'Alert'), perm: 'staff.view' },
             { path: '/admin/audit', icon: FiFileText, label: L('Audit log', 'ऑडिट लॉग', 'Audit log'), perm: 'audit.view' },

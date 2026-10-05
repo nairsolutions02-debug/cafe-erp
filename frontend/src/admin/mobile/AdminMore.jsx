@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiHelpCircle, FiLogOut, FiChevronRight } from 'react-icons/fi';
 import { NAV_SECTIONS, LANGS, tr } from '../adminNav';
 import { useAuth } from '../../context/AuthContext';
+import { useBrand } from '../../context/BrandContext';
 import { SHELL } from './shellText';
 import { readAppTheme, setAppTheme, onThemeChange } from './useAdminTheme';
 import './mobile.css';
@@ -14,6 +15,7 @@ const readLang = () => {
 // Phone "More" page: every page the role allows, grouped by section, plus language, help and log out
 const AdminMore = () => {
     const { user, hasPerm, logout } = useAuth();
+    const brand = useBrand();
     const navigate = useNavigate();
     const [lang, setLang] = useState(readLang);
     const [theme, setTheme] = useState(readAppTheme);
@@ -37,7 +39,7 @@ const AdminMore = () => {
         <div className="more">
             <div className="more-me">
                 <span className="more-av" aria-hidden="true">{(user?.name || 'A').trim()[0]?.toUpperCase()}</span>
-                <span className="more-who"><b>{user?.name || 'Admin'}</b><small>{user?.roleName}{user?.tenant?.name ? ` · ${user.tenant.name}` : ''}</small></span>
+                <span className="more-who"><b>{user?.name || 'Admin'}</b><small>{user?.roleName}{brand.name ? ` · ${brand.name}` : ''}</small></span>
             </div>
 
             {sections.map(s => (

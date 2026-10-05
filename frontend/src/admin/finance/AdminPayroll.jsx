@@ -228,16 +228,22 @@ const TABS = [['payroll', 'Payroll'], ['leave', 'Leave'], ['money', 'Advances & 
 
 const AdminPayroll = () => {
     const [params, setParams] = useSearchParams();
-    const tab = TABS.some(([k]) => k === params.get('tab')) ? params.get('tab') : (params.get('tab') === 'penalties' ? 'money' : 'payroll');
+    const { hasPerm } = useAuth();
+    // Salaries are owner-only unless the role has "See salaries"; the other tabs still work
+    const seeSalary = hasPerm('sensitive.see_salary');
+    const tabs = seeSalary ? TABS : TABS.filter(([k]) => k !== 'payroll');
+    const asked = params.get('tab') === 'penalties' ? 'money' : params.get('tab');
+    const tab = tabs.some(([k]) => k === asked) ? asked : tabs[0][0];
     const [employees, setEmployees] = useState([]);
     useEffect(() => { getEmployees({ isActive: true }).then(r => setEmployees(r.data)).catch(() => {}); }, []);
     return (
         <div className="finance-page inv">
             <div className="page-header"><h1>Payroll</h1><p>Monthly pay from attendance, leave, overtime, advances and penalties; payslips; paid through the money ledger.</p></div>
             <div className="tabs" role="tablist">
-                {TABS.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'active' : ''}
+                {tabs.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'active' : ''}
                     onClick={() => setParams(k === 'payroll' ? {} : { tab: k })}>{l}</button>)}
             </div>
+            {!seeSalary && <p className="view-only-note" role="note">Monthly pay and payslips are visible only to the owner (or roles with "See salaries"). Leave, advances and incentives are below.</p>}
             {tab === 'payroll' && <PayrollTab />}
             {tab === 'leave' && <LeaveTab employees={employees} />}
             {tab === 'money' && <MoneyTab employees={employees} />}

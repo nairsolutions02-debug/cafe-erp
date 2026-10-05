@@ -15,9 +15,16 @@ import { getImageUrl } from '../utils/config';
 import { FiStar, FiSettings, FiUsers, FiGift, FiPlus, FiMinus, FiSave, FiTag, FiEdit, FiTrash2 } from 'react-icons/fi';
 
 import Skeleton from './mobile/Skeleton';
+import { useAuth } from '../context/AuthContext';
+import ViewOnlyNote from './ViewOnlyNote';
 import './AdminLoyalty.css';
 
 const AdminLoyalty = () => {
+    const { hasPerm } = useAuth();
+    const canEdit = hasPerm('rewards.edit');
+    const canCreate = hasPerm('rewards.create');
+    const canDelete = hasPerm('rewards.delete');
+    const canBonus = hasPerm('menu.edit');
     const [activeTab, setActiveTab] = useState('settings');
     const [settings, setSettings] = useState(null);
     const [users, setUsers] = useState([]);
@@ -63,7 +70,7 @@ const AdminLoyalty = () => {
             await updateLoyaltySettings(settings);
             alert('Settings saved successfully!');
         } catch (error) {
-            alert('Error saving settings');
+            alert(error.response?.data?.message || error.message || 'Error saving settings');
         } finally {
             setSaving(false);
         }
@@ -78,7 +85,7 @@ const AdminLoyalty = () => {
             setAdjustModal(null);
             setAdjustAmount(0);
         } catch (error) {
-            alert('Error adjusting points');
+            alert(error.response?.data?.message || error.message || 'Error adjusting points');
         }
     };
 
@@ -106,7 +113,7 @@ const AdminLoyalty = () => {
             setOfferFormData({ name: '', description: '', pointsRequired: 100, discountValue: 10, minOrderValue: 0, isActive: true });
             fetchData();
         } catch (error) {
-            alert('Error saving offer');
+            alert(error.response?.data?.message || error.message || 'Error saving offer');
         }
     };
 
@@ -116,7 +123,7 @@ const AdminLoyalty = () => {
             await deleteLoyaltyOffer(id);
             fetchData();
         } catch (error) {
-            alert('Error deleting offer');
+            alert(error.response?.data?.message || error.message || 'Error deleting offer');
         }
     };
 
@@ -244,9 +251,11 @@ const AdminLoyalty = () => {
                         </label>
                     </div>
 
-                    <button className="btn btn-primary save-btn" onClick={handleSaveSettings} disabled={saving}>
-                        <FiSave /> {saving ? 'Saving...' : 'Save Settings'}
-                    </button>
+                    {canEdit ? (
+                        <button className="btn btn-primary save-btn" onClick={handleSaveSettings} disabled={saving}>
+                            <FiSave /> {saving ? 'Saving...' : 'Save Settings'}
+                        </button>
+                    ) : <ViewOnlyNote what="change the points rules" />}
                 </div>
             )}
 
@@ -274,12 +283,12 @@ const AdminLoyalty = () => {
                                         </td>
                                         <td>{user.totalPointsEarned || 0}</td>
                                         <td>
-                                            <button
+                                            {canEdit && <button
                                                 className="btn btn-sm btn-primary"
                                                 onClick={() => setAdjustModal(user)}
                                             >
                                                 Adjust Points
-                                            </button>
+                                            </button>}
                                         </td>
                                     </tr>
                                 ))}
@@ -318,13 +327,13 @@ const AdminLoyalty = () => {
                                 <div className="bonus-input">
                                     <label>Bonus Points</label>
                                     <div className="points-adjuster">
-                                        <button
+                                        <button disabled={!canBonus} aria-label="One point less"
                                             onClick={() => handleBonusPointsChange(item._id, Math.max(0, (item.bonusLoyaltyPoints || 0) - 1))}
                                         >
                                             <FiMinus />
                                         </button>
                                         <span>{item.bonusLoyaltyPoints || 0}</span>
-                                        <button
+                                        <button disabled={!canBonus} aria-label="One point more"
                                             onClick={() => handleBonusPointsChange(item._id, (item.bonusLoyaltyPoints || 0) + 1)}
                                         >
                                             <FiPlus />
@@ -344,9 +353,9 @@ const AdminLoyalty = () => {
                         <p className="section-info">
                             Create specific rewards that customers can redeem with their points.
                         </p>
-                        <button className="btn btn-primary" onClick={() => { setEditOffer(null); setOfferFormData({ name: '', description: '', pointsRequired: 100, discountValue: 50, minOrderValue: 0, isActive: true }); setOfferModal(true); }}>
+                        {canCreate && <button className="btn btn-primary" onClick={() => { setEditOffer(null); setOfferFormData({ name: '', description: '', pointsRequired: 100, discountValue: 50, minOrderValue: 0, isActive: true }); setOfferModal(true); }}>
                             <FiPlus /> Add Offer
-                        </button>
+                        </button>}
                     </div>
 
                     <div className="offers-grid">
@@ -356,10 +365,12 @@ const AdminLoyalty = () => {
                                 <h3>{offer.name}</h3>
                                 <p className="offer-desc">{offer.description}</p>
                                 <div className="offer-value">Discount: ₹{offer.discountValue}</div>
-                                <div className="offer-actions">
-                                    <button className="icon-btn edit" onClick={() => openEditOffer(offer)}><FiEdit /></button>
-                                    <button className="icon-btn delete" onClick={() => handleDeleteOffer(offer._id)}><FiTrash2 /></button>
-                                </div>
+                                {(canEdit || canDelete) && (
+                                    <div className="offer-actions">
+                                        {canEdit && <button className="icon-btn edit" aria-label={`Edit ${offer.name}`} onClick={() => openEditOffer(offer)}><FiEdit /></button>}
+                                        {canDelete && <button className="icon-btn delete" aria-label={`Delete ${offer.name}`} onClick={() => handleDeleteOffer(offer._id)}><FiTrash2 /></button>}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

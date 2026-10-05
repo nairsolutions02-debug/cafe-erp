@@ -242,3 +242,14 @@
 .brand-link-card span:first-child { display: flex; flex-direction: column; }
 .brand-link-card small { color: var(--text-muted); }
 .brand-link-card:hover { border-color: var(--primary); }
+
+/* Devices card */
+.devices-card .hint { display: block; margin-bottom: 12px; }
+.devices-msg { margin: 0 0 8px; font-weight: 600; }
+.devices-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; max-height: 360px; overflow: auto; }
+.devices-list li { display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--border-color, #E8E0D5); border-radius: 10px; }
+.devices-list li b { font-size: 1rem; }
+.devices-list li span { display: flex; flex-direction: column; font-size: .9rem; }
+.devices-list li small { color: var(--text-secondary); }
+.devices-list li.off { opacity: .6; }
+.theme-dark .devices-list li { border-color: #3A3027; }

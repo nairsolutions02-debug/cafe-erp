@@ -134,7 +134,7 @@ const AdminCustomers = () => {
                 <div className="stat-card">
                     <FiDollarSign className="stat-icon green" />
                     <div>
-                        <span className="stat-value">₹{customers.reduce((s, c) => s + c.totalSpent, 0).toLocaleString()}</span>
+                        <span className="stat-value">₹{customers.reduce((s, c) => s + c.totalSpent, 0).toLocaleString('en-IN')}</span>
                         <span className="stat-label">Total Revenue</span>
                     </div>
                 </div>
@@ -187,7 +187,7 @@ const AdminCustomers = () => {
                                     </div>
                                 </td>
                                 <td>{customer.totalOrders || 0}</td>
-                                <td className="amount">₹{(customer.totalSpent || 0).toLocaleString()}</td>
+                                <td className="amount">₹{(customer.totalSpent || 0).toLocaleString('en-IN')}</td>
                                 <td>
                                     <span className="points-badge">🪙 {customer.loyaltyPoints || 0}</span>
                                 </td>
@@ -231,7 +231,7 @@ const AdminCustomers = () => {
 
                                 <div className="cust-stats">
                                     <div className="stat">
-                                        <span className="value">₹{customerDetail.stats.totalSpent.toLocaleString()}</span>
+                                        <span className="value">₹{customerDetail.stats.totalSpent.toLocaleString('en-IN')}</span>
                                         <span className="label">Total Spent</span>
                                     </div>
                                     <div className="stat">
@@ -255,7 +255,7 @@ const AdminCustomers = () => {
                                             {customerDetail.favoriteItems.map((item, index) => (
                                                 <div key={index} className="fav-item">
                                                     <span className="item-name">{item.name}</span>
-                                                    <span className="item-count">{item.count}x • ₹{item.total.toLocaleString()}</span>
+                                                    <span className="item-count">{item.count}x • ₹{item.total.toLocaleString('en-IN')}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -276,7 +276,7 @@ const AdminCustomers = () => {
                                                     </div>
                                                     <div>
                                                         <span className={`status ${order.status}`}>{order.status}</span>
-                                                        <span className="order-amount">₹{order.total.toLocaleString()}</span>
+                                                        <span className="order-amount">₹{order.total.toLocaleString('en-IN')}</span>
                                                     </div>
                                                 </div>
                                             ))}
