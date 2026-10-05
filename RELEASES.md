@@ -4,6 +4,32 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Complete guide: every module, "Where is it?" and topics by role (2026-10-06)
+
+**What's new** (Settings → Help & support, or the ? at the top)
+
+| Area | Change |
+| --- | --- |
+| Two chapters | **Every day** (the 10 daily topics) and **Setting up and running the cafe** (15 new topics): setup checklist, menu and tax, recipes and food cost, tables and QR, coupons / points / offers, customer app, Brand & look, expenses and the money ledger, reports / GST / Profit advisor, attendance, payroll, roles and permissions, alerts and the full-screen alarm, screens and devices, language and light / dark |
+| Every topic | Steps with the real button names, an **Open** link to the page, a real example with ₹ amounts, and tips; in English, हिन्दी and Hinglish |
+| For me / Everything | **For me** (default) shows only the topics for the person's role: a cashier sees 13, the owner all 25. **Everything** shows all |
+| Where is it? | New tab: 47 settings and tasks ("GSTIN on the bill", "reset a PIN", "kiosk slots"…) with the exact menu path and an Open button; searchable in all three languages; only what the role can open |
+| Common problems | 5 more: alarm with no sound, staff cannot check in, "plan allows N kiosks", a missing page or button, old tickets in the kitchen |
+| Checks | `tests/guide.test.mjs`: every text in all three languages, every Open link goes to a real page, every permission exists, and every page in the menu is covered by the guide |
+
+**Deploy**
+
+1. No SQL. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Owner → Help & support: two chapters, 25 topics; open "Payroll, leave and advances": steps, example and Open buttons work
+- [ ] Cashier login → Help: "For me" shows only the daily counter topics plus menu, tables, offers, alerts and screens; "Everything" shows all
+- [ ] Where is it? → type "gst": three answers with the menu path; Open goes there
+- [ ] Switch to हिन्दी and Hinglish: topics and Where is it? change language
+- [ ] Print (laptop): all topics print open, without menus
+
+---
+
 ## Fix pack: everything found in the full test run (2026-10-05)
 
 The app was tested as Owner, Manager, Cashier, Chef, Waiter, Accountant and Kiosk operator, on laptop and phone,

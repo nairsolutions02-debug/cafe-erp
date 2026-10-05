@@ -8,7 +8,20 @@
 .hp-lang button.on, .hp-tabs button.on { background: #fff; color: var(--text-primary); box-shadow: 0 1px 3px rgba(0, 0, 0, .1); }
 .hp-tabs { overflow-x: auto; scrollbar-width: none; }
 .hp-tabs button { flex: 1 0 auto; white-space: nowrap; }
-.hp-tools { display: flex; gap: 8px; }
+.hp-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.hp-scope { display: flex; gap: 4px; background: #F1EEE9; border-radius: 12px; padding: 4px; }
+.hp-scope button { border: 0; background: none; border-radius: 9px; padding: 6px 12px; font: inherit; font-size: .85rem; font-weight: 600; color: var(--text-secondary); cursor: pointer; min-height: 36px; }
+.hp-scope button.on { background: #fff; color: var(--text-primary); box-shadow: 0 1px 3px rgba(0, 0, 0, .1); }
+.hp-chapter { margin-top: 18px; }
+.hp-ch { font-size: 1rem; margin: 0 0 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .04em; }
+.hp-where .hp-search { margin: 10px 0; }
+.hp-where-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.hp-where-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; background: var(--bg-card, #fff); border-radius: 12px; box-shadow: 0 1px 3px rgba(0, 0, 0, .06); }
+.hp-where-list li > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hp-path { color: var(--text-secondary); font-size: .88rem; }
+.theme-dark .hp-scope { background: #2A231C; }
+.theme-dark .hp-scope button.on { background: #3A3027; color: #F5EBDD; }
+.theme-dark .hp-where-list li { background: #1F1A15; box-shadow: none; }
 .hp-search { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--bg-card, #fff); border: 1.5px solid #E5DED5; border-radius: 12px; padding: 0 12px; color: var(--text-muted); }
 .hp-search input { border: 0; outline: 0; background: none; font: inherit; padding: 10px 0; flex: 1; min-width: 0; color: var(--text-primary); }
 
@@ -112,8 +125,13 @@
 }
 
 @media print {
-    .admin-sidebar, .admin-header, .section-tabs, .quick-bar, .hp-tabs, .hp-tools, .hp-lang, .hp-open, .billing-banner { display: none !important; }
+    .admin-sidebar, .admin-header, .section-tabs, .quick-bar, .hp-tabs, .hp-tools, .hp-lang, .hp-open, .billing-banner, .sound-chip { display: none !important; }
     .admin-main, .admin-content { margin: 0 !important; padding: 0 !important; }
     .hp-sec { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
     .hp-chev { display: none; }
+}
+
+@media (max-width: 600px) {
+    .hp-tools .hp-search { flex-basis: 100%; }
+    .hp-tools .hp-print { display: none; }
 }

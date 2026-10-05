@@ -4,6 +4,8 @@ import { FiArrowRight, FiPrinter, FiSend, FiCamera, FiX, FiChevronDown, FiSearch
 import { useAuth } from '../../context/AuthContext';
 import { createSupportTicket, getMySupportTickets, replySupportTicket, markSupportRead, uploadSupportScreenshot } from '../../utils/api';
 import { SOP, FAQ, UI } from './sop';
+import { SOP_MANAGE } from './sopManage';
+import { WHERE } from './whereIs';
 import TicketThread from './TicketThread';
 import { STATUS, CATEGORIES, when } from './ticketMeta';
 import './Help.css';
@@ -21,63 +23,108 @@ const device = () => ({
 
 const Btn = ({ label }) => <span className="hp-btn" aria-hidden="true">{label}</span>;
 
+// A topic shows under "For me" when the person has one of its permissions (no perms = everyone)
+const allowedFor = (hasPerm) => (s) => !s.perms || s.perms.some(p => hasPerm(p));
+const CHAPTERS = [['daily', SOP], ['manage', SOP_MANAGE]];
+const ALL_TOPICS = [...SOP, ...SOP_MANAGE];
+const readScope = () => { try { return localStorage.getItem('help-scope') || 'me'; } catch { return 'me'; } };
+
+const Topic = ({ s, n, lang, isOpen, toggle }) => (
+    <li className={`hp-sec${isOpen ? ' open' : ''}`}>
+        <button className="hp-sec-head" aria-expanded={isOpen} onClick={() => toggle(s.id)}>
+            <span className="hp-ico" aria-hidden="true">{s.icon}</span>
+            <span className="hp-sec-text"><small>{n} · {s.when[lang]}</small><b>{s.title[lang]}</b></span>
+            <FiChevronDown className="hp-chev" aria-hidden="true" />
+        </button>
+        {isOpen && (
+            <div className="hp-sec-body">
+                <p className="hp-intro">{s.intro[lang]}</p>
+                <ol className="hp-steps">
+                    {s.steps.map((st, i) => (
+                        <li key={i}>
+                            <span className="hp-n">{i + 1}</span>
+                            <div className="hp-step">
+                                <p>{st.t[lang]}</p>
+                                {(st.btn || st.go) && (
+                                    <div className="hp-step-row">
+                                        {st.btn && <><span className="hp-tap">{lang === 'en' ? 'Tap' : lang === 'hi' ? 'दबाएँ' : 'Dabao'}</span><Btn label={st.btn} /></>}
+                                        {st.go && <Link className="hp-open" to={st.go}>{UI.open[lang]} <FiArrowRight /></Link>}
+                                    </div>
+                                )}
+                            </div>
+                        </li>
+                    ))}
+                </ol>
+                {s.example && <div className="hp-example"><b>💡 {UI.example[lang]}</b><p>{s.example[lang]}</p></div>}
+                {s.tip && <div className="hp-tip"><b>✋ {UI.tip[lang]}</b><p>{s.tip[lang]}</p></div>}
+            </div>
+        )}
+    </li>
+);
+
 const Guide = ({ lang }) => {
+    const { hasPerm } = useAuth();
     const [open, setOpen] = useState(() => new Set(['open']));
     const [q, setQ] = useState('');
+    const [scope, setScope] = useState(readScope);
+    const chooseScope = (v) => { setScope(v); try { localStorage.setItem('help-scope', v); } catch { /* private mode */ } };
     const toggle = (id) => setOpen(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
     const term = q.trim().toLowerCase();
-    const list = term
-        ? SOP.filter(s => JSON.stringify(s).toLowerCase().includes(term))
-        : SOP;
+    const mine = allowedFor(hasPerm);
+    const keep = (s) => (scope === 'all' || mine(s)) && (!term || JSON.stringify(s).toLowerCase().includes(term));
+    const chapters = CHAPTERS.map(([key, list]) => [key, list.filter(keep)]).filter(([, list]) => list.length);
+    // Running numbers across both chapters
+    const number = new Map(chapters.flatMap(([, list]) => list).map((s, i) => [s.id, i + 1]));
 
     return (
         <>
             <div className="hp-tools">
                 <label className="hp-search"><FiSearch aria-hidden="true" />
                     <span className="sr-only">Search the guide</span>
-                    <input value={q} onChange={e => setQ(e.target.value)} placeholder={lang === 'hi' ? 'खोजें: शिफ्ट, खाता, बर्थडे…' : 'Search: shift, khata, birthday…'} />
+                    <input value={q} onChange={e => setQ(e.target.value)} placeholder={lang === 'hi' ? 'खोजें: शिफ्ट, खाता, वेतन…' : 'Search: shift, khata, payroll…'} />
                 </label>
-                <button className="btn btn-ghost" onClick={() => { setOpen(new Set(SOP.map(s => s.id))); setTimeout(() => window.print(), 50); }}><FiPrinter /> Print</button>
+                <div className="hp-scope" role="group" aria-label="Which topics">
+                    {['me', 'all'].map(k => <button key={k} className={scope === k ? 'on' : ''} aria-pressed={scope === k} onClick={() => chooseScope(k)}>{UI[k === 'me' ? 'forMe' : 'everything'][lang]}</button>)}
+                </div>
+                <button className="btn btn-ghost hp-print" onClick={() => { setOpen(new Set(ALL_TOPICS.map(s => s.id))); setTimeout(() => window.print(), 50); }}><FiPrinter /> Print</button>
             </div>
-            <ol className="hp-day">
-                {list.map((s, si) => {
-                    const isOpen = !!term || open.has(s.id);
-                    return (
-                        <li key={s.id} className={`hp-sec${isOpen ? ' open' : ''}`}>
-                            <button className="hp-sec-head" aria-expanded={isOpen} onClick={() => toggle(s.id)}>
-                                <span className="hp-ico" aria-hidden="true">{s.icon}</span>
-                                <span className="hp-sec-text"><small>{si + 1} · {s.when[lang]}</small><b>{s.title[lang]}</b></span>
-                                <FiChevronDown className="hp-chev" aria-hidden="true" />
-                            </button>
-                            {isOpen && (
-                                <div className="hp-sec-body">
-                                    <p className="hp-intro">{s.intro[lang]}</p>
-                                    <ol className="hp-steps">
-                                        {s.steps.map((st, i) => (
-                                            <li key={i}>
-                                                <span className="hp-n">{i + 1}</span>
-                                                <div className="hp-step">
-                                                    <p>{st.t[lang]}</p>
-                                                    {(st.btn || st.go) && (
-                                                        <div className="hp-step-row">
-                                                            {st.btn && <><span className="hp-tap">{lang === 'en' ? 'Tap' : lang === 'hi' ? 'दबाएँ' : 'Dabao'}</span><Btn label={st.btn} /></>}
-                                                            {st.go && <Link className="hp-open" to={st.go}>{UI.open[lang]} <FiArrowRight /></Link>}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ol>
-                                    {s.example && <div className="hp-example"><b>💡 {UI.example[lang]}</b><p>{s.example[lang]}</p></div>}
-                                    {s.tip && <div className="hp-tip"><b>✋ {UI.tip[lang]}</b><p>{s.tip[lang]}</p></div>}
-                                </div>
-                            )}
-                        </li>
-                    );
-                })}
-                {list.length === 0 && <p className="muted">Nothing found. Try another word, or ask us in the last tab.</p>}
-            </ol>
+            {chapters.map(([key, list]) => (
+                <section key={key} className="hp-chapter">
+                    <h2 className="hp-ch">{UI[key][lang]}</h2>
+                    <ol className="hp-day">
+                        {list.map(s => <Topic key={s.id} s={s} n={number.get(s.id)} lang={lang} isOpen={!!term || open.has(s.id)} toggle={toggle} />)}
+                    </ol>
+                </section>
+            ))}
+            {chapters.length === 0 && <p className="muted">Nothing found. Try another word, or ask us in the last tab.</p>}
         </>
+    );
+};
+
+// "Where is it?": a searchable list of settings and tasks with the menu path
+const Where = ({ lang }) => {
+    const { hasPerm } = useAuth();
+    const [q, setQ] = useState('');
+    const term = q.trim().toLowerCase();
+    const list = WHERE.filter(allowedFor(hasPerm))
+        .filter(w => !term || `${w.q.en} ${w.q.hi} ${w.q.hg} ${w.where}`.toLowerCase().includes(term));
+    return (
+        <div className="hp-where">
+            <p className="muted">{UI.whereSub[lang]}</p>
+            <label className="hp-search"><FiSearch aria-hidden="true" />
+                <span className="sr-only">Search settings</span>
+                <input value={q} onChange={e => setQ(e.target.value)} autoFocus placeholder={lang === 'hi' ? 'जैसे: GST, लोगो, PIN…' : 'e.g. GST, logo, PIN, kiosk…'} />
+            </label>
+            <ul className="hp-where-list">
+                {list.map((w, i) => (
+                    <li key={i}>
+                        <div><b>{w.q[lang]}</b><span className="hp-path">{w.where}</span></div>
+                        <Link className="hp-open" to={w.go}>{UI.open[lang]} <FiArrowRight /></Link>
+                    </li>
+                ))}
+                {list.length === 0 && <li className="muted">Nothing found. Try another word.</li>}
+            </ul>
+        </div>
     );
 };
 
@@ -237,11 +284,12 @@ const AdminHelp = () => {
                 </div>
             </div>
             <div className="hp-tabs" role="tablist">
-                {['guide', 'faq', 'tickets'].map(k => (
+                {['guide', 'where', 'faq', 'tickets'].map(k => (
                     <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => go(k)}>{UI[k][lang]}</button>
                 ))}
             </div>
             {tab === 'guide' && <Guide lang={lang} />}
+            {tab === 'where' && <Where lang={lang} />}
             {tab === 'faq' && <Faq lang={lang} onAsk={() => go('tickets')} />}
             {tab === 'tickets' && <Tickets key={from} from={from} />}
         </div>

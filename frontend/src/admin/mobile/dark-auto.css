@@ -665,6 +665,14 @@
         background: var(--d-surface);
     }
 
+    .theme-dark .hp-scope {
+        background: var(--d-surface-2);
+    }
+
+    .theme-dark .hp-scope button.on {
+        background: var(--d-surface);
+    }
+
     .theme-dark .hp-search {
         border: 1.5px solid var(--d-line);
     }
