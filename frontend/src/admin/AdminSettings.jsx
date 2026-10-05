@@ -7,6 +7,7 @@ import Skeleton from './mobile/Skeleton';
 import DevicesCard from './DevicesCard';
 import './AdminSettings.css';
 import { useBrand } from '../context/BrandContext';
+import InfoTip from './help/InfoTip';
 
 const AdminSettings = () => {
     const brand = useBrand();
@@ -124,7 +125,7 @@ const AdminSettings = () => {
                         <span>Name, logo, address, phone and hours are on <b>Brand &amp; look</b> →</span>
                     </Link>
                     <div className="form-group">
-                        <label>FSSAI licence number (printed on bills)</label>
+                        <label>FSSAI licence number (printed on bills)<InfoTip k="fssai" /></label>
                         <input
                             type="text"
                             value={settings.fssai_number || ''}
@@ -133,7 +134,7 @@ const AdminSettings = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Service charge % (optional; 0 = off)</label>
+                        <label>Service charge % (optional; 0 = off)<InfoTip k="service_charge" /></label>
                         <input
                             type="number" min="0" max="20" step="0.5"
                             value={settings.service_charge_pct ?? 0}
@@ -144,11 +145,11 @@ const AdminSettings = () => {
                     <div className="form-group">
                         <label>
                             <input type="checkbox" checked={settings.round_off === true}
-                                onChange={(e) => handleBasicChange('round_off', e.target.checked)} /> Round bill totals to the nearest rupee
+                                onChange={(e) => handleBasicChange('round_off', e.target.checked)} /> Round bill totals to the nearest rupee<InfoTip k="round_off" />
                         </label>
                     </div>
                     <div className="form-group">
-                        <label>Bill footer</label>
+                        <label>Bill footer<InfoTip k="bill_footer" /></label>
                         <input
                             type="text"
                             value={settings.bill_footer || ''}
@@ -157,7 +158,7 @@ const AdminSettings = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label>Cash difference allowed at shift close (₹)</label>
+                        <label>Cash difference allowed at shift close (₹)<InfoTip k="shift_tolerance" /></label>
                         <input
                             type="number" min="0"
                             value={settings.shift_tolerance ?? 50}
@@ -170,14 +171,14 @@ const AdminSettings = () => {
                 {/* Tax Configuration */}
                 <div className="settings-card">
                     <div className="card-header-flex">
-                        <h2>Tax Configuration</h2>
+                        <h2>Tax Configuration<InfoTip k="tax_config" /></h2>
                         <button className="btn-add-tax" onClick={addTax}>
                             <FiPlus /> Add Tax
                         </button>
                     </div>
 
                     <div className="form-group">
-                        <label>GST Registration Number (GSTIN)</label>
+                        <label>GST Registration Number (GSTIN)<InfoTip k="gstin" /></label>
                         <input
                             type="text"
                             value={settings.gst_number || ''}

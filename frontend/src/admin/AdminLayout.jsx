@@ -10,6 +10,7 @@ import { useOutbox } from '../lib/outbox';
 import usePullToRefresh from './mobile/usePullToRefresh';
 import useAdminTheme from './mobile/useAdminTheme';
 import ThemeToggle, { ThemeSwitch } from './mobile/ThemeToggle';
+import Tour from './help/Tour';
 import { SHELL } from './mobile/shellText';
 import './mobile/mobile.css';
 import './mobile/dark-auto.css';
@@ -137,7 +138,7 @@ const AdminLayout = () => {
                         if (sidebarItems.length === 1) {
                             const item = sidebarItems[0];
                             return (
-                                <Link key={sec.key} to={item.path} onClick={() => setSidebarOpen(false)}
+                                <Link key={sec.key} to={item.path} onClick={() => setSidebarOpen(false)} data-tour={`sec:${sec.key}`}
                                     className={`nav-link nav-section${current?.section.key === sec.key ? ' active' : ''}`}>
                                     <sec.icon /><span>{tr(sec.label, lang)}</span>
                                 </Link>
@@ -146,7 +147,7 @@ const AdminLayout = () => {
                         return (
                             <div key={sec.key} className={`nav-group${open ? ' open' : ''}`}>
                                 <button type="button" className={`nav-link nav-section${current?.section.key === sec.key ? ' current' : ''}`}
-                                    aria-expanded={open} onClick={() => setOpenSection(open ? '' : sec.key)}>
+                                    data-tour={`sec:${sec.key}`} aria-expanded={open} onClick={() => setOpenSection(open ? '' : sec.key)}>
                                     <sec.icon /><span>{tr(sec.label, lang)}</span><FiChevronDown className="nav-chevron" />
                                 </button>
                                 {open && (
@@ -199,7 +200,7 @@ const AdminLayout = () => {
                             </span>
                         )}
                         <button type="button" className="header-search" aria-label={tr(SHELL.search, lang)} onClick={() => setSearchOpen(true)}><FiSearch /></button>
-                        <Link className="header-help" to={location.pathname === '/admin/help' ? '/admin/help?tab=tickets' : `/admin/help?from=${encodeURIComponent(location.pathname + location.search)}`}
+                        <Link className="header-help" data-tour="help" to={location.pathname === '/admin/help' ? '/admin/help?tab=tickets' : `/admin/help?from=${encodeURIComponent(location.pathname + location.search)}`}
                             aria-label="Help and report a problem" title="Help · report a problem"><FiHelpCircle /></Link>
                         <ThemeToggle pathname={location.pathname} dark={dark} lang={lang} />
                         <Notifications />
@@ -272,7 +273,7 @@ const AdminLayout = () => {
                         {[...quick, MORE].map(item => {
                             const on = isActive(item.path, item.exact);
                             return (
-                                <Link key={item.path} to={item.path} className={`quick-link${on ? ' active' : ''}`} aria-current={on ? 'page' : undefined}>
+                                <Link key={item.path} to={item.path} data-tour={`q:${item.path}`} className={`quick-link${on ? ' active' : ''}`} aria-current={on ? 'page' : undefined}>
                                     <span className="ql-pill"><item.icon /></span><span>{tr(item.labels || item.label, lang)}</span>
                                 </Link>
                             );
@@ -283,6 +284,7 @@ const AdminLayout = () => {
 
             {/* Overlay */}
             {sidebarOpen && <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)} />}
+            <Tour />
         </div>
     );
 };

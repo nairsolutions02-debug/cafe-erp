@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import Skeleton from './mobile/Skeleton';
 import { FiUsers, FiUserPlus, FiActivity, FiRepeat, FiSettings, FiDownload } from 'react-icons/fi';
 import './AdminAnalytics.css';
+import InfoTip from './help/InfoTip';
 
 // The first two follow the cafe's main colour (Settings → Brand & look)
 const cssVar = (name, fallback) => (typeof document === 'undefined' ? fallback
@@ -119,7 +120,7 @@ const AdminAnalytics = () => {
                 </div>
                 <div className="summary-card profit">
                     <div className="card-header-with-action">
-                        <h3>Estimated Profit</h3>
+                        <h3>Estimated Profit<InfoTip k="profit_margin" /></h3>
                         {canEditMargin && (
                             <button className="settings-btn" aria-label="Change the profit margin" title="Change the profit margin"
                                 onClick={() => setShowMarginInput(!showMarginInput)}>

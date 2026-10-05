@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { getDevices, setDeviceActive, getSetupStatus } from '../utils/api';
 import { getDevice, forgetDevice } from '../lib/device';
+import InfoTip from './help/InfoTip';
 
 // Settings → Devices: every counter, kiosk and kitchen screen that has opened the app.
 // Turning one off frees a kiosk slot; that screen asks to be set up again if it is used later.
@@ -40,7 +41,7 @@ const DevicesCard = ({ canEdit }) => {
 
     return (
         <div className="settings-card devices-card">
-            <h2>Devices</h2>
+            <h2>Devices<InfoTip k="devices" /></h2>
             <p className="hint">
                 Every counter, kiosk and kitchen screen gets a short code (C1, K1, D1) the first time it is used.
                 Turn off old or lost ones to keep this list clean

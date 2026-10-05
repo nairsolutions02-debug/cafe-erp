@@ -4,6 +4,7 @@ import Calendar from 'react-calendar';
 import { getEmployees, createEmployee, updateEmployee, deleteEmployee, getEmployeeAttendance, markAttendance, getHolidays, addHoliday } from '../utils/api';
 import 'react-calendar/dist/Calendar.css';
 import './AdminEmployees.css';
+import InfoTip from './help/InfoTip';
 
 const AdminEmployees = () => {
     const [employees, setEmployees] = useState([]);
@@ -177,7 +178,7 @@ const AdminEmployees = () => {
                                         </select>
                                     </div>
                                     <div className="input-group">
-                                        <label>Pay type</label>
+                                        <label>Pay type<InfoTip k="pay_type" /></label>
                                         <select className="input" value={formData.payType || 'monthly'}
                                             onChange={e => setFormData({ ...formData, payType: e.target.value })}>
                                             <option value="monthly">Monthly salary</option>
@@ -207,17 +208,17 @@ const AdminEmployees = () => {
                                         </div>
                                     )}
                                     <div className="input-group">
-                                        <label>Overtime ₹ per hour</label>
+                                        <label>Overtime ₹ per hour<InfoTip k="ot_rate" /></label>
                                         <input type="number" className="input" value={formData.otRate ?? ''}
                                             onChange={e => setFormData({ ...formData, otRate: e.target.value })} />
                                     </div>
                                     <div className="input-group">
-                                        <label>Shift hours per day</label>
+                                        <label>Shift hours per day<InfoTip k="shift_hours" /></label>
                                         <input type="number" className="input" value={formData.shiftHours ?? 9}
                                             onChange={e => setFormData({ ...formData, shiftHours: e.target.value })} />
                                     </div>
                                     <div className="input-group">
-                                        <label>Weekly off</label>
+                                        <label>Weekly off<InfoTip k="weekly_off" /></label>
                                         <select className="input" value={formData.weeklyOff ?? ''}
                                             onChange={e => setFormData({ ...formData, weeklyOff: e.target.value })}>
                                             <option value="">None</option>

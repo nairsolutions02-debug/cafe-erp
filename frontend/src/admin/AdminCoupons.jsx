@@ -4,6 +4,7 @@ import { getAllCoupons, createCoupon, updateCoupon, deleteCoupon } from '../util
 import { useAuth } from '../context/AuthContext';
 import ViewOnlyNote from './ViewOnlyNote';
 import './AdminCoupons.css';
+import InfoTip from './help/InfoTip';
 
 const AdminCoupons = () => {
     const { hasPerm } = useAuth();
@@ -166,13 +167,13 @@ const AdminCoupons = () => {
                                     </div>
                                     {formData.discountType === 'percentage' && (
                                         <div className="input-group">
-                                            <label>Max Discount (for %)</label>
+                                            <label>Max Discount (for %)<InfoTip k="coupon_max" /></label>
                                             <input type="number" className="input" value={formData.maxDiscount}
                                                 onChange={e => setFormData({ ...formData, maxDiscount: e.target.value ? parseFloat(e.target.value) : '' })} />
                                         </div>
                                     )}
                                     <div className="input-group">
-                                        <label>Usage Limit (-1 = unlimited)</label>
+                                        <label>Usage Limit (-1 = unlimited)<InfoTip k="coupon_limit" /></label>
                                         <input type="number" className="input" value={formData.usageLimit}
                                             onChange={e => setFormData({ ...formData, usageLimit: parseInt(e.target.value) })} />
                                     </div>

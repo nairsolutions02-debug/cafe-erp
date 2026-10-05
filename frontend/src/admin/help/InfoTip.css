@@ -1,0 +1,26 @@
+/* The ⓘ button next to a setting and its card / phone sheet (help/InfoTip.jsx) */
+.info-tip { display: inline-grid; place-items: center; width: 20px; height: 20px; margin: 0 0 0 6px; padding: 0; border-radius: 50%;
+    border: 1.5px solid var(--text-secondary, #8D7F6E); background: transparent; color: var(--text-secondary, #5E5245);
+    font: italic 700 12px/1 Georgia, 'Times New Roman', serif; cursor: pointer; vertical-align: middle; flex: none; position: relative; }
+.info-tip::after { content: ''; position: absolute; inset: -12px; } /* 44px tap target without a big circle */
+.info-tip:hover, .info-tip[aria-expanded="true"] { border-color: var(--primary); color: var(--primary); background: var(--primary-soft, #FBEBD6); }
+.it-card { position: fixed; z-index: 2500; width: min(320px, calc(100vw - 16px)); background: var(--bg-card, #fff); color: var(--text-primary);
+    border: 1px solid var(--border-color, #E8E0D5); border-radius: 14px; box-shadow: 0 14px 40px rgba(0, 0, 0, .18); padding: 14px;
+    display: flex; flex-direction: column; gap: 8px; font-size: .88rem; line-height: 1.45; text-align: left; font-weight: 400; }
+.it-card p { margin: 0; }
+.it-title { font-size: .95rem; }
+.it-ex { background: var(--primary-soft, #FBEBD6); border-radius: 9px; padding: 8px 10px; }
+.it-who { color: var(--text-secondary); }
+.it-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.it-row a { color: var(--primary-dark, var(--primary)); font-weight: 600; text-decoration: none; }
+.it-close { border: 0; background: var(--bg-secondary, #F1EEE9); color: var(--text-primary); border-radius: 9px; padding: 8px 14px; font: inherit; font-weight: 600; min-height: 40px; cursor: pointer; }
+.it-scrim { position: fixed; inset: 0; z-index: 2499; background: rgba(0, 0, 0, .3); }
+.it-card.sheet { left: 0; right: 0; bottom: 0; top: auto; width: auto; border-radius: 18px 18px 0 0; padding: 18px 16px calc(18px + env(safe-area-inset-bottom)); }
+.it-card.sheet::before { content: ''; width: 40px; height: 4px; border-radius: 4px; background: var(--border-color, #E8E0D5); align-self: center; }
+html:has(.theme-dark) .it-card { background: #1F1A15; color: #F5EBDD; border-color: #3A3027; }
+html:has(.theme-dark) .it-ex { background: color-mix(in srgb, var(--primary) 24%, #1F1A15); }
+html:has(.theme-dark) .it-close { background: #2A231C; color: #F5EBDD; }
+html:has(.theme-dark) .it-who { color: #CDBBA2; }
+html:has(.theme-dark) .it-row a { color: color-mix(in srgb, var(--primary) 62%, white); }
+.theme-dark .info-tip { border-color: #A8957B; color: #CDBBA2; }
+@media print { .info-tip { display: none; } }

@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../utils/config';
 import './AdminMenu.css';
+import InfoTip from './help/InfoTip';
 
 const EMPTY_FORM = {
         name: '', description: '', price: '', category: '',
@@ -334,7 +335,7 @@ const AdminMenu = () => {
                                     <legend>Catalogue &amp; tax</legend>
                                     <div className="form-grid">
                                         <div className="input-group">
-                                            <label>Item type</label>
+                                            <label>Item type<InfoTip k="item_type" /></label>
                                             <select className="input" value={formData.itemType}
                                                 onChange={e => setFormData({ ...formData, itemType: e.target.value })}>
                                                 <option value="dish">Prepared dish</option>
@@ -351,7 +352,7 @@ const AdminMenu = () => {
                                             </select>
                                         </div>
                                         <div className="input-group">
-                                            <label>Tax group</label>
+                                            <label>Tax group<InfoTip k="tax_group" /></label>
                                             <select className="input" value={formData.taxGroup}
                                                 onChange={e => setFormData({ ...formData, taxGroup: e.target.value })}>
                                                 <option value="">Cafe default (Settings)</option>
@@ -369,7 +370,7 @@ const AdminMenu = () => {
                                                 onChange={e => setFormData({ ...formData, unit: e.target.value })} placeholder="pc, glass, plate" />
                                         </div>
                                         <div className="input-group">
-                                            <label>HSN code (GST pack; blank = restaurant SAC)</label>
+                                            <label>HSN code (GST pack; blank = restaurant SAC)<InfoTip k="hsn" /></label>
                                             <input className="input" value={formData.hsnCode || ''}
                                                 onChange={e => setFormData({ ...formData, hsnCode: e.target.value })} />
                                         </div>
@@ -381,12 +382,12 @@ const AdminMenu = () => {
                                     </div>
                                     <div className="checkbox-group">
                                         <label><input type="checkbox" checked={formData.priceIncludesTax}
-                                            onChange={e => setFormData({ ...formData, priceIncludesTax: e.target.checked })} /> Price includes tax (MRP items)</label>
+                                            onChange={e => setFormData({ ...formData, priceIncludesTax: e.target.checked })} /> Price includes tax (MRP items)<InfoTip k="price_incl_tax" /></label>
                                         <label><input type="checkbox" checked={formData.isRestricted}
-                                            onChange={e => setFormData({ ...formData, isRestricted: e.target.checked })} /> Restricted (tobacco etc.: no rewards, coupons or promotions)</label>
+                                            onChange={e => setFormData({ ...formData, isRestricted: e.target.checked })} /> Restricted (tobacco etc.: no rewards, coupons or promotions)<InfoTip k="restricted" /></label>
                                     </div>
                                     <div className="checkbox-group">
-                                        <span className="toggle-label">Sold at</span>
+                                        <span className="toggle-label">Sold at<InfoTip k="sold_at" /></span>
                                         <label><input type="checkbox" checked={formData.soldInShop}
                                             onChange={e => setFormData({ ...formData, soldInShop: e.target.checked || !formData.soldAtKiosk })} /> Main shop (counter and customer menu)</label>
                                         <label><input type="checkbox" checked={formData.soldAtKiosk}
@@ -394,7 +395,7 @@ const AdminMenu = () => {
                                     </div>
                                     {editItem && (
                                         <div className="units-editor">
-                                            <label className="toggle-label">Pack units</label>
+                                            <label className="toggle-label">Pack units<InfoTip k="pack_units" /></label>
                                             {units.length === 0 && <p className="hint">e.g. 1 Pack = 10 pieces. Selling a pack removes 10 from stock.</p>}
                                             {units.map(u => (
                                                 <div key={u._id} className="unit-row">
@@ -420,7 +421,7 @@ const AdminMenu = () => {
                                     <label><input type="checkbox" checked={formData.isRecommended}
                                         onChange={e => setFormData({ ...formData, isRecommended: e.target.checked })} /> Recommended</label>
                                     <label><input type="checkbox" checked={formData.isUpsell}
-                                        onChange={e => setFormData({ ...formData, isUpsell: e.target.checked })} /> Show as Cart Suggestion</label>
+                                        onChange={e => setFormData({ ...formData, isUpsell: e.target.checked })} /> Show as Cart Suggestion<InfoTip k="upsell" /></label>
                                 </div>
                             </div>
                             <div className="modal-footer">

@@ -4,6 +4,38 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Help layer: ⓘ buttons on 42 settings and a guided tour per role (2026-10-06)
+
+Built from the approved demo (“i” buttons and a guided tour).
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| ⓘ buttons | A small ⓘ next to 42 settings where a mistake costs money or stops work: Cafe settings (FSSAI, service charge, round off, bill footer, cash difference, GSTIN, taxes), Devices, Attendance (cafe location, alert after outside, location check, App login), Employees (pay type, overtime, shift hours, weekly off), Menu item (type, tax group, HSN, price includes tax, restricted, sold at, pack units, cart suggestion), Points (5 rules), Coupons (usage limit, max discount), Customer app (confirm first order, banners, announcement), Brand & look (main colour, customer app light/dark), Alerts (style, quiet hours), Roles (sensitive rights, exceptions), Sales trends margin, Profit target |
+| ⓘ card | What it does, a real ₹ example, who can change it, and “More in the guide →” opening the right guide topic. Laptop: a card next to the field (it follows the field when scrolling). Phone: a sheet from the bottom. English / हिन्दी / Hinglish, following the menu language |
+| Guided tour | Different steps for Owner (7), Cashier (5), Kitchen (4) and office roles such as Accountant (3). It points at the real menu, header buttons and, on phones, the bottom bar; Next / Back / Skip, arrow keys and Esc work |
+| When it shows | At a person's first login, a small card offers it (“Start the tour · Later · No thanks”). It never blocks work, never shows on the Kiosk, and sits under the full-screen order alarm. Finished or skipped is remembered for the person (not the phone), so a new phone does not offer it again |
+| Run it again | Help & support → ▶ Take the tour (and in “Where is it?”) |
+| Checks | Every ⓘ used on a page has its text in all three languages and a real guide topic; every tour step in all three languages; the tour is remembered per person (database test) |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-help-tour.sql` → Run → Success.
+2. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Log in as a staff member who has not used the app: the “New here? Take a 1-minute tour” card shows at the bottom; Start → the steps point at the menu / bottom bar; Done
+- [ ] Log in again on another phone with the same staff: no card
+- [ ] Owner: Settings → Cafe settings → tap ⓘ next to Service charge: the card explains it with an example; “More in the guide” opens the Setting up topic
+- [ ] Phone: tap any ⓘ: a sheet opens from the bottom; Got it closes it
+- [ ] Menu → Items → open an item: ⓘ next to Tax group, Restricted, Sold at… Tapping ⓘ does not tick the checkbox next to it
+- [ ] Switch the menu to हिन्दी: ⓘ cards and the tour are in Hindi
+- [ ] Help & support → ▶ Take the tour: the tour runs again
+- [ ] Open Sell → Kiosk on a fresh screen: no tour card
+
+---
+
 ## Complete guide: every module, "Where is it?" and topics by role (2026-10-06)
 
 **What's new** (Settings → Help & support, or the ? at the top)

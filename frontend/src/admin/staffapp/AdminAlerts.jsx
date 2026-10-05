@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import '../AdminStaff.css';
 import '../inventory/Inventory.css';
 import './StaffApp.css';
+import InfoTip from '../help/InfoTip';
 
 const STYLES = [
     { value: 'alarm', label: 'Alarm (full screen)' },
@@ -50,7 +51,7 @@ const AdminAlerts = () => {
             <div className="table-scroll">
                 <table className="staff-table alerts-matrix">
                     <thead>
-                        <tr><th>Alert</th>{m.people.map(p => <th key={p.person}>{p.name}<div className="muted small">{p.role}</div></th>)}</tr>
+                        <tr><th>Alert<InfoTip k="alert_style" /></th>{m.people.map(p => <th key={p.person}>{p.name}<div className="muted small">{p.role}</div></th>)}</tr>
                     </thead>
                     <tbody>
                         {m.kinds.map(k => (
@@ -68,7 +69,7 @@ const AdminAlerts = () => {
                             </tr>
                         ))}
                         <tr>
-                            <td><strong>Quiet hours</strong></td>
+                            <td><strong>Quiet hours</strong><InfoTip k="quiet_hours" /></td>
                             {m.people.map(p => {
                                 const q = m.quiet[p.person] || {};
                                 return (

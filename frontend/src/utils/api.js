@@ -725,6 +725,8 @@ export const touchDevice = async (code) => ok(await rpc('touch_device', { p_code
 export const getDevices = async () => ok(listToClient(unwrap(await supabase.from('devices').select().order('code'))));
 export const setDeviceActive = async (id, isActive) => ok(unwrap(await supabase.from('devices').update({ is_active: isActive }).eq('id', id).select('id').single()));
 export const getSetupStatus = async () => ok(await rpc('setup_status'));
+export const getTourDone = async () => ok(await rpc('my_tour_done'));
+export const markTourDone = async () => ok(await rpc('mark_tour_done'));
 export const linkAllStaffEmployees = async () => ok(await rpc('link_all_staff_employees'));
 
 export const getKitchenOrders = async () => ok(await rpc('kitchen_orders'));

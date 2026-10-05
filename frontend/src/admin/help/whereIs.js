@@ -56,5 +56,7 @@ export const WHERE = [
     { q: T('Light or dark screen', 'लाइट या डार्क स्क्रीन', 'Light ya dark screen'), where: 'Sun / moon button at the top (phone: More → Screen colours)', go: '/admin/more' },
     { q: T('Menu language: English, हिन्दी, Hinglish', 'मेन्यू की भाषा: English, हिन्दी, Hinglish', 'Menu ki bhasha: English, हिन्दी, Hinglish'), where: 'Side menu bottom (phone: More → Language)', go: '/admin/more' },
     { q: T('Who changed a price or setting', 'दाम या सेटिंग किसने बदली', 'Daam ya setting kisne badli'), where: 'Settings → Audit log', go: '/admin/audit', perms: ['audit.view'] },
+    { q: T('Take the guided tour again', 'गाइडेड टूर दोबारा लेना', 'Guided tour dobara lena'), where: 'Help & support → ▶ Take the tour', go: '/admin/help' },
+    { q: T('What a setting means (the small ⓘ)', 'किसी सेटिंग का मतलब (छोटा ⓘ)', 'Kisi setting ka matlab (chhota ⓘ)'), where: 'Tap the ⓘ next to the setting', go: '/admin/settings', perms: ['settings.view'] },
     { q: T('Ask N.A.I.R. or report a problem', 'N.A.I.R. से पूछना या समस्या बताना', 'N.A.I.R. se poochna ya problem batana'), where: 'Help & support → Ask N.A.I.R. (or the ? at the top)', go: '/admin/help?tab=tickets' },
 ];

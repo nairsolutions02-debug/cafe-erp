@@ -6,6 +6,7 @@ import { createSupportTicket, getMySupportTickets, replySupportTicket, markSuppo
 import { SOP, FAQ, UI } from './sop';
 import { SOP_MANAGE } from './sopManage';
 import { WHERE } from './whereIs';
+import { TOUR_WORDS, startTour } from './tours';
 import TicketThread from './TicketThread';
 import { STATUS, CATEGORIES, when } from './ticketMeta';
 import './Help.css';
@@ -30,7 +31,7 @@ const ALL_TOPICS = [...SOP, ...SOP_MANAGE];
 const readScope = () => { try { return localStorage.getItem('help-scope') || 'me'; } catch { return 'me'; } };
 
 const Topic = ({ s, n, lang, isOpen, toggle }) => (
-    <li className={`hp-sec${isOpen ? ' open' : ''}`}>
+    <li id={`topic-${s.id}`} className={`hp-sec${isOpen ? ' open' : ''}`}>
         <button className="hp-sec-head" aria-expanded={isOpen} onClick={() => toggle(s.id)}>
             <span className="hp-ico" aria-hidden="true">{s.icon}</span>
             <span className="hp-sec-text"><small>{n} · {s.when[lang]}</small><b>{s.title[lang]}</b></span>
@@ -62,11 +63,15 @@ const Topic = ({ s, n, lang, isOpen, toggle }) => (
     </li>
 );
 
-const Guide = ({ lang }) => {
+const Guide = ({ lang, topic }) => {
     const { hasPerm } = useAuth();
-    const [open, setOpen] = useState(() => new Set(['open']));
+    // A link from an ⓘ card (?topic=…) opens that topic, even if it is not in "For me"
+    const [open, setOpen] = useState(() => new Set([topic || 'open']));
     const [q, setQ] = useState('');
-    const [scope, setScope] = useState(readScope);
+    const [scope, setScope] = useState(() => (topic ? 'all' : readScope()));
+    useEffect(() => {
+        if (topic) document.getElementById(`topic-${topic}`)?.scrollIntoView({ block: 'start' });
+    }, [topic]);
     const chooseScope = (v) => { setScope(v); try { localStorage.setItem('help-scope', v); } catch { /* private mode */ } };
     const toggle = (id) => setOpen(prev => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
     const term = q.trim().toLowerCase();
@@ -279,6 +284,7 @@ const AdminHelp = () => {
                     <h1>{UI.title[lang]}</h1>
                     <p className="muted">{UI.sub[lang]}</p>
                 </div>
+                <button type="button" className="btn btn-secondary hp-tour" onClick={startTour}>▶ {TOUR_WORDS.again[lang]}</button>
                 <div className="hp-lang" role="group" aria-label="Guide language">
                     {LANGS.map(l => <button key={l.key} className={lang === l.key ? 'on' : ''} aria-pressed={lang === l.key} onClick={() => chooseLang(l.key)}>{l.label}</button>)}
                 </div>
@@ -288,7 +294,7 @@ const AdminHelp = () => {
                     <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? 'on' : ''} onClick={() => go(k)}>{UI[k][lang]}</button>
                 ))}
             </div>
-            {tab === 'guide' && <Guide lang={lang} />}
+            {tab === 'guide' && <Guide key={params.get('topic') || ''} lang={lang} topic={params.get('topic') || ''} />}
             {tab === 'where' && <Where lang={lang} />}
             {tab === 'faq' && <Faq lang={lang} onAsk={() => go('tickets')} />}
             {tab === 'tickets' && <Tickets key={from} from={from} />}

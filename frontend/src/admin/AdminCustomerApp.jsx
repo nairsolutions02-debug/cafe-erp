@@ -11,6 +11,7 @@ import Modal from './inventory/Modal';
 import { BannerSlide } from '../components/cx/BannerCarousel';
 import { BANNER_STYLES } from '../components/cx/palettes';
 import './AdminCustomerApp.css';
+import InfoTip from './help/InfoTip';
 
 const MODES = [
     ['qr', 'From the QR (locked)', 'Scanning a table QR sets the table. No dropdown, nothing to choose.'],
@@ -31,9 +32,9 @@ const REMINDERS = [
 const LINKS = [['none', 'No link'], ['menu', 'Menu'], ['category', 'A category'], ['item', 'An item'], ['rewards', 'Rewards page'], ['url', 'Web link']];
 const EMPTY = { title: '', text: '', tag: '', cta: 'Order now', linkType: 'menu', linkTo: '', style: 'saffron', image: '', from: '', to: '', active: true };
 
-const Toggle = ({ checked, onChange, disabled, label, hint }) => (
+const Toggle = ({ checked, onChange, disabled, label, hint, tip }) => (
     <label className={`ca-toggle ${disabled ? 'disabled' : ''}`}>
-        <span className="ca-toggle-copy"><strong>{label}</strong>{hint && <small>{hint}</small>}</span>
+        <span className="ca-toggle-copy"><strong>{label}{tip && <InfoTip k={tip} />}</strong>{hint && <small>{hint}</small>}</span>
         <input type="checkbox" checked={checked} disabled={disabled} onChange={e => onChange(e.target.checked)} />
         <span className="ca-switch" aria-hidden="true" />
     </label>
@@ -215,7 +216,7 @@ const AdminCustomerApp = () => {
                         <Toggle disabled={!canEdit} checked={!!tables.shared} onChange={v => setTable('shared', 'table_shared', v)}
                             label="Tables can be shared by several groups" hint='Each person orders and pays on their own. Nobody is told "table occupied".' />
                         <Toggle disabled={!canEdit} checked={!!tables.confirmFirst} onChange={v => setTable('confirmFirst', 'table_confirm_first', v)}
-                            label="Staff confirm a table's first order" hint="Stops orders from a QR photo sent outside the cafe. The kitchen gets it after a staff member taps Confirm." />
+                            tip="confirm_first" label="Staff confirm a table's first order" hint="Stops orders from a QR photo sent outside the cafe. The kitchen gets it after a staff member taps Confirm." />
                         <Toggle disabled={!canEdit} checked={!!tables.legacyLinks} onChange={v => setTable('legacyLinks', 'table_legacy_links', v)}
                             label="Old printed QR codes still work" hint="Turn off once every table has the new QR from the Tables page." />
                         <p className="muted small">Print or re-issue table QR codes on the <Link to="/admin/tables">Tables</Link> page.</p>
@@ -225,7 +226,7 @@ const AdminCustomerApp = () => {
 
             <section className="ca-card">
                 <div className="ca-card-head">
-                    <h2>Banners <span className="muted small">{live} live</span></h2>
+                    <h2>Banners<InfoTip k="banners" /> <span className="muted small">{live} live</span></h2>
                     {canEdit && banners.length < 12 && <button className="btn btn-primary btn-sm" onClick={() => setEditing({})}><FiPlus /> Add banner</button>}
                 </div>
                 <p className="muted small">Slides at the top of the home page and menu. Each can open an item, a category or the rewards page, and run between dates.</p>
@@ -257,7 +258,7 @@ const AdminCustomerApp = () => {
             </section>
 
             <section className="ca-card">
-                <h2>Announcement strip</h2>
+                <h2>Announcement strip<InfoTip k="announcement" /></h2>
                 <Toggle disabled={!canEdit} checked={!!announce.on} label="Show the strip" hint="A one-line message above the banners"
                     onChange={v => saveSetting('portal_announcement', { ...announce, on: v }, () => setAnnounce(a => ({ ...a, on: v })))} />
                 <div className="ca-inline">

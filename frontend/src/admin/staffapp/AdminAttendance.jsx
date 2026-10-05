@@ -11,6 +11,7 @@ import '../AdminCatalogue.css';
 import '../inventory/Inventory.css';
 import '../pos/POS.css';
 import './StaffApp.css';
+import InfoTip from '../help/InfoTip';
 
 const errorText = (err) => err?.response?.data?.message || err?.message || 'Something went wrong';
 const time = (d) => (d ? new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '');
@@ -110,7 +111,7 @@ const AdminAttendance = () => {
             </div>
             <div className="table-scroll">
                 <table className="staff-table">
-                    <thead><tr><th>Employee</th><th>In</th><th>Out</th><th>Now</th><th>Selfies</th>{canEdit && <th>App login</th>}<th aria-label="Actions" /></tr></thead>
+                    <thead><tr><th>Employee</th><th>In</th><th>Out</th><th>Now</th><th>Selfies</th>{canEdit && <th>App login<InfoTip k="app_login" /></th>}<th aria-label="Actions" /></tr></thead>
                     <tbody>{rows.map(r => (
                         <tr key={r.employeeId}>
                             <td><strong>{r.name}</strong><div className="muted small">{r.role} · shift {r.shiftStart}{!r.trackLocation && ' · no tracking'}</div></td>
@@ -140,14 +141,14 @@ const AdminAttendance = () => {
 
             {hasPerm('settings.edit') && (
                 <section className="panel" style={{ marginTop: 16 }} id="cafe-location">
-                    <h2>Cafe location (geofence)</h2>
+                    <h2>Cafe location (geofence)<InfoTip k="geofence" /></h2>
                     <p className="muted small">Stand inside the cafe with your phone and tap <strong>Use my location</strong>. Staff can check in only within the radius.</p>
                     <div className="form-grid three">
                         <label className="small">Latitude<input className="input" value={geo.lat} onChange={e => setGeo({ ...geo, lat: e.target.value })} /></label>
                         <label className="small">Longitude<input className="input" value={geo.lng} onChange={e => setGeo({ ...geo, lng: e.target.value })} /></label>
                         <label className="small">Radius (m)<input className="input" type="number" value={geo.radius} onChange={e => setGeo({ ...geo, radius: e.target.value })} /></label>
-                        <label className="small">Alert after outside (min)<input className="input" type="number" value={geo.grace} onChange={e => setGeo({ ...geo, grace: e.target.value })} /></label>
-                        <label className="small">Check location every (min)<input className="input" type="number" min="5" value={geo.ping} onChange={e => setGeo({ ...geo, ping: e.target.value })} /></label>
+                        <label className="small"><span>Alert after outside (min)<InfoTip k="leave_grace" /></span><input className="input" type="number" value={geo.grace} onChange={e => setGeo({ ...geo, grace: e.target.value })} /></label>
+                        <label className="small"><span>Check location every (min)<InfoTip k="ping" /></span><input className="input" type="number" min="5" value={geo.ping} onChange={e => setGeo({ ...geo, ping: e.target.value })} /></label>
                     </div>
                     <h3 className="small" style={{ marginTop: 16 }}>Staff Android app</h3>
                     <p className="muted small">After building a new app (GitHub → Actions → Android app), enter its version code and download link; staff phones then show "new version available".</p>

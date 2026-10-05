@@ -141,7 +141,7 @@ const Notifications = () => {
     return (
         <div className="bell">
             <SoundChip />
-            <button className="bell-btn" aria-label={`Alerts${unread ? ` (${unread} new)` : ''}`} onClick={() => setOpen(o => !o)}>
+            <button className="bell-btn" data-tour="bell" aria-label={`Alerts${unread ? ` (${unread} new)` : ''}`} onClick={() => setOpen(o => !o)}>
                 <FiBell />{unread > 0 && <span className="bell-count">{unread}</span>}
             </button>
             {open && (

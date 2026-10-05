@@ -13,7 +13,7 @@ const ThemeToggle = ({ pathname, dark, lang }) => {
     const flip = () => (key === 'kds' ? setKdsTheme : setAppTheme)(dark ? 'light' : 'dark');
     const label = tr(dark ? SHELL.toLight : SHELL.toDark, lang);
     return (
-        <button type="button" className="header-theme" onClick={flip} aria-label={label} title={label}>
+        <button type="button" className="header-theme" data-tour="theme" onClick={flip} aria-label={label} title={label}>
             {dark ? <FiSun /> : <FiMoon />}
         </button>
     );

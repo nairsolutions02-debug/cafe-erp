@@ -7,6 +7,7 @@ import { DEFAULT_THEME, PRESETS, FONTS, CORNERS, CX_MODES, isHex, contrast, read
 import defaults from '../../brand';
 import Skeleton from '../mobile/Skeleton';
 import './Brand.css';
+import InfoTip from '../help/InfoTip';
 
 const errorText = (err) => err?.response?.data?.message || err?.message || 'Something went wrong';
 const initials = (n) => (String(n || '').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2) || 'C').toUpperCase();
@@ -155,7 +156,7 @@ const AdminBrand = () => {
                         {field('heroText', 'Banner text on the customer app', { rows: 2, placeholder: defaults.heroText })}
                     </section>
                     <section className="bl-sec">
-                        <h2>Colours</h2>
+                        <h2>Colours<InfoTip k="brand_colour" /></h2>
                         <div className="bl-presets" role="group" aria-label="Colour sets">
                             {PRESETS.map(p => (
                                 <button key={p.key} type="button" className="bl-preset" disabled={!canEdit}
@@ -200,7 +201,7 @@ const AdminBrand = () => {
                                 ))}
                             </div>
                         </div>
-                        <div className="bl-field">Customer app opens in
+                        <div className="bl-field"><span>Customer app opens in<InfoTip k="cx_mode" /></span>
                             <span className="bl-seg" role="group" aria-label="Customer app colours">
                                 {CX_MODES.map(([k, l]) => <button key={k} type="button" disabled={!canEdit} aria-pressed={theme.cxMode === k} onClick={() => setTheme({ cxMode: k })}>{l}</button>)}
                             </span>

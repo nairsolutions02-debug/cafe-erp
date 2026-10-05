@@ -12,6 +12,7 @@ import '../AdminCatalogue.css';
 import '../inventory/Inventory.css';
 import '../pos/POS.css';
 import './Reports.css';
+import InfoTip from '../help/InfoTip';
 
 const iso = (d) => d.toLocaleDateString('en-CA');
 const PERIODS = {
@@ -164,7 +165,7 @@ const TargetsTab = () => {
             </div>
             {hasPerm('settings.edit') && (
                 <div className="inv-toolbar" style={{ marginTop: 16 }}>
-                    <label className="small">Weekly target ₹ <input className="input compact" type="number" value={s.week} onChange={e => setS({ ...s, week: e.target.value })} /></label>
+                    <label className="small"><span>Weekly target ₹<InfoTip k="profit_target" /></span> <input className="input compact" type="number" value={s.week} onChange={e => setS({ ...s, week: e.target.value })} /></label>
                     <label className="small">Monthly target ₹ <input className="input compact" type="number" value={s.month} onChange={e => setS({ ...s, month: e.target.value })} /></label>
                     <button className="btn btn-primary" onClick={save}>Save targets</button>
                 </div>

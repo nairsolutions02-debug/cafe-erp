@@ -135,3 +135,5 @@
     .hp-tools .hp-search { flex-basis: 100%; }
     .hp-tools .hp-print { display: none; }
 }
+.hp-tour { white-space: nowrap; }
+@media print { .hp-tour { display: none !important; } }

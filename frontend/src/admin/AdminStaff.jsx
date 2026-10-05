@@ -7,6 +7,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { MODULES, ACTIONS, MODULE_ACTIONS, SENSITIVE } from '../lib/permissions';
 import './AdminStaff.css';
+import InfoTip from './help/InfoTip';
 
 const randomPin = () => String(Math.floor(1000 + Math.random() * 9000));
 const errorText = (err, fallback) => err.response?.data?.message || fallback;
@@ -137,7 +138,7 @@ const RolesPanel = ({ roles, reload, canEdit }) => {
                     </table>
                 </div>
 
-                <h4>Sensitive data and actions</h4>
+                <h4>Sensitive data and actions<InfoTip k="sensitive" /></h4>
                 <div className="sensitive-list">
                     {SENSITIVE.map(s => (
                         <label key={s.key}>
@@ -172,7 +173,7 @@ const OverridesModal = ({ person, role, onClose, reload }) => {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal wide" onClick={e => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h2>Exceptions for {person.name}</h2>
+                    <h2>Exceptions for {person.name}<InfoTip k="exceptions" /></h2>
                     <button className="modal-close" onClick={onClose}>×</button>
                 </div>
                 <div className="modal-body">

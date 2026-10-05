@@ -48,3 +48,32 @@ test('the guide covers every page in the menu', () => {
     const missing = paths.filter(p => !covered.has(p));
     assert.deepEqual(missing, [], `pages with no guide link: ${missing.join(', ')}`);
 });
+
+test('every ⓘ on a page has its text in three languages and links to a real guide topic', async () => {
+    const { TIPS } = await import('../src/admin/help/tips.js');
+    const { readdirSync, statSync } = await import('node:fs');
+    const walk = (d) => readdirSync(d).flatMap(f => { const p = `${d}/${f}`; return statSync(p).isDirectory() ? walk(p) : p.endsWith('.jsx') ? [p] : []; });
+    const used = new Set(walk(new URL('../src/admin', import.meta.url).pathname)
+        .flatMap(f => [...readFileSync(f, 'utf8').matchAll(/(?:InfoTip k|tip)="([a-z_]+)"/g)].map(m => m[1])));
+    assert.ok(used.size >= 40, `only ${used.size} ⓘ buttons`);
+    for (const k of used) assert.ok(TIPS[k], `no tip text for ${k}`);
+    const topics = new Set([...SOP, ...SOP_MANAGE].map(s => s.id));
+    for (const [k, tip] of Object.entries(TIPS)) {
+        for (const f of ['t', 'd', 'ex', 'who']) tri(tip[f], `tip ${k}.${f}`);
+        assert.ok(topics.has(tip.guide), `tip ${k}: no guide topic ${tip.guide}`);
+    }
+});
+
+test('every tour step is in three languages, for every role', async () => {
+    const { TOURS, TOUR_WORDS, tourFor } = await import('../src/admin/help/tours.js');
+    for (const [role, steps] of Object.entries(TOURS)) {
+        assert.ok(steps.length >= 3, role);
+        steps.forEach((s, i) => { tri(s.t, `${role}${i}.t`); tri(s.d, `${role}${i}.d`); });
+    }
+    Object.entries(TOUR_WORDS).forEach(([k, t]) => tri(t, `tour word ${k}`));
+    const has = (perms) => (p) => perms.includes(p);
+    assert.equal(tourFor(has(['settings.edit', 'orders.create'])), 'owner');
+    assert.equal(tourFor(has(['orders.create', 'orders.view'])), 'cashier');
+    assert.equal(tourFor(has(['orders.view', 'orders.edit'])), 'kitchen');
+    assert.equal(tourFor(has(['finance.view', 'orders.view'])), 'office');
+});

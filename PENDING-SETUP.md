@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-06)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -68,3 +68,6 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 13.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack.sql` → Run → Success
 - [x] 13.2 Admin → Settings → **Setup checklist** → finish the steps it shows (tap **Link them now** for staff; set the cafe location in Attendance)
 - [x] 13.3 Admin → Settings → Cafe settings → **Devices** → turn off old kiosks / counters you no longer use
+
+## 14. Help layer: ⓘ buttons and guided tour (2026-10-06)
+- [ ] 14.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-help-tour.sql` → Run → Success

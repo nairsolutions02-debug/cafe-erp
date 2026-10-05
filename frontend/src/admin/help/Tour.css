@@ -1,0 +1,28 @@
+/* Guided tour (help/Tour.jsx). Sits under the full-screen alarm (z-index 3000), above everything else. */
+.tour-offer { position: fixed; z-index: 2600; right: 20px; bottom: 20px; width: min(360px, calc(100vw - 24px)); display: flex; gap: 12px;
+    background: var(--bg-card, #fff); color: var(--text-primary); border: 1px solid var(--border-color, #E8E0D5); border-radius: 16px;
+    padding: 14px 16px; box-shadow: 0 14px 40px rgba(0, 0, 0, .18); font-size: .9rem; }
+.tour-offer p { margin: 2px 0 10px; color: var(--text-secondary); line-height: 1.4; }
+.tour-wave { font-size: 1.6rem; line-height: 1; }
+.tour-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.tour-link { border: 0; background: none; color: var(--text-secondary); font: inherit; font-size: .82rem; font-weight: 600; padding: 8px 6px; cursor: pointer; }
+@media (max-width: 768px) { .tour-offer { right: 12px; left: 12px; width: auto; bottom: calc(76px + env(safe-area-inset-bottom)); } }
+.tour-layer { position: fixed; inset: 0; z-index: 2600; }
+.tour-dim { position: fixed; inset: 0; background: rgba(20, 16, 12, .55); }
+.tour-spot { position: fixed; border-radius: 12px; box-shadow: 0 0 0 9999px rgba(20, 16, 12, .55); outline: 3px solid #FBBF24; pointer-events: none; transition: all .25s ease; }
+@media (prefers-reduced-motion: reduce) { .tour-spot { transition: none; } }
+.tour-bubble { position: fixed; background: var(--bg-card, #fff); color: var(--text-primary); border-radius: 16px; padding: 16px; box-shadow: 0 16px 40px rgba(0, 0, 0, .3);
+    display: flex; flex-direction: column; gap: 8px; font-size: .9rem; line-height: 1.45; }
+.tour-bubble.center { left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(360px, calc(100vw - 24px)); }
+.tour-bubble p { margin: 0; color: var(--text-secondary); }
+.tour-bubble b { font-size: 1.02rem; }
+.tour-step { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--primary-dark, var(--primary)); }
+.tour-nav { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+.tour-dots { flex: 1; display: flex; gap: 4px; }
+.tour-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--border-color, #E8E0D5); }
+.tour-dots i.on { background: var(--primary); }
+.tour-bubble .tour-link { align-self: center; }
+html:has(.theme-dark) .tour-offer, html:has(.theme-dark) .tour-bubble { background: #1F1A15; color: #F5EBDD; border-color: #3A3027; }
+html:has(.theme-dark) .tour-offer p, html:has(.theme-dark) .tour-bubble p, html:has(.theme-dark) .tour-link { color: #CDBBA2; }
+html:has(.theme-dark) .tour-step { color: color-mix(in srgb, var(--primary) 62%, white); }
+@media print { .tour-offer, .tour-layer { display: none !important; } }

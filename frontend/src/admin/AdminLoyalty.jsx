@@ -18,6 +18,7 @@ import Skeleton from './mobile/Skeleton';
 import { useAuth } from '../context/AuthContext';
 import ViewOnlyNote from './ViewOnlyNote';
 import './AdminLoyalty.css';
+import InfoTip from './help/InfoTip';
 
 const AdminLoyalty = () => {
     const { hasPerm } = useAuth();
@@ -179,7 +180,7 @@ const AdminLoyalty = () => {
                         <h2>⚙️ Earning Rules</h2>
                         <div className="settings-grid">
                             <div className="setting-item">
-                                <label>Points per ₹1 spent</label>
+                                <label>Points per ₹1 spent<InfoTip k="points_per_rupee" /></label>
                                 <input
                                     type="number"
                                     value={settings.pointsPerRupee}
@@ -190,7 +191,7 @@ const AdminLoyalty = () => {
                                 <small>e.g., 1 = 1 point per ₹1</small>
                             </div>
                             <div className="setting-item">
-                                <label>Minimum Order for Points</label>
+                                <label>Minimum Order for Points<InfoTip k="points_min_order" /></label>
                                 <input
                                     type="number"
                                     value={settings.minOrderForPoints}
@@ -206,7 +207,7 @@ const AdminLoyalty = () => {
                         <h2>🎁 Redemption Rules</h2>
                         <div className="settings-grid">
                             <div className="setting-item">
-                                <label>Points to ₹ Ratio</label>
+                                <label>Points to ₹ Ratio<InfoTip k="points_ratio" /></label>
                                 <input
                                     type="number"
                                     value={settings.pointsToRupeeRatio}
@@ -216,7 +217,7 @@ const AdminLoyalty = () => {
                                 <small>e.g., 10 = 10 points = ₹1 discount</small>
                             </div>
                             <div className="setting-item">
-                                <label>Minimum Points to Redeem</label>
+                                <label>Minimum Points to Redeem<InfoTip k="points_min_redeem" /></label>
                                 <input
                                     type="number"
                                     value={settings.minPointsToRedeem}
@@ -226,7 +227,7 @@ const AdminLoyalty = () => {
                                 <small>Minimum points needed to redeem</small>
                             </div>
                             <div className="setting-item">
-                                <label>Max Redemption %</label>
+                                <label>Max Redemption %<InfoTip k="points_max_pct" /></label>
                                 <input
                                     type="number"
                                     value={settings.maxRedemptionPercent}
