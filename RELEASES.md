@@ -4,6 +4,18 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Customer app: no staff shortcuts on the app icon (2026-10-06)
+
+Asked by the owner. Long-pressing the installed app icon used to offer My day, Counter and Kitchen, also to customers who installed the app. Those shortcuts are removed. Staff open the app and use the menu as usual; the Android staff app is unchanged.
+
+**Deploy:** Vercel redeploys from `main`. No SQL. Phones pick up the new app details on their own within a day or so (or remove and add the app again to see it at once).
+
+**Test checklist**
+- [ ] Android: long-press the installed app icon → no My day / Counter / Kitchen shortcuts
+- [ ] Staff: open the installed app → sign in → My day, Counter and Kitchen still open from the menu
+
+---
+
 ## Customer app redesign: themes, dish page, sizes and choices, combos, favourites, install (2026-10-06)
 
 Built in one go from the approved demo ("pura ek sath complete karo").

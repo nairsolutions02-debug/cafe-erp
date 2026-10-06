@@ -26,11 +26,7 @@ const manifest = (env) => JSON.stringify({
     { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
     { src: '/icon-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
   ],
-  shortcuts: [
-    { name: 'My day', url: '/admin/me' },
-    { name: 'Counter', url: '/admin/pos' },
-    { name: 'Kitchen', url: '/admin/kitchen' },
-  ],
+  // No icon shortcuts: customers install this app too, so long-pressing the icon must not offer staff pages
 }, null, 2)
 
 // https://vite.dev/config/
