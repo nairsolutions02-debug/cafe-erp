@@ -138,7 +138,7 @@ const OrderDetails = () => {
 
     return (
         <div className="order-details-page">
-            <Header title={`Order #${order.orderNumber}`} showBack showCart={false} />
+            <Header title="Your order" showBack showCart={false} />
 
             {justPlaced && show('nudgeCelebrate') && <Confetti />}
             {order.held && !['paid', 'cancelled'].includes(order.status) && (
@@ -245,24 +245,28 @@ const OrderDetails = () => {
 
             {/* Action Buttons */}
             <div className="order-actions">
-                {order.status === 'served' && (
-                    <button onClick={handleRequestBill} className="btn btn-primary btn-full">
-                        Request Bill
-                    </button>
-                )}
-
-                {['served', 'bill_requested', 'bill_generated'].includes(order.status) && !order.paymentRequest && (
+                {/* One question, three clear answers */}
+                {order.status === 'served' && !order.paymentRequest && (
                     <div className="pay-choice">
                         <p>How would you like to pay?</p>
-                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">Pay at the counter</button>
-                        <button onClick={() => handlePay('qr')} className="btn btn-primary btn-full">Pay by UPI at my table</button>
+                        <button onClick={handleRequestBill} className="btn btn-primary btn-full">Bring the bill to my table</button>
+                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">Pay by UPI at my table</button>
+                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">I'll pay at the counter</button>
                     </div>
                 )}
 
                 {order.status === 'bill_requested' && (
                     <div className="waiting-message">
                         <div className="spinner"></div>
-                        <p>Waiting for bill...</p>
+                        <p>The bill is on its way to your table…</p>
+                    </div>
+                )}
+
+                {['bill_requested', 'bill_generated'].includes(order.status) && !order.paymentRequest && (
+                    <div className="pay-choice">
+                        <p className="small">Rather pay another way?</p>
+                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">Pay by UPI at my table</button>
+                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">I'll pay at the counter</button>
                     </div>
                 )}
             </div>

@@ -4,6 +4,33 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Customer app fixes from the customer test (2026-10-06)
+
+From the test run of the customer app on a phone and a laptop (QR scan, login, menu, cart, order, bill, rewards, profile, dark mode).
+
+**What's fixed**
+
+| # | Area | Change |
+| --- | --- | --- |
+| 1 | Search in the header | On phones the search box was squeezed to “Searc”, and on laptops it was hidden by a staff-app style that leaked into the customer app. Now: laptop shows the full search box; phone shows a round search button that opens across the header when tapped |
+| 2 | Paying | One question with three clear answers once the food is served: **Bring the bill to my table**, **Pay by UPI at my table**, **I'll pay at the counter**. After asking for the bill: “The bill is on its way to your table…” with the other two ways still offered |
+| 3 | Points rewards | Rewards and Cart show the 3 cheapest rewards (plus the one picked) and a “See all N rewards” button, instead of a very long list |
+| 4 | Rewards page | Two rewards with the same name no longer confuse the list |
+| 5 | Order page | The title reads “Your order” instead of a cut-off “Order #OR…” |
+
+**Deploy**
+
+Vercel redeploys from `main` by itself. No SQL, no new APK.
+
+**Test checklist**
+- [ ] Phone, customer home: round search button next to the logo; tap → the search box opens across the header; type “dosa” → results
+- [ ] Laptop, customer home: full search box in the header
+- [ ] Order served: “How would you like to pay?” with three buttons; Bring the bill → “The bill is on its way…” and the staff get the blue alert
+- [ ] Rewards and Cart: 3 rewards and “See all” when the cafe has more
+- [ ] Staff app on a phone: the round search button in the header still opens search
+
+---
+
 ## Fix pack 4: everything found in the accountant and kiosk operator test (2026-10-06)
 
 From the test run as Accountant and Kiosk operator on laptop and phone.

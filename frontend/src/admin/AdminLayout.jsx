@@ -199,7 +199,7 @@ const AdminLayout = () => {
                                 {online ? `${tr(SHELL.sending, lang)} ${pending.length}` : `${tr(SHELL.offline, lang)}${pending.length ? ` · ${pending.length} ${tr(SHELL.waiting, lang)}` : ''}`}
                             </span>
                         )}
-                        <button type="button" className="header-search" aria-label={tr(SHELL.search, lang)} onClick={() => setSearchOpen(true)}><FiSearch /></button>
+                        <button type="button" className="ah-search" aria-label={tr(SHELL.search, lang)} onClick={() => setSearchOpen(true)}><FiSearch /></button>
                         <Link className="header-help" data-tour="help" to={location.pathname === '/admin/help' ? '/admin/help?tab=tickets' : `/admin/help?from=${encodeURIComponent(location.pathname + location.search)}`}
                             aria-label="Help and report a problem" title="Help · report a problem"><FiHelpCircle /></Link>
                         <ThemeToggle pathname={location.pathname} dark={dark} lang={lang} />

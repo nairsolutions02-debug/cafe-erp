@@ -107,8 +107,8 @@ const Header = ({ title, showCart = true, showBack = false }) => {
                 )}
 
                 {!title && (
-                    <div className="header-search">
-                        <FiSearch className="search-icon" />
+                    <div className="header-search" onClick={e => e.currentTarget.querySelector('input')?.focus()}>
+                        <FiSearch className="search-icon" aria-label="Search" />
                         <form onSubmit={handleSearch}>
                             <input
                                 type="text"

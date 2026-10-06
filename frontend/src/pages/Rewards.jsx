@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { shortOfferList } from '../lib/offerList';
 import { Link } from 'react-router-dom';
 import { FiGift, FiInstagram, FiCamera, FiCopy, FiStar } from 'react-icons/fi';
 import Header from '../components/Header';
@@ -17,6 +18,7 @@ const Rewards = () => {
     const { user, isAuthenticated } = useAuth();
     const [cfg, setCfg] = useState(null);
     const [r, setR] = useState(null);
+    const [allOffers, setAllOffers] = useState(false);
     const [error, setError] = useState('');
     const [ig, setIg] = useState({ open: false, handle: '', kind: 'tag', file: null, preview: '', busy: false });
     const [dates, setDates] = useState({ birthday: '', anniversary: '' });
@@ -157,9 +159,17 @@ const Rewards = () => {
             {show.offers && r.offers.length > 0 && (
                 <section className="rw-card">
                     <h3>Use your points</h3>
-                    {r.offers.map(o => (
-                        <p key={o.name} className={`small${o.eligible ? '' : ' muted'}`}>{o.eligible ? '✓ ' : ''}<strong>{o.name}</strong> — {o.pointsRequired} points{o.description ? ` · ${o.description}` : ''}</p>
-                    ))}
+                    {(() => {
+                        const { list, hidden } = shortOfferList(r.offers, { showAll: allOffers });
+                        return (
+                            <>
+                                {list.map((o, i) => (
+                                    <p key={o.id || `${o.name}-${o.pointsRequired}-${i}`} className={`small${o.eligible ? '' : ' muted'}`}>{o.eligible ? '✓ ' : ''}<strong>{o.name}</strong> — {o.pointsRequired} points{o.description ? ` · ${o.description}` : ''}</p>
+                                ))}
+                                {hidden > 0 && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAllOffers(true)}>See all {list.length + hidden} rewards</button>}
+                            </>
+                        );
+                    })()}
                 </section>
             )}
 

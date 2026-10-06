@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { shortOfferList } from '../lib/offerList';
 import { useNavigate } from 'react-router-dom';
 import { FiMinus, FiPlus, FiShoppingCart, FiAward, FiLock, FiAlertTriangle, FiDroplet, FiMapPin, FiShoppingBag } from 'react-icons/fi';
 import { BiDish } from 'react-icons/bi';
@@ -64,6 +65,7 @@ const Cart = () => {
     // Loyalty Points
     const [loyaltyPoints, setLoyaltyPoints] = useState(null);
     const [loyaltyOffers, setLoyaltyOffers] = useState([]);
+    const [allOffers, setAllOffers] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState(null);
     const [usePoints, setUsePoints] = useState(false);
     const [pointsDiscount, setPointsDiscount] = useState(0);
@@ -480,7 +482,7 @@ const Cart = () => {
 
                         <div className="loyalty-offers-list">
                             {loyaltyOffers.length > 0 ? (
-                                loyaltyOffers.map(offer => (
+                                shortOfferList(loyaltyOffers, { keepId: selectedOffer?._id, showAll: allOffers }).list.map(offer => (
                                     <div
                                         key={offer._id}
                                         className={`loyalty-offer-item ${selectedOffer?._id === offer._id ? 'selected' : ''} ${loyaltyPoints.currentPoints < offer.pointsRequired ? 'locked' : ''}`}
@@ -511,6 +513,9 @@ const Cart = () => {
                                 ))
                             ) : (
                                 <p className="no-offers-text">No rewards available at the moment.</p>
+                            )}
+                            {!allOffers && shortOfferList(loyaltyOffers, { keepId: selectedOffer?._id }).hidden > 0 && (
+                                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAllOffers(true)}>See all {loyaltyOffers.length} rewards</button>
                             )}
                         </div>
                     </div>
