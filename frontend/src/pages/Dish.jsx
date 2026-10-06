@@ -209,7 +209,7 @@ const Dish = () => {
                             <span><i className={`dish-veg ${item.isVeg ? '' : 'non'}`} aria-hidden="true" />{t(item.isVeg ? W.veg : W.nonVeg)}</span>
                         )}
                     </div>
-                    {item.description && <p className="dish-desc">{item.description}</p>}
+                    {(item.description || item.descriptionHi) && <p className="dish-desc">{lang === 'hi' && item.descriptionHi ? item.descriptionHi : item.description || item.descriptionHi}</p>}
 
                     {sold && (
                         <div className="dish-note dish-sold"><FiShoppingBag /><span><b>{t(W.soldOut)}</b>{t(W.soldOutText)}</span></div>

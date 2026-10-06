@@ -1,6 +1,16 @@
+import { FiStar, FiGift, FiBell, FiAlertTriangle, FiShoppingBag } from 'react-icons/fi';
+import Coin from '../components/cx/Coin';
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPortalConfig } from '../utils/api';
+
+// Reminder pictures: icons instead of emoji (callers still pass the old emoji as a short name)
+const NUDGE_ICONS = { '🎉': FiStar, '🎁': FiGift, '✨': FiBell, '⚠️': FiAlertTriangle, '🛍️': FiShoppingBag };
+const nudgeIcon = (icon) => {
+    if (icon === '🪙') return <Coin size={22} />;
+    const I = NUDGE_ICONS[icon] || FiBell;
+    return <I />;
+};
 import { useAuth } from './AuthContext';
 
 // The owner's customer-app settings (banners, announcement, what to show, reminders, table mode),
@@ -72,7 +82,7 @@ export const PortalProvider = ({ children }) => {
             {children}
             {current && (
                 <div className={`nudge ${current.important ? 'important' : ''}`} role={current.important ? 'alert' : 'status'} key={current.id}>
-                    <span className="nudge-icon" aria-hidden="true">{current.icon}</span>
+                    <span className="nudge-icon" aria-hidden="true">{nudgeIcon(current.icon)}</span>
                     <span className="nudge-text">{current.text}</span>
                     {current.action && (
                         <button className="nudge-action" onClick={() => { current.action.onClick(); dismiss(); }}>{current.action.label}</button>

@@ -84,7 +84,7 @@ const DishFeedback = ({ orderId }) => {
                 </section>
             )}
             {show.review && cfg.googleReviewUrl && (
-                <a className="btn btn-secondary btn-full" href={cfg.googleReviewUrl} target="_blank" rel="noopener noreferrer">⭐ {tx('review')}</a>
+                <a className="btn btn-secondary btn-full" href={cfg.googleReviewUrl} target="_blank" rel="noopener noreferrer"><FiStar aria-hidden="true" /> {tx('review')}</a>
             )}
         </div>
     );

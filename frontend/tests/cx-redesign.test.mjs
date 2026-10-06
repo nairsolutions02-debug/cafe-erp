@@ -180,3 +180,12 @@ test('banners keep drawn art, words in three languages, combo links and times', 
     await assert.rejects(rpc(owner, 'save_portal_banners', { p_banners: [{ title: 'x', timeFrom: '25:00', timeTo: '' }] }), /times look like/);
     await assert.rejects(rpc(owner, 'save_portal_banners', { p_banners: [{ title: 'x', linkType: 'combo', linkTo: crypto.randomUUID() }] }), /pick a combo/);
 });
+
+test('a dish keeps a Hindi description; the standard rewards text has no emoji', async () => {
+    await must(owner.from('menu_items').update({ description_hi: 'ठंडी कॉफ़ी' }).eq('id', latte.id));
+    const guest = await customer(slug, 'Tara', 36);
+    const row = await must(guest.from('menu_items').select('description_hi').eq('id', latte.id).single());
+    assert.equal(row.description_hi, 'ठंडी कॉफ़ी');
+    const cfg = await rpc(guest, 'portal_config');
+    assert.doesNotMatch(cfg.texts.noRewards, /\p{Extended_Pictographic}/u);
+});

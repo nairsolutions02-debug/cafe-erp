@@ -56,7 +56,7 @@
 
 .header-title {
     font-family: var(--cx-fh);
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 4.4vw, 1.2rem);
     font-weight: 700;
     flex: 1;
     min-width: 0;
@@ -206,3 +206,23 @@
 /* Height of the top bar, for things that stick just under it (Menu category chips) */
 html.cx-themed body { --cx-head-h: calc(61px + env(safe-area-inset-top, 0px)); }
 @media (min-width: 1024px) { html.cx-themed body { --cx-head-h: 73px; } }
+
+/* Phone pages with a title: the title gets the room; a long table name shortens itself */
+@media (max-width: 480px) {
+    .header-content:has(.header-title) .table-chip { max-width: 34vw; overflow: hidden; }
+    .header-content:has(.header-title) .table-chip .tc-num { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .header-content:has(.header-title) .header-title { min-width: 92px; }
+}
+
+/* Small laptops and tablets turned sideways (1024–1279px): everything still fits on one line */
+@media (min-width: 1024px) and (max-width: 1279px) {
+    .header { padding: 12px 20px; }
+    .header-content { gap: 14px; }
+    .header .header-desk-nav { gap: 14px; }
+    .header-desk-nav a { font-size: .9rem; }
+    .logo-name { display: none; }
+    .header .header-search { width: 200px; }
+    .header-actions { gap: 6px; }
+    .header-actions .cx-ib { width: 38px; height: 38px; }
+    .table-chip .tc-word { display: none; }
+}

@@ -3,6 +3,7 @@ import { shortOfferList } from '../lib/offerList';
 import { useNavigate } from 'react-router-dom';
 import { FiMinus, FiPlus, FiAward, FiLock, FiAlertTriangle, FiDroplet, FiMapPin, FiShoppingBag, FiEdit2, FiGift, FiTrash2 } from 'react-icons/fi';
 import Art from '../components/cx/Art';
+import Coin from '../components/cx/Coin';
 import { artFor } from '../components/cx/artKinds';
 import Header from '../components/Header';
 import AnimatedSearchInput from '../components/AnimatedSearchInput';
@@ -82,7 +83,7 @@ const W = {
     forgotWater: T('Forgot Water?', 'पानी भूल गए?', 'Paani bhool gaye?'),
     forgotSomething: T('Forgot Something?', 'कुछ भूल गए?', 'Kuch bhool gaye?'),
     upsellAdd: T('Add {name} - ₹{price}', '{name} जोड़ें - ₹{price}', '{name} add karo - ₹{price}'),
-    milestone: T('This will be your {nth} order with us 🎉', 'यह हमारे साथ आपका {nth} ऑर्डर होगा 🎉', 'Yeh hamare saath aapka {nth} order hoga 🎉'),
+    milestone: T('This will be your {nth} order with us', 'यह हमारे साथ आपका {nth} ऑर्डर होगा', 'Yeh hamare saath aapka {nth} order hoga'),
     roundNumber: T('A round number! Thanks for being a regular.', 'राउंड नंबर! हमेशा आने के लिए शुक्रिया।', 'Round number! Regular aane ke liye thanks.'),
     comeBack: T('Thanks for coming back. Every order earns points.', 'फिर से आने के लिए शुक्रिया। हर ऑर्डर पर पॉइंट मिलते हैं।', 'Wapas aane ke liye thanks. Har order pe points milte hain.'),
     nudgePoints: T('You have enough points to save ₹{amt} on this order', 'आपके पॉइंट से इस ऑर्डर पर ₹{amt} बच सकते हैं', 'Aapke points se is order pe ₹{amt} bach sakte hain'),
@@ -625,7 +626,7 @@ const Cart = () => {
                             return (
                                 <button type="button" className={`loyalty-cash ${useCash ? 'on' : ''}`} disabled={!enough || est <= 0}
                                     onClick={() => { if (useCash) { setUseCash(false); } else { setUseCash(true); setSelectedOffer(null); setUsePoints(false); } }}>
-                                    <span className="lc-icon" aria-hidden="true">🪙</span>
+                                    <span className="lc-icon" aria-hidden="true"><Coin size={22} /></span>
                                     <span className="lc-text">
                                         <b>{t(W.cashTitle)}</b>
                                         <small>{enough ? t(W.cashLine, { p: pts, amt: Number(amt).toFixed(0), max: loyaltyPoints.maxRedemptionPercent }) : t(W.cashNeed, { n: loyaltyPoints.minPointsToRedeem })}</small>
@@ -755,7 +756,7 @@ const Cart = () => {
                             setSelectedOffer(on ? null : usableOffer);
                             setUsePoints(!on);
                         }}>
-                        <span className="pc-coin" aria-hidden="true">🪙</span>
+                        <span className="pc-coin" aria-hidden="true"><Coin size={20} /></span>
                         <span className="pc-copy">
                             <strong>{usePoints && selectedOffer?._id === usableOffer._id ? t(W.usingPoints, { n: usableOffer.pointsRequired }) : t(W.enoughPoints)}</strong>
                             <small>{t(W.pointsSave, { name: usableOffer.name, amt: Math.min(usableOffer.discountValue, subtotal).toFixed(0), p: usableOffer.pointsRequired, total: loyaltyPoints.currentPoints })}</small>

@@ -68,7 +68,7 @@ const MenuCard = ({ item, layout = 'grid' }) => {
             <div className="mc-body">
                 <h3 className="mc-name">{name}</h3>
                 {lang === 'hi' && item.nameHi && <span className="dish-name-hi">{item.name}</span>}
-                {layout === 'list' && item.description && <p className="mc-desc">{item.description}</p>}
+                {layout === 'list' && (item.description || item.descriptionHi) && <p className="mc-desc">{lang === 'hi' && item.descriptionHi ? item.descriptionHi : item.description || item.descriptionHi}</p>}
                 <div className="mc-meta">
                     <span className={item.isVeg ? 'cx-veg' : 'cx-nonveg'} aria-label={item.isVeg ? 'Veg' : 'Non-veg'} role="img" />
                     {rating > 0 && <span className="mc-star"><FiStar aria-hidden="true" />{rating.toFixed(1)}</span>}

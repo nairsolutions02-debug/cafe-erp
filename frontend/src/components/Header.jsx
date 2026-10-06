@@ -8,6 +8,7 @@ import { getImageUrl } from '../utils/config';
 import './Header.css';
 import { useBrand, useCxLook } from '../context/BrandContext';
 import TableChip from './cx/TableChip';
+import Coin from './cx/Coin';
 import { LangButton } from './cx/LangPicker';
 import Art from './cx/Art';
 import { artFor } from './cx/artKinds';
@@ -23,14 +24,6 @@ const W = {
     profile: T('Me', 'मैं', 'Me'), back: T('Back', 'पीछे', 'Peeche'), search: T('Search the menu', 'मेन्यू में खोजें', 'Menu mein dhoondho'),
     saved: T('Saved', 'पसंदीदा', 'Saved'), cart: T('Cart', 'कार्ट', 'Cart'), points: T('{n} points', '{n} पॉइंट', '{n} points'),
 };
-
-// A small drawn coin (no emoji)
-const Coin = () => (
-    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" fill="#F5B731" /><circle cx="12" cy="12" r="7.2" fill="none" stroke="#B7791F" strokeWidth="1.6" />
-        <path d="M9.5 9h5M9.5 11.5h5M12 9c1.8 0 2.4 1.2 2.4 2.5S13.3 14 11.4 14L14 16.5" stroke="#8A5A12" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-    </svg>
-);
 
 // Customer app top bar.
 //   Phone: a slim bar with back / logo, the page title, table, language and order history (Home has its own greeting

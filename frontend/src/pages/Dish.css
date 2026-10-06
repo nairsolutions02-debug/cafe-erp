@@ -152,3 +152,8 @@
     .dish-bar { bottom: 20px; margin: 26px 0 0; }
     .dish-toast { bottom: 28px; }
 }
+
+/* Phone: the panel always reaches the bottom of the screen, even for a dish with nothing to choose */
+@media (max-width: 899px) {
+    .dish-body { min-height: calc(100vh - 294px); min-height: calc(100dvh - 294px); }
+}

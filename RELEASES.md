@@ -4,6 +4,33 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Customer app fixes from the phone test + browser polish (2026-10-06)
+
+Asked by the owner after the phone test ("yeh sab sahi kar do").
+
+| Area | Change |
+| --- | --- |
+| Order page | Each line shows its size, choices and note ("Oat, Hazelnut · less ice"); a combo lists its dishes. The total (with taxes) shows from the moment the order is placed. The title no longer gets cut on small phones |
+| Cart | "Add more items" is a proper search box |
+| Pictures | The last emojis are gone: icons on the order page, a drawn coin for points, icons in reminders, rewards and birthday cards |
+| Dish page | A dish with nothing to choose fills the screen (no empty band at the bottom) |
+| Hindi | New **Description in Hindi** box on Menu → Items; customers who pick हिंदी see it on the dish page and in the list view |
+| Sign in | Only name and mobile number. Birthday is no longer asked here (customers can still add it on the Rewards page). A small line under the number asks people to use their own number, because points, orders and bills are saved to it |
+| Browser | On laptops and tablets the top bar fits on one line at every width (1024–1279px got a compact bar); all pages checked at 768, 1024, 1100, 1280, 1366 and 1920px with no sideways scrolling |
+
+**Deploy**
+1. Supabase → SQL Editor → paste `supabase/upgrades/2026-10-cx-fixes.sql` → Run → Success (adds the Hindi description; until then saving a menu item shows an error)
+2. Vercel redeploys from `main`
+
+**Test checklist**
+- [ ] Place an order with a Large + Oat coffee and a combo → the order page lists the choices and the combo dishes, and shows the total
+- [ ] First sign-in asks only name and mobile, with the small "use your own number" line
+- [ ] Menu → Items → a dish → Description in Hindi → Save → the customer app in हिंदी shows it
+- [ ] Laptop at 1024px and 1440px: the top bar shows all buttons, no sideways scrolling
+- [ ] Cart: the search box looks like a search box
+
+---
+
 ## Customer app: no staff shortcuts on the app icon (2026-10-06)
 
 Asked by the owner. Long-pressing the installed app icon used to offer My day, Counter and Kitchen, also to customers who installed the app. Those shortcuts are removed. Staff open the app and use the menu as usual; the Android staff app is unchanged.

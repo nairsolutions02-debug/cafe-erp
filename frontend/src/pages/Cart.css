@@ -230,3 +230,18 @@
     .cart-line { gap: 9px; }
     .cart-line-ph { width: 52px; height: 52px; }
 }
+
+/* "Add more items" search: a proper search pill */
+.cart-search-section .cart-search-bar {
+    position: relative; display: flex; align-items: center; height: 48px; padding: 0 16px 0 44px;
+    border-radius: 999px; background: var(--cx-sf); border: 1px solid var(--cx-ln2);
+    backdrop-filter: blur(var(--cx-blur)); -webkit-backdrop-filter: blur(var(--cx-blur));
+}
+.cart-search-section .cart-search-bar::before {
+    content: ''; position: absolute; left: 16px; top: 50%; width: 18px; height: 18px; translate: 0 -50%;
+    background: var(--cx-mu);
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.cart-search-section .cart-search-bar:focus-within { border-color: var(--cx-pr2); }
+.cart-search-section .animated-search-input { color: var(--cx-tx); min-width: 0; text-overflow: ellipsis; }

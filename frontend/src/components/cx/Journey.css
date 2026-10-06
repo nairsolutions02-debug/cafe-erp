@@ -244,3 +244,5 @@
 @media (prefers-reduced-motion: reduce) {
     .cxj-beans span, .cxj-float, .cxj-point, .cxj-wel-panel, .cxj-signin-head, .cxj-wb-in, .cxj-pop, .cxj-sheet, .cxj-progress i.wait { animation: none; }
 }
+/* Small reminder under the mobile number: use your own number */
+.cxj-numhint { font-size: 11.5px; line-height: 1.4; color: var(--j-mu); margin: -4px 4px 10px; }

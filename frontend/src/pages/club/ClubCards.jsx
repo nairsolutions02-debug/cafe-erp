@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { FiCopy, FiLock, FiCheck } from 'react-icons/fi';
+import { FiCopy, FiLock, FiCheck, FiGift } from 'react-icons/fi';
 import { getMyClub, setMyBirthday, requestBirthdayChange, requestClubJoin } from '../../utils/api';
 import './Club.css';
 import useCxLang, { T, sayReward } from '../../lib/cxLang';
@@ -43,7 +43,7 @@ const W = {
     happy: T('Happy birthday', 'जन्मदिन मुबारक', 'Happy birthday'),
     useBy: T('use by {date}', '{date} तक इस्तेमाल करें', '{date} tak use karo'),
     copyCode: T('Copy {code}', '{code} कॉपी करें', '{code} copy karo'), copied: T('Copied', 'कॉपी हो गया', 'Copy ho gaya'),
-    surprise: T('🎁 Get a surprise on your birthday', '🎁 जन्मदिन पर सरप्राइज़ पाइए', '🎁 Birthday pe surprise pao'),
+    surprise: T('Get a surprise on your birthday', 'जन्मदिन पर सरप्राइज़ पाइए', 'Birthday pe surprise pao'),
     once: T('You can set this once.', 'यह सिर्फ़ एक बार सेट होता है।', 'Yeh sirf ek baar set hota hai.'),
     save: T('Save my birthday', 'मेरा जन्मदिन सेव करें', 'Mera birthday save karo'),
     locked: T('Locked', 'लॉक', 'Locked'),
@@ -195,7 +195,7 @@ const ClubCards = () => {
                 <p className="cl-title">{t(W.birthday)}</p>
                 {b.gift && !b.gift.used && new Date(b.gift.expiresAt) > new Date() && (
                     <div className="cl-gift">
-                        <span className="cl-cake" aria-hidden="true">🎂</span>
+                        <span className="cl-cake" aria-hidden="true"><FiGift /></span>
                         <div><b>{t(W.happy)}{c.name ? `, ${c.name.split(' ')[0]}` : ''}!</b><small>{sayReward(b.gift.reward, lang)} · {t(W.useBy, { date: dayMonth(b.gift.expiresAt, lang) })}</small></div>
                         {b.gift.code && <button onClick={() => copy(b.gift.code)} aria-label={t(W.copyCode, { code: b.gift.code })}>{b.gift.code} <FiCopy /> {copied && t(W.copied)}</button>}
                     </div>

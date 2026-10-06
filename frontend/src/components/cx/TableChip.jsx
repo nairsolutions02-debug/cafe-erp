@@ -37,7 +37,7 @@ const TableChip = () => {
     return (
         <div className="table-chip-wrap" ref={ref}>
             <button className="table-chip" aria-label={t(W.table, { n: table.tableNumber })} onClick={() => setOpen(o => !o)} aria-expanded={open}>
-                <span className="pulse-dot" aria-hidden="true" /> <FiMapPin /> <span className="tc-word">{t(W.tableWord)}</span>{table.tableNumber}
+                <span className="pulse-dot" aria-hidden="true" /> <FiMapPin /> <span className="tc-word">{t(W.tableWord)}</span><span className="tc-num">{table.tableNumber}</span>
             </button>
             {open && (
                 <div className="table-pop" role="dialog" aria-label={t(W.table, { n: table.tableNumber })}>

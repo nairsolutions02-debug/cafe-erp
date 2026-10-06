@@ -17,7 +17,7 @@ const FORM_TABS = [['basics', 'Basics'], ['sizes', 'Sizes'], ['choices', 'Choice
 const EXTRA_KEYS = ['sizes', 'optionGroups', 'pairs', 'details'];
 
 const EMPTY_FORM = {
-        name: '', nameHi: '', description: '', price: '', category: '',
+        name: '', nameHi: '', description: '', descriptionHi: '', price: '', category: '',
         isVeg: true, isBestSeller: false, isNewItem: false, isRecommended: false, isUpsell: false,
         preparationTime: 15, stockQuantity: -1,
         itemType: 'dish', brand: '', taxGroup: '', mrp: '', priceIncludesTax: false, isRestricted: false, unit: 'pc', sku: '', soldInShop: true, soldAtKiosk: true,
@@ -158,7 +158,7 @@ const AdminMenu = () => {
     const openEdit = async (item) => {
         setEditItem(item);
         setFormData({
-            name: item.name, nameHi: item.nameHi || '', description: item.description || '', price: item.price,
+            name: item.name, nameHi: item.nameHi || '', description: item.description || '', descriptionHi: item.descriptionHi || '', price: item.price,
             category: item.category?._id || '', isVeg: item.isVeg,
             isBestSeller: item.isBestSeller, isNewItem: item.isNewItem, isRecommended: item.isRecommended, isUpsell: item.isUpsell,
             preparationTime: item.preparationTime, stockQuantity: item.stockQuantity,
@@ -382,6 +382,11 @@ const AdminMenu = () => {
                                     <label>Description</label>
                                     <textarea className="input" value={formData.description}
                                         onChange={e => setFormData({ ...formData, description: e.target.value })} rows={2} />
+                                </div>
+                                <div className="input-group">
+                                    <label>Description in Hindi <span className="muted">(optional; customers who pick हिंदी see it)</span></label>
+                                    <textarea className="input" lang="hi" value={formData.descriptionHi || ''} placeholder="जैसे: कुरकुरा डोसा, आलू मसाला, नारियल चटनी और सांभर के साथ"
+                                        onChange={e => setFormData({ ...formData, descriptionHi: e.target.value })} rows={2} />
                                 </div>
                                 {/* Veg/Non-Veg Toggle */}
                                 <div className="veg-toggle-group">

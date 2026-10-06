@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { FiFileText, FiCheckCircle } from 'react-icons/fi';
+import { FiFileText, FiCheckCircle, FiClock } from 'react-icons/fi';
 import Header from '../components/Header';
 import OrderStatus from '../components/OrderStatus';
 import DishFeedback from '../components/DishFeedback';
@@ -54,6 +54,7 @@ const W = {
     billComing: T('The bill is on its way to your table…', 'बिल आपकी टेबल पर आ रहा है…', 'Bill aapki table pe aa raha hai…'),
     otherWay: T('Rather pay another way?', 'किसी और तरीके से पेमेंट करना है?', 'Kisi aur tarike se payment karna hai?'),
     info: T('Order Info', 'ऑर्डर की जानकारी', 'Order ki jaankari'),
+    amount: T('Total (incl. taxes)', 'कुल (टैक्स सहित)', 'Total (tax ke saath)'),
     number: T('Order Number', 'ऑर्डर नंबर', 'Order number'),
     table: T('Table Number', 'टेबल नंबर', 'Table number'),
     time: T('Order Time', 'ऑर्डर का समय', 'Order ka time'),
@@ -189,7 +190,7 @@ const OrderDetails = () => {
 
             {justPlaced && show('nudgeCelebrate') && <Confetti />}
             {order.held && !['paid', 'cancelled'].includes(order.status) && (
-                <div className="held-note">⏳ <span>{t(order.holdReason === 'accept' ? W.heldAccept : W.heldTable)}</span></div>
+                <div className="held-note"><FiClock aria-hidden="true" /> <span>{t(order.holdReason === 'accept' ? W.heldAccept : W.heldTable)}</span></div>
             )}
 
             {order.status === 'cancelled' && (
@@ -234,6 +235,11 @@ const OrderDetails = () => {
                         <div className="order-item-info">
                             <span className="order-item-name">{item.name}</span>
                             <span className="order-item-qty">x{item.quantity}</span>
+                            {/* Size, choices and the customer note; a combo lists each dish on its own line */}
+                            {item.note && (item.comboId
+                                ? <ul className="order-item-picks">{String(item.note).split(' · ')[0].split(' + ').map((pk, i) => <li key={i}>{pk}</li>)}
+                                    {String(item.note).includes(' · ') && <li className="order-item-own">“{String(item.note).split(' · ').slice(1).join(' · ')}”</li>}</ul>
+                                : <span className="order-item-note">{item.note}</span>)}
                         </div>
                         <span className="order-item-price">₹{item.total}</span>
                     </div>
@@ -339,6 +345,10 @@ const OrderDetails = () => {
                 <div className="info-row">
                     <span>{t(W.time)}</span>
                     <span>{new Date(order.createdAt).toLocaleString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div className="info-row info-total">
+                    <span>{t(W.amount)}</span>
+                    <span>₹{Number(order.total).toFixed(2)}</span>
                 </div>
                 {order.paymentMethod !== 'pending' && (
                     <div className="info-row">
