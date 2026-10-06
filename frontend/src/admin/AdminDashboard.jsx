@@ -214,8 +214,8 @@ const AdminDashboard = () => {
                     </div>
                 )}
 
-                {/* Quick Settings Link */}
-                <div className="dashboard-card">
+                {/* Quick Settings Link: only for people who can open Settings */}
+                {hasPerm('settings.view') && <div className="dashboard-card">
                     <div className="card-header">
                         <h2>System Quick View</h2>
                         <Link to="/admin/settings" className="view-all">Configure</Link>
@@ -228,7 +228,7 @@ const AdminDashboard = () => {
                         <p className="mini-text">Manage tax rates and restaurant profile in settings.</p>
                         <Link to="/admin/settings" className="btn btn-secondary btn-sm">Open Settings</Link>
                     </div>
-                </div>
+                </div>}
             </div>
         </div>
     );

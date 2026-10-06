@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { FiLogOut, FiMenu, FiX, FiChevronDown, FiHelpCircle, FiSearch, FiGrid, FiWifiOff, FiUploadCloud } from 'react-icons/fi';
-import { NAV_SECTIONS, QUICK_BAR, LANGS, tr, sectionFor, navItem } from './adminNav';
+import { NAV_SECTIONS, QUICK_BAR, OFFICE_BAR, LANGS, tr, sectionFor, navItem } from './adminNav';
 import GlobalSearch from './GlobalSearch';
 import Notifications from './Notifications';
 import Presence from './staffapp/Presence';
@@ -113,7 +113,7 @@ const AdminLayout = () => {
     // Pages of the current section, shown as tabs above the page (Counter and Kiosk keep the whole screen)
     const fullScreen = ['/admin/pos', '/admin/kiosk'].some(p => location.pathname.startsWith(p));
     const sectionTabs = current && !fullScreen ? current.section.items.filter(allowed) : [];
-    const quick = QUICK_BAR.map(navItem).filter(i => i && allowed(i));
+    const quick = (hasPerm('orders.edit') ? QUICK_BAR : OFFICE_BAR).map(navItem).filter(i => i && allowed(i));
     // The Counter keeps the bottom bar on phones (its Pay bar sits above it); the Kiosk keeps the whole screen
     const showQuick = !location.pathname.startsWith('/admin/kiosk');
     const pageTitle = location.pathname === '/admin/more' ? tr(SHELL.more, lang) : current ? tr(current.item.label, lang) : brand.name;

@@ -10,7 +10,7 @@ const AREA = { menu: 'Menu', inventory: 'Inventory', costs: 'Costs', sales: 'Sal
     profit: 'Profit', cash: 'Cash', kiosk: 'Kiosk' };
 const when = (d) => (d ? new Date(d).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'never');
 
-const Card = ({ s, onChange, canPrice }) => {
+const Card = ({ s, onChange, canPrice, canDecide }) => {
     const [open, setOpen] = useState(false);
     const [msg, setMsg] = useState('');
     const act = async (fn) => { try { await fn(); onChange(); } catch (err) { setMsg(errorText(err)); } };
@@ -42,9 +42,13 @@ const Card = ({ s, onChange, canPrice }) => {
                     {s.actions.map(a => (a.kind === 'price'
                         ? canPrice && <button key={a.label} className="btn btn-primary btn-sm" onClick={() => window.confirm(`${a.label}?`) && act(() => applySuggestionPrice(s.id, a.price))}>{a.label}</button>
                         : <Link key={a.label} className="btn btn-secondary btn-sm" to={a.link}>{a.label}</Link>))}
-                    <button className="btn btn-ghost btn-sm" onClick={() => act(() => decideSuggestion(s.id, 'accepted', 'Done'))}>Mark done</button>
-                    <button className="btn btn-ghost btn-sm" onClick={() => act(() => decideSuggestion(s.id, 'snoozed', '', 14))}>Remind me in 2 weeks</button>
-                    <button className="btn btn-ghost btn-sm" onClick={dismiss}>Dismiss</button>
+                    {canDecide && (
+                        <>
+                            <button className="btn btn-ghost btn-sm" onClick={() => act(() => decideSuggestion(s.id, 'accepted', 'Done'))}>Mark done</button>
+                            <button className="btn btn-ghost btn-sm" onClick={() => act(() => decideSuggestion(s.id, 'snoozed', '', 14))}>Remind me in 2 weeks</button>
+                            <button className="btn btn-ghost btn-sm" onClick={dismiss}>Dismiss</button>
+                        </>
+                    )}
                 </div>
             ) : (
                 <p className="small"><span className={`pill ${s.status === 'accepted' ? 'ok' : 'muted'}`}>{s.status}</span> {s.decidedBy && `by ${s.decidedBy}, ${when(s.decidedAt)}`}
@@ -83,13 +87,13 @@ const SuggestionsTab = ({ status = 'open' }) => {
             {status === 'open' && (
                 <div className="inv-toolbar">
                     <div className="sg-total"><span>Open suggestions are worth</span><strong>{inr(Math.round(data.totalImpact))}</strong><span>a month</span></div>
-                    <button className="btn btn-ghost btn-sm" onClick={runNow} disabled={busy}><FiRefreshCw /> {busy ? 'Checking…' : 'Check now'}</button>
+                    {hasPerm('finance.edit') && <button className="btn btn-ghost btn-sm" onClick={runNow} disabled={busy}><FiRefreshCw /> {busy ? 'Checking…' : 'Check now'}</button>}
                     <span className="muted small">Last checked {when(data.lastRun)}</span>
                 </div>
             )}
             {error && <p className="error-message">{error}</p>}
             <div className="sg-list">
-                {data.items.map(s => <Card key={s.id} s={s} onChange={load} canPrice={hasPerm('menu.edit')} />)}
+                {data.items.map(s => <Card key={s.id} s={s} onChange={load} canPrice={hasPerm('menu.edit')} canDecide={hasPerm('finance.edit')} />)}
                 {data.items.length === 0 && <p className="muted empty">{status === 'open' ? 'Nothing to fix right now. Checks run twice a day.' : 'No decisions yet.'}</p>}
             </div>
         </div>

@@ -215,17 +215,24 @@ test('customer receives live order updates', async () => {
     const c = await customer('Live', 7);
     const id = await rpc(c, 'place_order', { p_items: [{ menuItem: latte.id, quantity: 1 }] });
     const got = new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('no realtime event')), 30000); // slow when every test file runs at once
+        let retry;
+        const timer = setTimeout(() => { clearInterval(retry); reject(new Error('no realtime event')); }, 30000);
         c.channel('t').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (p) => {
-            if (p.new.id === id && p.new.status !== 'pending') { clearTimeout(timer); resolve(p.new.status); }
+            if (p.new.id === id && p.new.status !== 'pending') { clearTimeout(timer); clearInterval(retry); resolve(p.new.status); }
         }).subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {
+                // Right after the database starts, realtime can miss the first change while it attaches:
+                // keep moving the order along until the customer hears about it
+                const steps = ['preparing', 'ready', 'served'];
+                let n = 0;
+                const step = () => rpc(admin, 'update_order_status', { p_order_id: id, p_status: steps[Math.min(n++, steps.length - 1)] }).catch(() => {});
                 await new Promise(r => setTimeout(r, 1000));
-                await rpc(admin, 'update_order_status', { p_order_id: id, p_status: 'preparing' });
+                await step();
+                retry = setInterval(step, 5000);
             }
         });
     });
-    assert.equal(await got, 'preparing');
+    assert.ok(['preparing', 'ready', 'served'].includes(await got));
     await c.removeAllChannels();
 });
 

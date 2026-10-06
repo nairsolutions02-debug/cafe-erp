@@ -5,8 +5,10 @@ import { getEmployees, createEmployee, updateEmployee, deleteEmployee, getEmploy
 import 'react-calendar/dist/Calendar.css';
 import './AdminEmployees.css';
 import InfoTip from './help/InfoTip';
+import { useAuth } from '../context/AuthContext';
 
 const AdminEmployees = () => {
+    const { hasPerm } = useAuth();
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -116,9 +118,11 @@ const AdminEmployees = () => {
         <div className="admin-employees">
             <div className="page-header">
                 <h1>Employee Management</h1>
-                <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                    <FiPlus /> Add Employee
-                </button>
+                {hasPerm('employees.create') && (
+                    <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
+                        <FiPlus /> Add Employee
+                    </button>
+                )}
             </div>
 
             <div className="employees-grid">
@@ -132,8 +136,8 @@ const AdminEmployees = () => {
                         </div>
                         <div className="employee-actions">
                             <button onClick={() => openAttendance(emp)} className="icon-btn calendar"><FiCalendar /></button>
-                            <button onClick={() => openEdit(emp)} className="icon-btn edit"><FiEdit2 /></button>
-                            <button onClick={() => handleDelete(emp._id)} className="icon-btn delete"><FiTrash2 /></button>
+                            {hasPerm('employees.edit') && <button onClick={() => openEdit(emp)} className="icon-btn edit" title="Edit employee"><FiEdit2 /></button>}
+                            {hasPerm('employees.delete') && <button onClick={() => handleDelete(emp._id)} className="icon-btn delete" title="Delete employee"><FiTrash2 /></button>}
                         </div>
                     </div>
                 ))}

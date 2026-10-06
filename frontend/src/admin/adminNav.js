@@ -97,6 +97,8 @@ export const NAV_SECTIONS = [
 
 // The phone bottom bar: the four screens staff use all day (More is added after them)
 export const QUICK_BAR = ['/admin/orders', '/admin/kitchen', '/admin/pos', '/admin/me'];
+// Office roles that do not handle orders (an accountant): their own four screens
+export const OFFICE_BAR = ['/admin', '/admin/finance', '/admin/reports', '/admin/me'];
 
 // Flat list of every page (route guards, global search). `label` stays the English name.
 export const ADMIN_NAV = NAV_SECTIONS.flatMap(s => s.items.map(i => ({ ...i, section: s.key, labels: i.label, label: i.label.en })));

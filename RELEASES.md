@@ -4,6 +4,36 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Fix pack 4: everything found in the accountant and kiosk operator test (2026-10-06)
+
+From the test run as Accountant and Kiosk operator on laptop and phone.
+
+**What's fixed**
+
+| # | Area | Change |
+| --- | --- | --- |
+| 1 | Profit advisor | Mark done, Remind me, Dismiss and Check now need Finance “edit” (owner, manager). The accountant still reads every suggestion and the “Why?”. Enforced on the server |
+| 2 | Employees | Add Employee, Edit and Delete show only with the matching Employees rights |
+| 3 | Phone bar | Office roles that do not handle orders (Accountant) get Dashboard · Finance · Reports · My day at the bottom instead of Orders and Kitchen |
+| 4 | Dashboard | The “System Quick View / Open Settings” card shows only to people who can open Settings |
+| 5 | Kiosk operator | Opens on the Kiosk page after login (Opens on; changeable in Staff logins & Roles) |
+| 6 | Kiosk slots | When all kiosk slots are used, a kiosk not used for 14 days gives its slot back as soon as a new kiosk is set up. If that old tablet comes back, it is simply set up again |
+| — | Tests | New database test (decisions, Opens on, kiosk slots); the realtime test now keeps moving the order until the customer hears about it, so it no longer fails right after the database starts: 152 tests pass |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack-4.sql` → Run → Success.
+2. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Accountant on a phone: bottom bar Dashboard · Finance · Reports · My day
+- [ ] Accountant → Profit advisor: suggestions and Why? visible; no Mark done / Dismiss / Check now. Manager still has them
+- [ ] Accountant → Employees: no Add Employee, no edit/delete icons
+- [ ] Kiosk operator logs in: lands on Kiosk
+- [ ] (When all kiosk slots are full) a kiosk unused for 14+ days is freed when a new one is set up
+
+---
+
 ## Fix pack 3: everything found in the cashier and chef test (2026-10-06)
 
 From the test run as Cashier and Chef on laptop and phone.
