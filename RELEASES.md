@@ -4,6 +4,38 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Fix pack 3: everything found in the cashier and chef test (2026-10-06)
+
+From the test run as Cashier and Chef on laptop and phone.
+
+**What's fixed**
+
+| # | Area | Change |
+| --- | --- | --- |
+| 1 | Kitchen screen | No full-screen alert on the Kitchen page, and none for people who cannot accept orders or take money (the Chef). They get the bell and a short ring; the kitchen keeps its own new-order sound |
+| 2 | Kitchen vs front of house | Taking payment, making the bill, accepting QR orders, cancelling, moving tables, khata collection and the cash drawer now need Orders “add” (Cashier, Waiter, Kiosk operator, Manager, Owner). Orders “edit” alone (the Chef) moves dishes along: started, ready, served. Enforced on the server; the Chef no longer sees Cash & Shifts or money buttons. Bill and UPI alarms go only to people who can take the money |
+| — | Security | Order rows can no longer be edited or deleted directly with the app login. Totals, discounts and payments only change through the app’s own steps (discount limits, money ledger, audit). Found while checking #2 |
+| 3 | Refund a paid bill | Order history → **Cancel / refund** on today’s paid bills. A cashier needs the manager’s mobile and PIN; the money goes back from where it came and the reason is recorded with the approver |
+| 4 | Blind count | Close shift: count the notes, tap **Done counting**; only then the app shows what was expected and asks a reason if it is off. The figures on the card behind are hidden while counting |
+| 5 | Customers page | Total revenue and order totals show only to people with Reports view |
+| — | Tests | New database test (kitchen vs front-of-house rights, no direct order edits, refund with manager PIN, alarm rights): 149 tests pass |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack-3.sql` → Run → Success.
+2. Vercel redeploys from `main` by itself. No new APK.
+3. Custom roles that take money: tick Orders “add” for them (Staff logins & Roles → Roles).
+
+**Test checklist**
+- [ ] Chef on Kitchen: a QR order arrives, no full-screen alert covers the tickets; the waiter's screen shows it
+- [ ] Chef → Orders: only Start / Ready / Served, KOT and Print; no Take payment, Cancel, Move or Accept; no Cash & Shifts in the menu
+- [ ] Customer asks for the bill: the waiter/cashier get the blue alert, the chef does not
+- [ ] Cashier → Order history → today’s paid bill → Cancel / refund → asks for manager mobile + PIN → cancelled, money back
+- [ ] Cashier → Close shift: no expected amount until Done counting; then difference and reason
+- [ ] Cashier → Customers: no Total Revenue card; owner still sees it
+
+---
+
 ## Fix pack 2: everything found in the manager and waiter test (2026-10-06)
 
 From the test run as Manager and Waiter on laptop and phone.

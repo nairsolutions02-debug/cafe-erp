@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter, FiMove, FiUsers } from 'react-icons/fi';
-import { getActiveOrders, updateOrderStatus, settleOrder, cancelOrder, removeServiceCharge, confirmTableOrder, moveOrderTable, getTables } from '../utils/api';
+import { getActiveOrders, updateOrderStatus, settleOrder, removeServiceCharge, confirmTableOrder, moveOrderTable, getTables } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import OrderBill from '../components/OrderBill';
 import Skeleton from './mobile/Skeleton';
 import PhoneOrders from './mobile/PhoneOrders';
 import useIsPhone from './mobile/useIsPhone';
 import Modal from './inventory/Modal';
+import CancelModal from './CancelModal';
 import { printKot, printBill } from '../lib/print';
 import { inr } from './pos/money';
 import './AdminOrders.css';
@@ -79,42 +80,6 @@ const SettleModal = ({ order, onClose, onDone }) => {
     );
 };
 
-// Cancel / void: reason always; a manager PIN when the person can't void bills
-const CancelModal = ({ order, canVoid, onClose, onDone }) => {
-    const [reason, setReason] = useState('');
-    const [phone, setPhone] = useState('');
-    const [pin, setPin] = useState('');
-    const [error, setError] = useState('');
-    const submit = async () => {
-        try {
-            onDone((await cancelOrder(order._id, reason, phone || null, pin || null)).data);
-        } catch (err) {
-            setError(errText(err));
-        }
-    };
-    return (
-        <Modal title={`Cancel ${order.orderNumber}`} onClose={onClose}>
-            <div className="modal-body">
-                {order.amountPaid > 0 && <p className="neg">{inr(order.amountPaid)} was paid; it will be refunded from where it came.</p>}
-                {['preparing', 'ready', 'served'].includes(order.status) && <p className="neg small">The kitchen already started: this is flagged in the daily report.</p>}
-                <div className="input-group"><label>Reason *</label>
-                    <input className="input" value={reason} onChange={e => setReason(e.target.value)} autoFocus /></div>
-                {!canVoid && (
-                    <div className="form-grid">
-                        <div className="input-group"><label>Manager mobile</label><input className="input" inputMode="numeric" value={phone} onChange={e => setPhone(e.target.value)} /></div>
-                        <div className="input-group"><label>Manager PIN</label><input className="input" type="password" inputMode="numeric" value={pin} onChange={e => setPin(e.target.value)} /></div>
-                    </div>
-                )}
-                {error && <p className="error-message">{error}</p>}
-            </div>
-            <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={onClose}>Back</button>
-                <button className="btn btn-danger" disabled={!reason.trim()} onClick={submit}>Cancel order</button>
-            </div>
-        </Modal>
-    );
-};
-
 // Move an order (and the rest of that customer's group) to another table
 const MoveModal = ({ order, onClose, onDone }) => {
     const [tables, setTables] = useState([]);
@@ -148,6 +113,8 @@ const MoveModal = ({ order, onClose, onDone }) => {
 
 const AdminOrders = () => {
     const { socket, hasPerm } = useAuth();
+    // Taking money, cancelling, moving and accepting are front-of-house work (orders.create); the kitchen only moves dishes along
+    const canMoney = hasPerm('orders.create');
     const [settling, setSettling] = useState(null);
     const [cancelling, setCancelling] = useState(null);
     const [moving, setMoving] = useState(null);
@@ -166,7 +133,7 @@ const AdminOrders = () => {
         if (!payFor || loading) return;
         const o = orders.find(x => String(x._id) === payFor);
         setParams({}, { replace: true });
-        if (o && hasPerm('orders.edit')) setSettling(o);
+        if (o && hasPerm('orders.create')) setSettling(o);
     }, [payFor, loading, orders, setParams, hasPerm]);
 
     useEffect(() => {
@@ -340,7 +307,7 @@ const AdminOrders = () => {
         const canEdit = hasPerm('orders.edit');
         return (
             <div className="admin-orders">
-                <PhoneOrders orders={orders} canEdit={canEdit} hasNext={(o) => !!getNextStatus(o.status)} groupsAtTable={groupsAtTable}
+                <PhoneOrders orders={orders} canEdit={canEdit} canMoney={canMoney} hasNext={(o) => !!getNextStatus(o.status)} groupsAtTable={groupsAtTable}
                     onNext={(o) => (o.held ? confirmHeld(o) : handleStatusChange(o._id, getNextStatus(o.status)))}
                     onPay={setSettling} onCancel={setCancelling} onMove={setMoving}
                     onBill={(o, whole) => handleShowBill(o, whole)} onKot={printKot} onPrint={printBill} />
@@ -424,12 +391,12 @@ const AdminOrders = () => {
                                 </div>
 
                                 <div className="order-actions">
-                                    {order.held && hasPerm('orders.edit') && (
+                                    {order.held && canMoney && (
                                         <button className="btn btn-primary btn-sm" onClick={() => confirmHeld(order)}>
                                             <FiCheck /> {order.holdReason === 'accept' ? 'Accept' : 'Confirm table'}
                                         </button>
                                     )}
-                                    {!order.held && getNextStatus(order.status) && (
+                                    {!order.held && getNextStatus(order.status) && (['confirmed', 'preparing', 'ready'].includes(order.status) ? hasPerm('orders.edit') : canMoney) && (
                                         <button
                                             className="btn btn-primary btn-sm"
                                             onClick={() => handleStatusChange(order._id, getNextStatus(order.status))}
@@ -438,13 +405,13 @@ const AdminOrders = () => {
                                         </button>
                                     )}
 
-                                    {hasPerm('orders.edit') && (
+                                    {canMoney && (
                                         <button className="btn btn-success btn-sm" onClick={() => setSettling(order)}>
                                             <FiCreditCard /> Take payment
                                         </button>
                                     )}
 
-                                    {hasPerm('orders.edit') && (
+                                    {canMoney && (
                                         <button className="btn btn-danger btn-sm" onClick={() => setCancelling(order)}>
                                             <FiX /> Cancel
                                         </button>
@@ -468,7 +435,7 @@ const AdminOrders = () => {
                                             <FiFileText /> Whole table
                                         </button>
                                     )}
-                                    {hasPerm('orders.edit') && order.channel !== 'kiosk' && (
+                                    {canMoney && order.channel !== 'kiosk' && (
                                         <button className="btn btn-ghost btn-sm" onClick={() => setMoving(order)} title="Move to another table">
                                             <FiMove /> Move
                                         </button>

@@ -47,8 +47,12 @@ const CloseForm = ({ shift, tolerance, onClose, onDone }) => {
     const [reason, setReason] = useState('');
     const [error, setError] = useState('');
     const [result, setResult] = useState(null);
+    // Blind count: the expected amount shows only after the count is done
+    const [checked, setChecked] = useState(false);
     const counted = denomTotal(denoms);
     const diff = counted - shift.expectedCash;
+    const off = Math.abs(diff) > tolerance;
+    const check = () => { setError(''); if (Math.abs(counted - shift.expectedCash) > tolerance) setChecked(true); else submit(); };
     const submit = async () => {
         try {
             setResult((await closeShift(shift.id, denoms, upi === '' ? null : Number(upi), card === '' ? null : Number(card), reason)).data);
@@ -75,7 +79,8 @@ const CloseForm = ({ shift, tolerance, onClose, onDone }) => {
     return (
         <Modal title={`Close shift · ${shift.drawerName}`} onClose={onClose}>
             <div className="modal-body">
-                <p className="muted">Count the drawer without looking at the expected amount, then compare.</p>
+                <p className="muted">Count the drawer note by note. The expected amount shows after you finish the count.</p>
+                <fieldset className="plain-fieldset" disabled={checked}>
                 <Denominations value={denoms} onChange={setDenoms} />
                 <div className="form-grid" style={{ marginTop: 12 }}>
                     <div className="input-group"><label>UPI total in the UPI app</label>
@@ -83,18 +88,23 @@ const CloseForm = ({ shift, tolerance, onClose, onDone }) => {
                     <div className="input-group"><label>Card machine total</label>
                         <input className="input" type="number" value={card} onChange={e => setCard(e.target.value)} /></div>
                 </div>
-                {counted > 0 && (
-                    <p className={Math.abs(diff) > tolerance ? 'neg' : 'muted'}>
-                        Expected {inr(shift.expectedCash)} · difference {inr(diff)}{Math.abs(diff) > tolerance && ' — write the reason'}
-                    </p>
+                </fieldset>
+                {checked && (
+                    <>
+                        <p className={off ? 'neg' : 'muted'}>
+                            You counted {inr(counted)} · expected {inr(shift.expectedCash)} · difference {inr(diff)}{off && ' — write the reason'}
+                        </p>
+                        <div className="input-group"><label>Reason for the difference *</label>
+                            <input className="input" value={reason} onChange={e => setReason(e.target.value)} autoFocus /></div>
+                    </>
                 )}
-                <div className="input-group"><label>Reason for any difference</label>
-                    <input className="input" value={reason} onChange={e => setReason(e.target.value)} /></div>
                 {error && <p className="error-message">{error}</p>}
             </div>
             <div className="modal-footer">
-                <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-                <button className="btn btn-primary" onClick={submit}>Close shift</button>
+                <button className="btn btn-ghost" onClick={checked ? () => setChecked(false) : onClose}>{checked ? 'Count again' : 'Cancel'}</button>
+                {checked
+                    ? <button className="btn btn-primary" disabled={!reason.trim()} onClick={submit}>Close shift</button>
+                    : <button className="btn btn-primary" onClick={check}>Done counting</button>}
             </div>
         </Modal>
     );
@@ -179,7 +189,7 @@ const AdminShifts = () => {
                                         <p className="shift-old">Open since {fmt(s.openedAt)}. Count the cash and close it, then open a fresh shift for today.</p>
                                     )}
                                     {!s.canSee && <p className="muted">Only {s.openedBy} (who opened it) and the manager see the cash in this drawer. You can still record a pay-out or move cash.</p>}
-                                    {s.canSee && <div className="kv">
+                                    {s.canSee && !(modal?.type === 'close' && modal.shift.id === s.id) && <div className="kv">
                                         <span>Opening cash</span><span>{inr(s.openingCash)}</span>
                                         <span>Cash sales (net of refunds)</span><span>{inr(s.cashSales)}</span>
                                         {s.khataSettled > 0 && <><span>Khata collected</span><span>{inr(s.khataSettled)}</span></>}

@@ -412,7 +412,7 @@ const AdminClub = () => {
             {!canEdit && <p className="ca-note">You can look; only staff with "Edit settings" can change the rules.</p>}
             {msg && <div className="ca-flash" role="status">{msg}</div>}
             {tab === 'tiers' && <TiersTab cfg={cfg} setCfg={setCfg} save={save} rules={rules} saveRule={saveRule} items={items} canEdit={canEdit && hasPerm('rewards.edit')} />}
-            {tab === 'members' && <MembersTab cfg={cfg} setCfg={setCfg} save={save} canEdit={canEdit} canServe={hasPerm('orders.edit')} flash={flash} />}
+            {tab === 'members' && <MembersTab cfg={cfg} setCfg={setCfg} save={save} canEdit={canEdit} canServe={hasPerm('orders.create')} flash={flash} />}
             {tab === 'leaders' && <LeadersTab items={items} canGive={hasPerm('customers.edit')} flash={flash} />}
             {tab === 'birthday' && <BirthdayTab key={(rules.find(r => r.triggerKind === 'birthday') || {}).id || 'none'} cfg={cfg} setCfg={setCfg} save={save} rules={rules} saveRule={saveRule} items={items} canEdit={canEdit && hasPerm('rewards.edit')} />}
             {tab === 'requests' && <RequestsTab canDecide={hasPerm('customers.edit')} flash={flash} />}

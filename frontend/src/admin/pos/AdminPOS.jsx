@@ -290,7 +290,7 @@ const AdminPOS = () => {
             <div className="pos-top">
                 <h1 className="keep-h1">Counter{device && <span className="muted"> · {device.code}</span>}</h1>
                 <SyncPill />
-                {shift === null && hasPerm('orders.edit') && (
+                {shift === null && hasPerm('orders.create') && (
                     <Link className="shift-warn" to="/admin/shifts">No open shift on the counter drawer — open shift</Link>
                 )}
                 {shift && <span className="muted small">Shift open{shift.canSee ? ` · cash expected ${inr(shift.expectedCash)}` : ` · opened by ${shift.openedBy}`}</span>}

@@ -55,7 +55,7 @@ function SoundChip() {
 
 // Bell with recent alerts; alarm-level alerts (payment requested, staff left…) take over the screen
 const Notifications = () => {
-    const { socket } = useAuth();
+    const { socket, hasPerm } = useAuth();
     const navigate = useNavigate();
     const [items, setItems] = useState([]);
     const [open, setOpen] = useState(false);
@@ -65,7 +65,9 @@ const Notifications = () => {
     const [escMinutes, setEscMinutes] = useState(5);
     const [here, setHere] = useState(fullScreenAlertsHere);
     const { pathname } = useLocation();
-    const onKiosk = pathname.startsWith('/admin/kiosk');
+    // No full-screen alert on the kiosk or the kitchen screen, nor for people who cannot accept orders or take money
+    // (the chef): they get the bell and a short ring instead
+    const calm = pathname.startsWith('/admin/kiosk') || pathname.startsWith('/admin/kitchen') || !hasPerm('orders.create');
     const snoozed = useRef({});
     const tone = useAlarmTone();
 
@@ -162,9 +164,9 @@ const Notifications = () => {
     const onEscalated = useCallback((esc) => { tone.start(esc); }, [tone]);
     // Not full screen on this device (or the Kiosk): ring briefly, keep it on the bell
     useEffect(() => {
-        if (queue.length && (!here || onKiosk)) { const id = setTimeout(() => tone.stop(), 3000); return () => clearTimeout(id); }
+        if (queue.length && (!here || calm)) { const id = setTimeout(() => tone.stop(), 3000); return () => clearTimeout(id); }
         return undefined;
-    }, [queue.length, here, onKiosk, tone]);
+    }, [queue.length, here, calm, tone]);
 
     const unread = items.filter(n => styleFor(n) !== 'off' && !n.acknowledgedAt && Date.now() - new Date(n.createdAt).getTime() < 864e5).length;
 
@@ -197,7 +199,7 @@ const Notifications = () => {
                 </div>
             )}
             {/* Drawn on <body> so it covers the whole screen, side menu included, even in full screen */}
-            {queue.length > 0 && here && !onKiosk && (
+            {queue.length > 0 && here && !calm && (
                 <OrderAlert queue={queue} items={items} escMinutes={escMinutes} onDone={done} onSnooze={snooze}
                     onOpen={(n, link) => link && navigate(link)} onEscalated={onEscalated} />
             )}

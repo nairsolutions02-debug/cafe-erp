@@ -66,7 +66,7 @@ export const NAV_SECTIONS = [
     {
         key: 'money', icon: FiDollarSign, label: L('Money', 'हिसाब', 'Hisaab'),
         items: [
-            { path: '/admin/shifts', icon: FiBriefcase, label: L('Cash & Shifts', 'कैश और शिफ्ट', 'Cash aur shift'), perm: 'orders.edit' },
+            { path: '/admin/shifts', icon: FiBriefcase, label: L('Cash & Shifts', 'कैश और शिफ्ट', 'Cash aur shift'), perm: 'orders.create' },
             { path: '/admin/finance', icon: FiDollarSign, label: L('Finance', 'लेन-देन', 'Len-den'), perm: 'finance.view' },
             { path: '/admin/reports', icon: FiPieChart, label: L('Reports', 'रिपोर्ट', 'Report'), perm: 'finance.view' },
             { path: '/admin/analytics', icon: FiBarChart2, label: L('Sales trends', 'बिक्री रुझान', 'Bikri trend'), perm: 'reports.view', tab: true },

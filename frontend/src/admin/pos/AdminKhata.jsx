@@ -130,7 +130,7 @@ const AdminKhata = () => {
                                 <td className={a.balance > a.limit ? 'neg' : ''}><strong>{inr(a.balance)}</strong></td>
                                 <td className={a.oldestDays > 7 ? 'neg' : ''}>{a.oldestDays == null ? '—' : `${a.oldestDays} days`}</td>
                                 <td className="row-actions">
-                                    {a.balance > 0 && hasPerm('orders.edit') && <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'collect', a })}>Collect</button>}
+                                    {a.balance > 0 && hasPerm('orders.create') && <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'collect', a })}>Collect</button>}
                                     {a.balance > 0 && a.rawPhone && <a className="btn btn-ghost btn-sm" href={remind(a)} target="_blank" rel="noopener noreferrer">WhatsApp</a>}
                                     <button className="btn btn-ghost btn-sm" onClick={() => setModal({ type: 'history', a })}>History</button>
                                     {hasPerm('customers.edit') && <button className="btn btn-ghost btn-sm" onClick={() => limit(a)}>Limit</button>}

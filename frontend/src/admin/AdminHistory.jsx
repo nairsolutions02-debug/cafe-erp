@@ -4,10 +4,17 @@ import { FiSearch, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiDownload, Fi
 import { getAllOrders } from '../utils/api';
 import { exportToCSV, orderExportColumns, getFilenameDate } from '../utils/exportUtils';
 import OrderBill from '../components/OrderBill';
+import CancelModal from './CancelModal';
+import { useAuth } from '../context/AuthContext';
 import './AdminHistory.css';
 
 const AdminHistory = () => {
+    const { hasPerm } = useAuth();
     const [orders, setOrders] = useState([]);
+    // Cancel or refund a bill from today (a manager PIN is asked for when the person cannot void bills)
+    const [cancelling, setCancelling] = useState(null);
+    const canRefund = (o) => hasPerm('orders.create') && o.status === 'paid'
+        && new Date(o.paidAt || o.createdAt).toDateString() === new Date().toDateString();
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [searchParams] = useSearchParams();
@@ -173,6 +180,11 @@ const AdminHistory = () => {
                                         >
                                             <FiFileText /> Bill
                                         </button>
+                                        {canRefund(order) && (
+                                            <button className="btn-view-bill refund" onClick={() => setCancelling(order)} title="Cancel this bill and refund the money">
+                                                <FiXCircle /> Cancel / refund
+                                            </button>
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -187,6 +199,11 @@ const AdminHistory = () => {
                     </div>
                 )}
             </div>
+
+            {cancelling && (
+                <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)}
+                    onDone={() => { setCancelling(null); fetchOrders(); }} />
+            )}
 
             {selectedOrder && (
                 <OrderBill

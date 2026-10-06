@@ -22,7 +22,7 @@ const FILTERS = [
 
 // Phone layout of the Orders page: chips with counts, compact cards with one main button,
 // swipe right for the next step, everything else in a sheet from the bottom.
-const PhoneOrders = ({ orders, canEdit, hasNext, onNext, onPay, onCancel, onMove, onBill, onKot, onPrint, groupsAtTable }) => {
+const PhoneOrders = ({ orders, canEdit, canMoney, hasNext, onNext, onPay, onCancel, onMove, onBill, onKot, onPrint, groupsAtTable }) => {
     const { t } = useMenuLang();
     const [filter, setFilter] = useState(null);
     const [sheet, setSheet] = useState(null);
@@ -37,11 +37,13 @@ const PhoneOrders = ({ orders, canEdit, hasNext, onNext, onPay, onCancel, onMove
 
     // The one next step for a card, or null
     const main = (o) => {
-        if (o.held) return canEdit ? { label: t(o.holdReason === 'accept' ? W.accept : W.confirmTable), run: () => onNext(o), swipe: true } : null;
-        if (hasNext(o) && NEXT_WORD[o.status]) {
+        if (o.held) return canMoney ? { label: t(o.holdReason === 'accept' ? W.accept : W.confirmTable), run: () => onNext(o), swipe: true } : null;
+        // Kitchen steps (start, ready, served) need orders.edit; accepting and billing need orders.create
+        const kitchenStep = ['confirmed', 'preparing', 'ready'].includes(o.status);
+        if (hasNext(o) && NEXT_WORD[o.status] && (kitchenStep ? canEdit : canMoney)) {
             return { label: t(W[NEXT_WORD[o.status]]), run: () => onNext(o), swipe: o.status !== 'bill_requested', tone: o.status === 'preparing' ? 'ok' : o.status === 'ready' ? 'ghost' : '' };
         }
-        if (canEdit && due(o) > 0) return { label: `${t(W.takePayment)} · ${inr(due(o))}`, run: () => onPay(o), tone: 'pay' };
+        if (canMoney && due(o) > 0) return { label: `${t(W.takePayment)} · ${inr(due(o))}`, run: () => onPay(o), tone: 'pay' };
         return null;
     };
 
@@ -65,7 +67,7 @@ const PhoneOrders = ({ orders, canEdit, hasNext, onNext, onPay, onCancel, onMove
             )}
 
             {open && (
-                <Sheet o={open} t={t} step={main(open)} canEdit={canEdit} groups={groupsAtTable(open)} onClose={() => setSheet(null)}
+                <Sheet o={open} t={t} step={main(open)} canEdit={canMoney} groups={groupsAtTable(open)} onClose={() => setSheet(null)}
                     act={(f) => { setSheet(null); f(open); }} onPay={onPay} onCancel={onCancel} onMove={onMove} onBill={onBill} onKot={onKot} onPrint={onPrint} />
             )}
         </div>

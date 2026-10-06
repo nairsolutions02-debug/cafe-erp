@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-06)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -81,3 +81,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 ## 17. Fix pack 2: drawer rights, first names, role landing page (2026-10-06)
 - [x] 17.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack-2.sql` → Run → Success
 - [x] 17.2 Cash & Shifts: a shift still open from an earlier day now shows an orange note → the person who opened it (or the manager) counts the cash and closes it
+
+## 18. Fix pack 3: kitchen vs front-of-house rights (2026-10-06)
+- [ ] 18.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack-3.sql` → Run → Success
+- [ ] 18.2 Admin → Team → Staff logins & Roles → Roles: any custom role that should take money or accept orders needs Orders "add" ticked (Cashier, Waiter, Kiosk operator and Manager already have it; the Chef does not)

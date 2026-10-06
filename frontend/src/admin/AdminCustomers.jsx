@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import React, { useState, useEffect } from 'react';
 import { FiSearch, FiUser, FiPhone, FiDollarSign, FiShoppingBag, FiChevronDown, FiChevronUp, FiX, FiStar, FiGift, FiDownload, FiCalendar } from 'react-icons/fi';
 import { getCustomerAnalytics, getCustomerDetail } from '../utils/api';
@@ -7,6 +8,9 @@ import Skeleton from './mobile/Skeleton';
 import './AdminCustomers.css';
 
 const AdminCustomers = () => {
+    const { hasPerm } = useAuth();
+    // Money totals are for people who can see reports, not for everyone who looks customers up
+    const seeSales = hasPerm('reports.view');
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchParams] = useSearchParams();
@@ -131,20 +135,20 @@ const AdminCustomers = () => {
                         <span className="stat-label">Total Customers</span>
                     </div>
                 </div>
-                <div className="stat-card">
+                {seeSales && <div className="stat-card">
                     <FiDollarSign className="stat-icon green" />
                     <div>
                         <span className="stat-value">₹{customers.reduce((s, c) => s + c.totalSpent, 0).toLocaleString('en-IN')}</span>
                         <span className="stat-label">Total Revenue</span>
                     </div>
-                </div>
-                <div className="stat-card">
+                </div>}
+                {seeSales && <div className="stat-card">
                     <FiShoppingBag className="stat-icon orange" />
                     <div>
                         <span className="stat-value">{customers.reduce((s, c) => s + c.paidOrders, 0)}</span>
                         <span className="stat-label">Total Orders</span>
                     </div>
-                </div>
+                </div>}
             </div>
 
             {/* Search */}

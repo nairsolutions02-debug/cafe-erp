@@ -154,3 +154,9 @@
         overflow-x: auto;
     }
 }
+/* Cancel / refund a bill from today */
+.btn-view-bill.refund {
+    margin-left: 6px;
+    color: var(--error, #c0392b);
+    border-color: currentColor;
+}

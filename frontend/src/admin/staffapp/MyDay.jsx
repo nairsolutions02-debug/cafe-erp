@@ -85,7 +85,7 @@ const MyDay = () => {
     useEffect(() => {
         getMyIncentives().then(r => setInc(r.data)).catch(() => {});
         getMyDayExtras().then(r => setExtras(r.data)).catch(() => {});
-        if (hasPerm('orders.edit')) getCurrentShifts().then(r => setDrawer(r.data.open.find(x => x.drawer === 'cash_counter') || null)).catch(() => {});
+        if (hasPerm('orders.create')) getCurrentShifts().then(r => setDrawer(r.data.open.find(x => x.drawer === 'cash_counter') || null)).catch(() => {});
         const clock = setInterval(() => tick(n => n + 1), 60000);
         return () => clearInterval(clock);
     }, [hasPerm]);
