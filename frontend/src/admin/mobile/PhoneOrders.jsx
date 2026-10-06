@@ -3,6 +3,8 @@ import { FiCreditCard, FiPrinter, FiFileText, FiMove, FiUsers, FiX, FiAlertTrian
 import { inr } from '../pos/money';
 import useMenuLang, { tableToken } from './useMenuLang';
 import { W } from './staffText';
+import { LineNote } from '../pos/ChoicePicker';
+import { lineText } from '../pos/choices';
 import './PhoneOrders.css';
 
 const CHANNEL = { qr: 'QR', dine_in: 'Dine-in', takeaway: 'Takeaway', kiosk: 'Kiosk', aggregator: 'Delivery', counter: 'Counter' };
@@ -101,7 +103,7 @@ const Card = ({ o, t, step, onOpen, groups }) => {
     const drag = useRef(null);
     const [dx, setDx] = useState(0);
     const m = mins(o);
-    const items = o.items.map(i => `${i.quantity}× ${i.name}`).join(', ');
+    const items = o.items.map(i => `${i.quantity}× ${lineText(i)}`).join(', ');
     const paid = due(o) === 0;
 
     const down = (e) => { if (step?.swipe && !e.target.closest('button')) drag.current = { x: e.clientX, y: e.clientY, moved: false }; };
@@ -174,7 +176,7 @@ const Sheet = ({ o, t, step, canEdit, groups, onClose, act, onPay, onCancel, onM
                 {o.held && <p className="po-note">{t(o.holdReason === 'accept' ? W.acceptNote : W.heldNote)}</p>}
                 {o.specialInstructions && <p className="po-note"><FiAlertTriangle /> {o.specialInstructions}</p>}
                 <ul className="po-lines">
-                    {o.items.map((i, n) => <li key={n}><span>{i.quantity}×</span><span>{i.name}</span><span>{i.price != null ? inr(i.price * i.quantity) : ''}</span></li>)}
+                    {o.items.map((i, n) => <li key={n}><span>{i.quantity}×</span><span>{i.name}<LineNote item={i} /></span><span>{i.price != null ? inr(i.price * i.quantity) : ''}</span></li>)}
                     <li className="tot"><span /><span>{t(W.total)}</span><span>{inr(o.total)}</span></li>
                     {o.amountPaid > 0 && <li><span /><span>{t(W.paid)}</span><span>{inr(o.amountPaid)}</span></li>}
                     {due(o) > 0 && <li className="due"><span /><span>{t(W.balance)}</span><span>{inr(due(o))}</span></li>}

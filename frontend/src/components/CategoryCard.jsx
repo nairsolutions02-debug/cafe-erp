@@ -1,20 +1,19 @@
 import React from 'react';
-import { getImageUrl } from '../utils/config';
+import Art from './cx/Art';
+import { artFor } from './cx/artKinds';
+import useCxLang from '../lib/cxLang';
 import './CategoryCard.css';
 
+// A category as a round chip with a small drawn picture (Home and Menu)
 const CategoryCard = ({ category, isActive, onClick }) => {
-    const imageUrl = getImageUrl(category.image) || '/placeholder-food.svg';
-
+    const { lang } = useCxLang();
+    const name = lang === 'hi' && category.nameHi ? category.nameHi : category.name;
     return (
-        <div
-            className={`category-card ${isActive ? 'active' : ''}`}
-            onClick={() => onClick(category._id)}
-        >
-            <div className="category-image-wrapper">
-                <img src={imageUrl} alt={category.name} className="category-image" />
-            </div>
-            <span className="category-name">{category.name}</span>
-        </div>
+        <button type="button" className={`cx-chip cx-glass category-card ${isActive ? 'on' : ''}`} aria-pressed={!!isActive}
+            onClick={() => onClick(category._id)}>
+            <Art kind={category.art || artFor({ name: category.name })} />
+            <span className="category-name">{name}</span>
+        </button>
     );
 };
 

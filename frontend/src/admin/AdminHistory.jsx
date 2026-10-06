@@ -6,6 +6,7 @@ import { exportToCSV, orderExportColumns, getFilenameDate } from '../utils/expor
 import OrderBill from '../components/OrderBill';
 import CancelModal from './CancelModal';
 import { useAuth } from '../context/AuthContext';
+import { LineNote } from './pos/ChoicePicker';
 import './AdminHistory.css';
 
 const AdminHistory = () => {
@@ -152,9 +153,11 @@ const AdminHistory = () => {
                                         </div>
                                     </td>
                                     <td>
-                                        <div className="items-preview">
-                                            {order.items.length} items
-                                        </div>
+                                        <ul className="items-preview hist-items">
+                                            {order.items.map((it, n) => (
+                                                <li key={n}><b>{it.quantity}×</b> {it.name}<LineNote item={it} /></li>
+                                            ))}
+                                        </ul>
                                     </td>
                                     <td className="font-bold text-primary">₹{order.total.toFixed(2)}</td>
                                     <td>

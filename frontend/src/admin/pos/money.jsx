@@ -30,11 +30,12 @@ export function estimateTotal(lines, items, taxGroups, defaultTax, discount = 0)
     let base = 0;
     let rateSum = 0;
     lines.forEach(l => {
-        const item = items.find(i => i.id === l.menuItemId);
+        // A combo is taxed like its first dish (unless the combo has its own tax group, which the database applies)
+        const item = items.find(i => i.id === (l.menuItemId || l.picks?.[0]?.menuItem));
         const t = l.price * l.qty;
         const r = rateOf(item);
         total += item?.price_includes_tax ? t : t * (1 + r / 100);
-        if (!item?.is_restricted) { base += t; rateSum += r * t; }
+        if (!item?.is_restricted || l.comboId) { base += t; rateSum += r * t; }
     });
     const avgRate = base > 0 ? rateSum / base : 0;
     return Math.max(0, Math.round((total - Math.min(discount, base) * (1 + avgRate / 100)) * 100) / 100);

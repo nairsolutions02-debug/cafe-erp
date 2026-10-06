@@ -1,0 +1,43 @@
+/* Me → Look (customer app) */
+.look-page { min-height: 100vh; padding-bottom: calc(var(--cx-nav-h, 90px) + 20px); color: var(--cx-tx); }
+.look-wrap { max-width: 760px; margin: 0 auto; padding: 8px 16px 24px; }
+.look-h { display: none; margin: 0; font-size: 2rem; }
+.look-sub { margin: 4px 2px 18px; color: var(--cx-mu); font-size: .9rem; line-height: 1.45; }
+.look-sec { margin-bottom: 22px; }
+.look-modes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.look-mode {
+    border-radius: 18px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+    font: inherit; color: var(--cx-tx); cursor: pointer; min-width: 0;
+}
+.look-mode.on { border: 1px solid transparent; box-shadow: 0 10px 22px -12px var(--cx-pr2); }
+.look-mode-ic { font-size: 1.25rem; display: grid; place-items: center; height: 24px; }
+.look-mode b { font-size: .82rem; font-weight: 700; }
+.look-mode small { font-size: .66rem; line-height: 1.25; opacity: .8; display: none; }
+.look-count { font-size: .82rem; color: var(--cx-mu); font-weight: 600; }
+.look-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.look-card {
+    position: relative; border-radius: 20px; padding: 8px 8px 10px; font: inherit; color: var(--cx-tx); text-align: left; cursor: pointer;
+    min-width: 0;
+}
+.look-card.on { outline: 2.5px solid var(--cx-pr2); outline-offset: 2px; }
+.look-mini { display: block; position: relative; height: 96px; border-radius: 14px; overflow: hidden; margin-bottom: 8px; }
+.look-mini i { position: absolute; border-radius: 6px; }
+.look-name { display: flex; flex-direction: column; padding: 0 4px; min-width: 0; }
+.look-name b { font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.look-name small { font-size: .7rem; color: var(--cx-mu); font-weight: 600; }
+.look-tick { position: absolute; top: 14px; right: 14px; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; }
+.look-fixed { border-radius: 18px; padding: 16px; color: var(--cx-mu); }
+.look-now { color: var(--cx-mu); font-size: .8rem; text-align: center; margin-top: 8px; }
+
+@media (min-width: 600px) {
+    .look-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .look-mode small { display: block; }
+}
+@media (min-width: 1024px) {
+    .look-wrap { padding-top: 28px; }
+    .look-h { display: block; }
+    .look-mini { height: 120px; }
+}
+@media (max-width: 350px) {
+    .look-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

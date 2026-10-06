@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiUser, FiPhone, FiMail, FiLogOut, FiSettings } from 'react-icons/fi';
+import { FiUser, FiPhone, FiMail, FiLogOut, FiSettings, FiDroplet, FiHeart, FiClock, FiGift, FiChevronRight } from 'react-icons/fi';
+import { useCxLook } from '../context/BrandContext';
+import { themeOf } from '../lib/cxThemes';
 import Header from '../components/Header';
 import { useAuth } from '../context/AuthContext';
 import './Profile.css';
@@ -29,11 +31,21 @@ const W = {
     language: T('Language', 'भाषा', 'Bhasha'),
     admin: T('Admin Dashboard', 'एडमिन डैशबोर्ड', 'Admin dashboard'),
     logout: T('Logout', 'लॉग आउट', 'Logout'),
+    look: T('Look', 'रूप-रंग', 'Look'),
+    lookSub: T('Theme, light or dark', 'थीम, हल्का या गहरा', 'Theme, light ya dark'),
+    saved: T('Saved', 'पसंदीदा', 'Saved'),
+    savedSub: T('Your favourite dishes', 'आपके पसंदीदा आइटम', 'Aapki favourite dishes'),
+    orders: T('Your orders', 'आपके ऑर्डर', 'Aapke order'),
+    ordersSub: T('Past orders and bills', 'पुराने ऑर्डर और बिल', 'Purane order aur bill'),
+    rewards: T('Rewards', 'रिवॉर्ड', 'Rewards'),
+    rewardsSub: T('Points, coupons and gifts', 'पॉइंट, कूपन और गिफ़्ट', 'Points, coupon aur gift'),
 };
 
 const Profile = () => {
     const brand = useBrand();
-    const { t } = useCxLang();
+    const { lang, t } = useCxLang();
+    const cx = useCxLook();
+    const themeName = themeOf(cx.key, cx.look).name;
     const { user, isAuthenticated, logout, updateProfile } = useAuth();
     const navigate = useNavigate();
     const [editing, setEditing] = useState(false);
@@ -63,7 +75,7 @@ const Profile = () => {
             <div className="profile-page">
                 <Header title={t(W.profile)} />
                 <div className="login-prompt">
-                    <div className="login-prompt-icon">👤</div>
+                    <div className="login-prompt-icon cx-av"><FiUser /></div>
                     <h2>{t(W.welcome, { name: brand.name })}</h2>
                     <p>{t(W.loginSub)}</p>
                     <Link to="/login" className="btn btn-primary">{t(W.loginBtn)}</Link>
@@ -76,15 +88,33 @@ const Profile = () => {
         <div className="profile-page">
             <Header title={t(W.profile)} showCart={false} />
 
+            <div className="profile-wrap">
             <div className="profile-header">
-                <div className="profile-avatar">
-                    {user.name ? user.name.charAt(0).toUpperCase() : '👤'}
+                <div className="profile-avatar cx-av">
+                    {user.name ? user.name.charAt(0).toUpperCase() : <FiUser />}
                 </div>
-                <h2>{user.name || t(W.foodie)}</h2>
-                <p>{user.phone}</p>
+                <div className="profile-who">
+                    <h2>{user.name || t(W.foodie)}</h2>
+                    <p>{user.phone}</p>
+                </div>
             </div>
 
-            <div className="profile-section">
+            <nav className="profile-section profile-rows cx-glass">
+                {[
+                    ['/look', FiDroplet, W.look, themeName?.[lang] || themeName?.en || t(W.lookSub)],
+                    ['/saved', FiHeart, W.saved, t(W.savedSub)],
+                    ['/history', FiClock, W.orders, t(W.ordersSub)],
+                    ['/rewards', FiGift, W.rewards, t(W.rewardsSub)],
+                ].map(([to, Icon, word, sub]) => (
+                    <Link key={to} to={to} className="profile-row">
+                        <span className="profile-row-ic">{Icon && <Icon aria-hidden="true" />}</span>
+                        <span className="profile-row-t"><b>{t(word)}</b><small>{sub}</small></span>
+                        <FiChevronRight className="profile-row-go" aria-hidden="true" />
+                    </Link>
+                ))}
+            </nav>
+
+            <div className="profile-section cx-glass">
                 <h3>{t(W.personal)}</h3>
 
                 {editing ? (
@@ -148,7 +178,7 @@ const Profile = () => {
                 )}
             </div>
 
-            <div className="profile-section">
+            <div className="profile-section cx-glass">
                 <h3>{t(W.language)}</h3>
                 <LangChips />
             </div>
@@ -167,6 +197,7 @@ const Profile = () => {
                     <FiLogOut />
                     <span>{t(W.logout)}</span>
                 </button>
+            </div>
             </div>
         </div>
     );

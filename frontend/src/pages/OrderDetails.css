@@ -1,9 +1,21 @@
 .order-details-page {
-    padding-bottom: 100px;
+    min-height: 100vh;
+    padding-bottom: calc(var(--cx-nav-h, 90px) + 20px);
+    color: var(--cx-tx);
+}
+.order-details-page > :not(.header) { max-width: 720px; }
+@media (min-width: 752px) { .order-details-page > :not(.header) { margin-left: auto !important; margin-right: auto !important; } }
+/* Cards on the order page follow the theme (glass on glass themes) */
+.order-details-page :is(.order-status-section, .order-items-section, .bill-section, .order-info-section) {
+    border: 1px solid var(--cx-ln);
+    border-radius: var(--cx-r, 22px);
+    box-shadow: var(--cx-shadow);
+    backdrop-filter: blur(var(--cx-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--cx-blur)) saturate(140%);
 }
 
 .order-status-section {
-    background: white;
+    background: var(--cx-sf);
     margin: 16px;
     padding: 20px;
     border-radius: var(--radius-lg);
@@ -11,7 +23,7 @@
 }
 
 .order-items-section {
-    background: white;
+    background: var(--cx-sf);
     margin: 16px;
     padding: 20px;
     border-radius: var(--radius-lg);
@@ -27,7 +39,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid #F0F0F0;
+    border-bottom: 1px solid var(--cx-ln);
 }
 
 .order-item:last-child {
@@ -54,11 +66,11 @@
 }
 
 .bill-section {
-    background: white;
+    background: var(--cx-sf);
     margin: 16px;
     padding: 20px;
     border-radius: var(--radius-lg);
-    border: 2px solid var(--primary);
+    border: 2px solid var(--cx-pr2) !important;
 }
 
 .bill-section h3 {
@@ -81,7 +93,7 @@
 }
 
 .bill-row.total {
-    border-top: 2px dashed #E5E5E5;
+    border-top: 2px dashed var(--cx-ln2);
     margin-top: 8px;
     padding-top: 16px;
     font-size: 1.25rem;
@@ -134,7 +146,7 @@
 }
 
 .order-info-section {
-    background: white;
+    background: var(--cx-sf);
     margin: 16px;
     padding: 20px;
     border-radius: var(--radius-lg);
@@ -149,7 +161,7 @@
     display: flex;
     justify-content: space-between;
     padding: 10px 0;
-    border-bottom: 1px solid #F0F0F0;
+    border-bottom: 1px solid var(--cx-ln);
     font-size: 0.9rem;
 }
 
@@ -176,8 +188,8 @@
     margin: 16px;
     padding: 16px;
     border-radius: 16px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    background: color-mix(in srgb, #EF4444 10%, var(--cx-bgs));
+    border: 1px solid color-mix(in srgb, #EF4444 35%, transparent);
     color: var(--text-primary);
     display: flex;
     flex-direction: column;
@@ -191,11 +203,11 @@
 .pickup-card {
     margin: 16px; padding: 18px 16px; border-radius: 20px; text-align: center;
     display: flex; flex-direction: column; align-items: center; gap: 2px;
-    background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 14%, white), var(--bg-card));
+    background: linear-gradient(135deg, color-mix(in srgb, var(--cx-pr2) 16%, var(--cx-bgs)), var(--cx-sf));
     border: 1.5px solid color-mix(in srgb, var(--primary) 35%, transparent);
 }
 .pickup-card .pickup-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--primary-dark); }
-.pickup-card .pickup-num { font-size: 3.4rem; font-weight: 800; line-height: 1.05; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.pickup-card .pickup-num { font-family: var(--cx-fh); font-size: 3.4rem; font-weight: 800; line-height: 1.05; color: var(--text-primary); font-variant-numeric: tabular-nums; }
 .pickup-card .pickup-hint { font-size: .85rem; color: var(--text-muted); }
 .pickup-card.ready { background: linear-gradient(135deg, #22C55E, #15803D); border-color: #15803D; animation: pickup-ready 1.6s ease-in-out 3; }
 .pickup-card.ready .pickup-label, .pickup-card.ready .pickup-num, .pickup-card.ready .pickup-hint { color: #fff; }
@@ -208,7 +220,7 @@
     margin: 4px auto 2px;
     padding: 3px 10px;
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.06);
+    background: color-mix(in srgb, var(--cx-tx) 7%, transparent);
     font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
     font-size: 0.8rem;
     color: var(--text-muted);

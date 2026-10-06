@@ -90,3 +90,66 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Tabs: Look & themes · Banners & strip · Tables, pay & more */
+.customer-app-admin { max-width: 1240px; }
+.ca-narrow { max-width: 920px; }
+.ca-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.ca-tabs button {
+    border: 1px solid var(--border-color, #e5dccf); background: var(--bg-card, #fff); color: var(--text-primary); border-radius: 99px;
+    padding: 8px 16px; font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer; min-height: 40px;
+}
+.ca-tabs button.on { background: #1f1b16; border-color: #1f1b16; color: #fff; }
+
+/* Banner preview (photo, or drawn art on a colour) */
+.ca-bprev {
+    position: relative; overflow: hidden; border-radius: 18px; min-height: 150px; padding: 18px; display: flex; align-items: center;
+    background-size: cover; background-position: center;
+}
+.ca-bprev-copy { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 4px; max-width: 62%; }
+.ca-bprev-copy small { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+.ca-bprev-copy b { font-size: 1.6rem; line-height: 1.1; overflow-wrap: anywhere; }
+.ca-bprev-copy span { font-size: .88rem; opacity: .92; }
+.ca-bprev-copy em {
+    font-style: normal; align-self: flex-start; margin-top: 6px; background: #fff; color: #1f1b16; font-weight: 700; font-size: .82rem;
+    padding: 7px 14px; border-radius: 99px; display: inline-flex; align-items: center; gap: 5px;
+}
+.ca-bprev-art { position: absolute; right: 2%; bottom: -10px; width: 34%; max-width: 150px; height: 120%; }
+.ca-bprev.small { min-height: 84px; padding: 12px; border-radius: 14px; }
+.ca-bprev.small .ca-bprev-copy b { font-size: 1rem; }
+.ca-bprev.small .ca-bprev-art { max-width: 80px; }
+
+.customer-app-admin .modal.wide { max-width: 860px; }
+.ca-preview-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.ca-seg { display: inline-flex; border: 1px solid var(--border-color, #e5dccf); border-radius: 10px; overflow: hidden; flex-wrap: wrap; }
+.ca-seg button { border: 0; background: var(--bg-card, #fff); color: var(--text-primary); padding: 7px 12px; font: inherit; font-size: .84rem; font-weight: 600; cursor: pointer; min-height: 36px; }
+.ca-seg button + button { border-left: 1px solid var(--border-color, #e5dccf); }
+.ca-seg button.on { background: #1f1b16; color: #fff; }
+.ca-field-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin: 16px 0 8px; }
+.ca-field-head small { font-size: .8rem; }
+.ca-arts { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; }
+.ca-arts button {
+    position: relative; height: 70px; border-radius: 12px; border: 2px solid transparent; background: var(--bg-secondary, #FFFAEF); cursor: pointer;
+    overflow: hidden; text-align: left; padding: 8px; font: inherit; color: var(--text-primary);
+}
+.ca-arts button span { position: relative; z-index: 1; font-size: .78rem; font-weight: 700; }
+.ca-arts button .cx-art { position: absolute; right: -6px; bottom: -10px; width: 56px; height: 64px; }
+.ca-arts button.on, .ca-bgs button.on { border-color: var(--text-primary); box-shadow: 0 0 0 2px var(--bg-card, #fff) inset; }
+.ca-bgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.ca-bgs button {
+    height: 52px; border-radius: 12px; border: 2px solid transparent; cursor: pointer; text-align: left; padding: 8px; font: inherit;
+    font-size: .78rem; font-weight: 700; display: flex; align-items: flex-end;
+}
+.ca-words { display: grid; grid-template-columns: 96px repeat(3, minmax(0, 1fr)); gap: 6px 8px; align-items: center; margin-bottom: 8px; }
+.ca-words > b { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); }
+.ca-words-label { font-size: .85rem; font-weight: 600; }
+.ca-times { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.ca-times .input { width: 140px; }
+
+@media (max-width: 720px) {
+    .ca-words { grid-template-columns: minmax(0, 1fr); }
+    .ca-words > b, .ca-words > span:first-child { display: none; }
+    .ca-words-label { margin-top: 8px; }
+    .ca-bprev-copy b { font-size: 1.3rem; }
+    .ca-tabs button { flex: 1 1 auto; }
+}

@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { createRealtimeSocket } from '../lib/realtime';
 import { can } from '../lib/permissions';
 import { setSessionTenant } from '../utils/api';
+import { saveMe, forgetMe } from '../lib/cxMe';
 
 const AuthContext = createContext();
 
@@ -37,6 +38,8 @@ export const AuthProvider = ({ children }) => {
         }
         const { data, error } = await supabase.rpc('me');
         const me = error ? null : data;
+        // A customer: remember name + mobile on this phone for a one-tap sign-in if the session is ever lost
+        if (me?.role === 'customer' && me.phone) saveMe(me);
         setUser(me);
         setSessionTenant(me?.tenant?.id);
         return me;
@@ -44,6 +47,11 @@ export const AuthProvider = ({ children }) => {
 
     useEffect(() => {
         fetchUser().finally(() => setLoading(false));
+        // Renew the sign-in on every visit (a fresh refresh token each time), so it never runs out while they keep coming
+        supabase.auth.getSession().then(({ data }) => {
+            const s = data.session;
+            if (s?.expires_at && s.expires_at * 1000 - Date.now() < 50 * 60 * 1000) supabase.auth.refreshSession().catch(() => {});
+        });
         const { data: sub } = supabase.auth.onAuthStateChange((event) => {
             if (event === 'SIGNED_OUT') setUser(null);
         });
@@ -114,6 +122,8 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
+        // Logging out on purpose: this phone no longer offers "Welcome back, <name>?"
+        if (user?.role === 'customer') forgetMe();
         await supabase.auth.signOut();
         setUser(null);
     };

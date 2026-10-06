@@ -3,18 +3,25 @@ import { useSearchParams } from 'react-router-dom';
 import { FiPlus, FiEdit2, FiTrash2, FiImage, FiSearch } from 'react-icons/fi';
 import {
     getAllMenuItems, getAllCategories, createMenuItem, updateMenuItem, deleteMenuItem, updateStock, setSoldAt,
-    getBrands, getTaxGroups, getItemUnits, createItemUnit, deleteItemUnit,
+    getBrands, getTaxGroups, getItemUnits, createItemUnit, deleteItemUnit, getOptionGroups,
 } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import { getImageUrl } from '../utils/config';
 import './AdminMenu.css';
 import InfoTip from './help/InfoTip';
+import { SizesEditor, ChoicesPicker, PairsPicker, DetailsEditor, ArtPicker } from './menu/ItemExtras';
+import { dishPrice } from './menu/menuExtras';
+
+// The dish form, in tabs: the basics, then what shapes the customer dish page
+const FORM_TABS = [['basics', 'Basics'], ['sizes', 'Sizes'], ['choices', 'Choices'], ['pairs', 'Goes well with'], ['details', 'Details page']];
+const EXTRA_KEYS = ['sizes', 'optionGroups', 'pairs', 'details'];
 
 const EMPTY_FORM = {
         name: '', nameHi: '', description: '', price: '', category: '',
         isVeg: true, isBestSeller: false, isNewItem: false, isRecommended: false, isUpsell: false,
         preparationTime: 15, stockQuantity: -1,
-        itemType: 'dish', brand: '', taxGroup: '', mrp: '', priceIncludesTax: false, isRestricted: false, unit: 'pc', sku: '', soldInShop: true, soldAtKiosk: true
+        itemType: 'dish', brand: '', taxGroup: '', mrp: '', priceIncludesTax: false, isRestricted: false, unit: 'pc', sku: '', soldInShop: true, soldAtKiosk: true,
+        sizes: [], optionGroups: [], pairs: [], details: {},
     };
 
 // "Beverages › Cold Drinks" for sub-categories
@@ -40,6 +47,19 @@ const AdminMenu = () => {
     const [editItem, setEditItem] = useState(null);
     const [formData, setFormData] = useState(EMPTY_FORM);
     const [image, setImage] = useState(null);
+    const [formTab, setFormTab] = useState('basics');
+    const [formError, setFormError] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [groups, setGroups] = useState([]);
+    const [groupsLoading, setGroupsLoading] = useState(false);
+    const loadGroups = () => {
+        setGroupsLoading(true);
+        getOptionGroups().then(r => setGroups(r.data)).catch(() => {}).finally(() => setGroupsLoading(false));
+    };
+    const openTab = (k) => {
+        setFormTab(k);
+        if (k === 'choices') loadGroups();
+    };
 
     useEffect(() => {
         fetchData();
@@ -60,12 +80,29 @@ const AdminMenu = () => {
         }
     };
 
+    // Sizes: each needs a name and a price, exactly one is the default; the dish price follows the default size
+    const checkSizes = (sizes) => {
+        const bad = sizes.find(s => !String(s.name || '').trim() || s.price === '' || s.price == null || Number(s.price) < 0);
+        if (bad) return 'Each size needs a name and a price (Sizes tab).';
+        if (sizes.length && sizes.filter(s => s.isDefault).length !== 1) return 'Mark one size as the default (Sizes tab).';
+        return '';
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setFormError('');
+        if (!String(formData.name || '').trim() || !formData.category) { setFormError('Name and category are needed (Basics tab).'); setFormTab('basics'); return; }
+        const sizes = (formData.sizes || []).map(s => ({ ...s, name: s.name.trim(), nameHi: (s.nameHi || '').trim(), amount: (s.amount || '').trim(), price: Number(s.price) }));
+        const problem = checkSizes(sizes);
+        if (problem) { setFormError(problem); setFormTab('sizes'); return; }
+        const values = { ...formData, sizes };
+        if (sizes.length) values.price = dishPrice({ sizes });
+        if (values.price === '' || values.price == null) { setFormError('Price is needed (Basics tab).'); setFormTab('basics'); return; }
         const data = new FormData();
-        Object.keys(formData).forEach(key => data.append(key, formData[key]));
+        Object.keys(values).forEach(key => data.append(key, EXTRA_KEYS.includes(key) ? JSON.stringify(values[key] ?? (key === 'details' ? {} : [])) : values[key]));
         if (image) data.append('image', image);
 
+        setSaving(true);
         try {
             if (editItem) {
                 await updateMenuItem(editItem._id, data);
@@ -76,7 +113,9 @@ const AdminMenu = () => {
             resetForm();
             fetchData();
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to save item');
+            setFormError(error.response?.data?.message || error.message || 'Failed to save item');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -126,8 +165,12 @@ const AdminMenu = () => {
             itemType: item.itemType || 'dish', brand: item.brand?._id || '', taxGroup: item.taxGroup || '',
             mrp: item.mrp ?? '', priceIncludesTax: !!item.priceIncludesTax, isRestricted: !!item.isRestricted,
             unit: item.unit || 'pc', sku: item.sku || '', hsnCode: item.hsnCode || '',
-            soldInShop: item.soldInShop !== false, soldAtKiosk: item.soldAtKiosk !== false
+            soldInShop: item.soldInShop !== false, soldAtKiosk: item.soldAtKiosk !== false,
+            sizes: Array.isArray(item.sizes) ? item.sizes : [], optionGroups: item.optionGroups || [], pairs: item.pairs || [],
+            details: item.details && typeof item.details === 'object' ? item.details : {},
         });
+        setFormTab('basics');
+        setFormError('');
         setShowModal(true);
         try {
             setUnits((await getItemUnits(item._id)).data);
@@ -141,6 +184,8 @@ const AdminMenu = () => {
         setFormData(EMPTY_FORM);
         setUnits([]);
         setImage(null);
+        setFormTab('basics');
+        setFormError('');
     };
 
     const addUnit = async () => {
@@ -253,13 +298,32 @@ const AdminMenu = () => {
             {/* Modal */}
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
-                    <div className="modal" onClick={e => e.stopPropagation()}>
+                    <div className="modal am-modal" onClick={e => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h2>{editItem ? 'Edit Item' : 'Add Item'}</h2>
-                            <button className="modal-close" onClick={() => setShowModal(false)}>×</button>
+                            <h2>{editItem ? `Edit ${editItem.name}` : 'Add Item'}</h2>
+                            <button className="modal-close" aria-label="Close" onClick={() => setShowModal(false)}>×</button>
                         </div>
-                        <form onSubmit={handleSubmit}>
-                            <div className="modal-body">
+                        <div className="am-tabs" role="tablist" aria-label="Item sections">
+                            {FORM_TABS.map(([k, l]) => {
+                                const n = k === 'sizes' ? formData.sizes.length : k === 'choices' ? formData.optionGroups.length : k === 'pairs' ? formData.pairs.length : 0;
+                                return <button key={k} type="button" role="tab" aria-selected={formTab === k} className={formTab === k ? 'on' : ''}
+                                    onClick={() => openTab(k)}>{l}{n > 0 && <span className="am-tab-n">{n}</span>}</button>;
+                            })}
+                        </div>
+                        <form onSubmit={handleSubmit} noValidate={formTab !== 'basics'}>
+                            {formTab === 'sizes' && <div className="modal-body">
+                                <SizesEditor sizes={formData.sizes} basePrice={formData.price} onChange={sizes => setFormData(f => ({ ...f, sizes }))} />
+                            </div>}
+                            {formTab === 'choices' && <div className="modal-body">
+                                <ChoicesPicker value={formData.optionGroups} groups={groups} loading={groupsLoading} onChange={optionGroups => setFormData(f => ({ ...f, optionGroups }))} />
+                            </div>}
+                            {formTab === 'pairs' && <div className="modal-body">
+                                <PairsPicker value={formData.pairs} items={items} selfId={editItem?._id} onChange={pairs => setFormData(f => ({ ...f, pairs }))} />
+                            </div>}
+                            {formTab === 'details' && <div className="modal-body">
+                                <DetailsEditor details={formData.details} onChange={details => setFormData(f => ({ ...f, details }))} />
+                            </div>}
+                            <div className="modal-body" hidden={formTab !== 'basics'}>
                                 <div className="form-grid">
                                     <div className="input-group">
                                         <label>Name *</label>
@@ -273,8 +337,12 @@ const AdminMenu = () => {
                                     </div>
                                     <div className="input-group">
                                         <label>Price *</label>
-                                        <input type="number" className="input" value={formData.price}
-                                            onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                                        {formData.sizes.length > 0 ? (
+                                            <p className="am-size-price">₹{dishPrice({ sizes: formData.sizes })} <small>uses the default size price · <button type="button" className="m2-link" onClick={() => setFormTab('sizes')}>Sizes</button></small></p>
+                                        ) : (
+                                            <input type="number" className="input" value={formData.price}
+                                                onChange={e => setFormData({ ...formData, price: e.target.value })} required />
+                                        )}
                                     </div>
                                     <div className="input-group">
                                         <label>Category *</label>
@@ -308,6 +376,8 @@ const AdminMenu = () => {
                                         )}
                                     </div>
                                 </div>
+                                <ArtPicker value={formData.details?.art || ''} item={{ name: formData.name, category: categories.find(c => c._id === formData.category) }}
+                                    onChange={art => setFormData(f => ({ ...f, details: { ...f.details, art } }))} />
                                 <div className="input-group">
                                     <label>Description</label>
                                     <textarea className="input" value={formData.description}
@@ -429,9 +499,10 @@ const AdminMenu = () => {
                                         onChange={e => setFormData({ ...formData, isUpsell: e.target.checked })} /> Show as Cart Suggestion<InfoTip k="upsell" /></label>
                                 </div>
                             </div>
-                            <div className="modal-footer">
+                            <div className="modal-footer am-footer">
+                                {formError && <p className="error-message am-error" role="alert">{formError}</p>}
                                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-                                <button type="submit" className="btn btn-primary">Save</button>
+                                <button type="submit" className="btn btn-primary" disabled={saving}>{saving ? 'Saving…' : 'Save'}</button>
                             </div>
                         </form>
                     </div>

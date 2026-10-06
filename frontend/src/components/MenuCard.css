@@ -1,194 +1,115 @@
+/* Dish card on Home and Menu (grid: picture on top; list: picture on the left). Colours from the theme (--cx-*). */
 .menu-card {
-    background: white;
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    box-shadow: var(--shadow-md);
-    transition: all var(--transition-normal);
-}
-
-.menu-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-xl);
-}
-
-.menu-card-image-container {
     position: relative;
-    width: 100%;
-    height: 140px;
+    border-radius: var(--cx-r, 22px);
+    padding: 8px 8px 12px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    color: var(--cx-tx);
+    box-shadow: var(--cx-shadow);
+    transition: transform .18s ease, box-shadow .18s ease;
+    min-width: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+.menu-card:hover { transform: translateY(-3px); }
+.menu-card:focus-visible { outline: 2.5px solid var(--cx-pr2); outline-offset: 2px; }
+
+.mc-ph {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: calc(var(--cx-r, 22px) - 6px);
+    background: var(--cx-sf2);
+    display: grid;
+    place-items: center;
     overflow: hidden;
 }
+.mc-img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s ease; }
+.menu-card:hover .mc-img { transform: scale(1.04); }
+.mc-art { width: 84%; height: 84%; transition: transform .4s ease; }
+.menu-card:hover .mc-art { transform: scale(1.05) rotate(-2deg); }
 
-.menu-card-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform var(--transition-slow);
-}
-
-.menu-card:hover .menu-card-image {
-    transform: scale(1.05);
-}
-
-.menu-badge {
+.mc-tag {
     position: absolute;
     top: 8px;
     left: 8px;
-    padding: 4px 8px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    border-radius: var(--radius-sm);
-    text-transform: uppercase;
-}
-
-.menu-badge.bestseller {
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    color: #1A1A1A;
-}
-
-.menu-badge.new {
-    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-    color: white;
-}
-
-.out-of-stock-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 600;
-    font-size: 0.875rem;
-}
-
-.menu-card-content {
-    padding: 12px;
-}
-
-.menu-card-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-
-.veg-badge {
-    flex-shrink: 0;
-    margin-top: 3px;
-}
-
-.menu-card-name {
-    font-size: 0.95rem;
-    font-weight: 600;
-    line-height: 1.3;
-    color: var(--text-primary);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
+    max-width: calc(100% - 52px);
+    font-size: .64rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 8px;
+    background: var(--cx-pr);
+    color: var(--cx-pi);
+    white-space: nowrap;
     overflow: hidden;
-    min-height: 2.6em;
-    /* Ensure 2 lines height always for alignment */
+    text-overflow: ellipsis;
 }
-
-.menu-card-description {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.mc-tag.new { background: #16A34A; color: #fff; }
+.mc-out {
+    position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, .5); color: #fff;
+    font-weight: 700; font-size: .85rem;
 }
+/* Heart (FavHeart) top-right of the picture */
+.mc-heart { position: absolute; top: 14px; right: 14px; z-index: 2; display: flex; }
+.mc-heart:empty { display: none; }
 
-.menu-card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.menu-card-price {
-    font-size: 1.1rem;
+.mc-body { display: flex; flex-direction: column; flex: 1; min-width: 0; padding: 0 4px; }
+.mc-name {
+    margin: 9px 0 2px;
+    font-family: var(--cx-fb);
+    font-size: .92rem;
     font-weight: 700;
-    color: var(--primary);
+    line-height: 1.25;
+    letter-spacing: 0;
+    color: var(--cx-tx);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
-
-.add-btn {
-    background: white;
-    border: 2px solid var(--primary);
-    color: var(--primary);
-    padding: 6px 20px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-fast);
+.menu-card .dish-name-hi { font-size: .72rem; color: var(--cx-mu); margin-top: -2px; }
+.mc-desc {
+    margin: 2px 0 4px; font-size: .78rem; color: var(--cx-mu); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
+.mc-meta { display: flex; align-items: center; gap: 8px; font-size: .72rem; color: var(--cx-mu); margin-top: 3px; flex-wrap: wrap; }
+.mc-star, .mc-prep { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+.mc-star svg { fill: #F59E0B; stroke: #F59E0B; width: 12px; height: 12px; }
+.mc-prep svg { width: 12px; height: 12px; }
 
-.add-btn:hover {
-    background: var(--primary);
-    color: white;
+.mc-bot { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; }
+.mc-price { display: flex; align-items: baseline; gap: 3px; flex-wrap: wrap; min-width: 0; }
+.mc-price b { font-size: 1.05rem; font-weight: 800; color: var(--cx-tx); }
+.mc-price small { font-size: .7rem; color: var(--cx-mu); font-weight: 600; }
+.mc-price s { font-size: .72rem; color: var(--cx-mu); }
+
+.mc-add {
+    width: 34px; height: 34px; border-radius: 50%; border: 0; display: grid; place-items: center; flex-shrink: 0;
+    font-size: 1.05rem; cursor: pointer; box-shadow: 0 8px 18px -10px var(--cx-pr2);
+    transition: transform .15s ease;
 }
+.mc-add svg { stroke-width: 3; }
+.mc-add:active { transform: scale(.88); }
 
-.quantity-control {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--primary);
-    border-radius: var(--radius-md);
-    padding: 4px;
+.mc-qty { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.mc-qty button {
+    width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; font-size: .9rem;
+    border: 1px solid var(--cx-ln2); background: var(--cx-sf); color: var(--cx-tx);
 }
+.mc-qty button.cx-pri { border-color: transparent; background: var(--cx-pr); color: var(--cx-pi); }
+.mc-qty b { min-width: 16px; text-align: center; font-weight: 800; font-size: .92rem; }
 
-.qty-btn {
-    background: white;
-    border: none;
-    width: 26px;
-    height: 26px;
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--primary);
-    font-size: 0.875rem;
-    transition: all var(--transition-fast);
+/* List layout: picture on the left */
+.menu-card.is-list { flex-direction: row; gap: 12px; padding: 10px; align-items: stretch; }
+.menu-card.is-list .mc-ph { width: 104px; flex-shrink: 0; align-self: flex-start; }
+.menu-card.is-list .mc-heart { top: 16px; right: auto; left: 84px; }
+.menu-card.is-list .mc-heart :is(button) { transform: scale(.85); }
+.menu-card.is-list .mc-name { margin-top: 2px; }
+.menu-card.is-list .mc-tag { font-size: .58rem; top: 6px; left: 6px; max-width: calc(100% - 12px); }
+
+.is-out .mc-add { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+    .menu-card, .mc-img, .mc-art, .mc-add { transition: none; }
+    .menu-card:hover, .menu-card:hover .mc-img, .menu-card:hover .mc-art { transform: none; }
 }
-
-.qty-btn:hover {
-    background: var(--bg-secondary);
-}
-
-.qty-value {
-    color: white;
-    font-weight: 600;
-    min-width: 20px;
-    text-align: center;
-}
-
-/* Desktop: Bigger cards */
-@media (min-width: 768px) {
-    .menu-card-image-container {
-        height: 180px;
-    }
-
-    .menu-card-content {
-        padding: 16px;
-    }
-
-    .menu-card-name {
-        font-size: 1.1rem;
-    }
-
-    .menu-card-price {
-        font-size: 1.15rem;
-    }
-}
-
-@media (min-width: 1200px) {
-    .menu-card-image-container {
-        height: 200px;
-    }
-}
-/* Hindi dish name under the English one (Hindi language only) */
-.menu-card .dish-name-hi { display: block; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); margin-top: 2px; }

@@ -7,6 +7,10 @@ import { getQrTable, saveQrTable } from '../lib/qrTable';
 import { useBrand } from '../context/BrandContext';
 import './TableScan.css';
 import useCxLang, { T } from '../lib/cxLang';
+import { readMe } from '../lib/cxMe';
+import Welcome from '../components/cx/Welcome';
+import WelcomeBack from '../components/cx/WelcomeBack';
+import QuickLoginForm from '../components/QuickLoginForm';
 
 const MESSAGES = {
     unknown: [T('This QR code isn\'t in use any more', 'यह QR कोड अब काम नहीं करता', 'Yeh QR code ab kaam nahi karta'),
@@ -19,12 +23,6 @@ const MESSAGES = {
 
 const W = {
     moveFailed: T('Could not move your order, please ask the staff', 'आपका ऑर्डर नहीं हट सका, कृपया स्टाफ़ से पूछें', 'Order move nahi ho paya, staff se pucho'),
-    welcome: T('Welcome to {name}', '{name} में आपका स्वागत है', '{name} mein aapka swagat hai'),
-    atTable: T("You're at Table {n}", 'आप टेबल {n} पर हैं', 'Aap Table {n} pe ho'),
-    welcomeText: T('Order from your phone. Friends at your table can scan too, and everyone gets their own bill.',
-        'अपने फ़ोन से ऑर्डर करें। आपकी टेबल के दोस्त भी स्कैन कर सकते हैं, और हर किसी का बिल अलग बनेगा।',
-        'Apne phone se order karo. Table pe dost bhi scan kar sakte hain, aur sabka bill alag banega.'),
-    seeMenu: T('See the menu', 'मेन्यू देखें', 'Menu dekho'),
     moveTitle: T('Move to Table {n}?', 'टेबल {n} पर जाएँ?', 'Table {n} pe shift karein?'),
     moveText: T('Your open order is at Table {from}. Move it here so the staff bring it to the right table.',
         'आपका चालू ऑर्डर टेबल {from} पर है। इसे यहाँ ले आएँ ताकि स्टाफ़ सही टेबल पर लाए।',
@@ -36,16 +34,22 @@ const W = {
     browse: T('Browse the menu', 'मेन्यू देखें', 'Menu dekho'),
 };
 
-// Landing page for a table QR (/t/5-K7Q2): remembers the table, then opens the menu
+// Landing page for a table QR (/t/5-K7Q2): remembers the table, then
+//   not signed in → Welcome (table, language) → sign in once → home
+//   signed in     → "Welcome back, <name>" for a second → home
+//   signed in once on this phone but the session was lost → one-tap "Welcome back, <name>?" → home
 const TableScan = () => {
     const brand = useBrand();
     const { t } = useCxLang();
     const { code } = useParams();
     const navigate = useNavigate();
-    const { isAuthenticated, isAdmin } = useAuth();
+    const { isAuthenticated, isAdmin, isPlatform, loading } = useAuth();
     const [state, setState] = useState({ step: 'loading' });
+    const goHome = () => navigate('/', { replace: true });
 
     useEffect(() => {
+        // Wait until we know whether this phone is signed in (the move check and the welcome depend on it)
+        if (loading) return undefined;
         let cancelled = false;
         (async () => {
             try {
@@ -60,19 +64,14 @@ const TableScan = () => {
                     if (!cancelled && open.length) { setState({ step: 'move', table: r, from: open[0].tableNumber }); return; }
                 }
                 saveQrTable(r);
-                setState({ step: 'welcome', table: r });
+                const customer = isAuthenticated && !isAdmin && !isPlatform;
+                setState({ step: customer ? 'back' : readMe() && !isAdmin && !isPlatform ? 'signin' : 'welcome', table: r });
             } catch {
                 if (!cancelled) setState({ step: 'error', reason: 'unknown' });
             }
         })();
         return () => { cancelled = true; };
-    }, [code]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    useEffect(() => {
-        if (state.step !== 'welcome') return undefined;
-        const timer = setTimeout(() => navigate('/menu', { replace: true }), 1800);
-        return () => clearTimeout(timer);
-    }, [state.step, navigate]);
+    }, [code, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const move = async (yes) => {
         const tb = state.table;
@@ -80,22 +79,34 @@ const TableScan = () => {
             try { await moveMyTable(tb.code); } catch (e) { alert(e.response?.data?.message || e.message || t(W.moveFailed)); return; }
             saveQrTable(tb);
         }
-        navigate('/menu', { replace: true });
+        // Moved (or staying at the old table): the usual welcome back, then home
+        setState({ step: 'back', table: yes ? tb : { tableNumber: state.from } });
     };
+
+    if (state.step === 'welcome') {
+        return (
+            <Welcome tableNumber={state.table.tableNumber} cafeName={brand.name}
+                // A staff / admin session on this browser: the home page explains how to order as a customer
+                onStart={() => (isAdmin || isPlatform ? goHome() : setState(s => ({ ...s, step: 'signin' })))} />
+        );
+    }
+    if (state.step === 'signin') {
+        return (
+            <div className="cxj-page">
+                <QuickLoginForm showLang={false}
+                    onBack={() => setState(s => ({ ...s, step: 'welcome' }))}
+                    onSuccess={({ returning } = {}) => (returning ? setState(s => ({ ...s, step: 'back' })) : goHome())} />
+            </div>
+        );
+    }
+    if (state.step === 'back') {
+        return <WelcomeBack tableNumber={state.table?.tableNumber} onDone={goHome} />;
+    }
 
     return (
         <div className="table-scan">
             <img src={brand.logo} alt={brand.name} className="ts-logo" />
             {state.step === 'loading' && <div className="spinner" />}
-            {state.step === 'welcome' && (
-                <div className="ts-card ts-pop">
-                    <div className="ts-pin"><FiMapPin /></div>
-                    <p className="ts-kicker">{t(W.welcome, { name: brand.name })}</p>
-                    <h1>{t(W.atTable, { n: state.table.tableNumber })}</h1>
-                    <p>{t(W.welcomeText)}</p>
-                    <button className="btn btn-primary btn-full" onClick={() => navigate('/menu', { replace: true })}>{t(W.seeMenu)}</button>
-                </div>
-            )}
             {state.step === 'move' && (
                 <div className="ts-card ts-pop">
                     <div className="ts-pin"><FiMapPin /></div>

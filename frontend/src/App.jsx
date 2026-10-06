@@ -13,12 +13,20 @@ import PickupBoard from './pages/display/PickupBoard';
 // User Pages
 import Home from './pages/Home';
 import LoginModal from './components/LoginModal';
+import InstallPrompt from './components/cx/InstallPrompt';
 import Menu from './pages/Menu';
 import Cart from './pages/Cart';
 import OrderDetails from './pages/OrderDetails';
 import History from './pages/History';
 import Profile from './pages/Profile';
 import Rewards from './pages/Rewards';
+import Dish from './pages/Dish';
+import Combo from './pages/Combo';
+import Saved from './pages/Saved';
+import Look from './pages/Look';
+import AdminCombos from './admin/menu/AdminCombos';
+import AdminChoices from './admin/menu/AdminChoices';
+import './components/cx/cx-theme.css';
 import AdminAttendance from './admin/staffapp/AdminAttendance';
 import AdminAlerts from './admin/staffapp/AdminAlerts';
 import MyDay from './admin/staffapp/MyDay';
@@ -115,6 +123,7 @@ const UserLayout = ({ children }) => {
         <BottomNav />
       </div>
       {needsCustomerLogin && <LoginModal />}
+      {!needsCustomerLogin && <InstallPrompt />}
     </>
   );
 };
@@ -131,6 +140,10 @@ function AppRoutes() {
       <Route path="/history" element={<UserLayout><History /></UserLayout>} />
       <Route path="/profile" element={<UserLayout><Profile /></UserLayout>} />
       <Route path="/rewards" element={<UserLayout><Rewards /></UserLayout>} />
+      <Route path="/item/:id" element={<UserLayout><Dish /></UserLayout>} />
+      <Route path="/combo/:id" element={<UserLayout><Combo /></UserLayout>} />
+      <Route path="/saved" element={<UserLayout><Saved /></UserLayout>} />
+      <Route path="/look" element={<UserLayout><Look /></UserLayout>} />
       <Route path="/t/:code" element={<TableScan />} />
       <Route path="/display/:key" element={<PickupBoard />} />
 
@@ -145,6 +158,8 @@ function AppRoutes() {
         <Route path="orders" element={<RequirePerm path="/admin/orders"><AdminOrders /></RequirePerm>} />
         <Route path="menu" element={<RequirePerm path="/admin/menu"><AdminMenu /></RequirePerm>} />
         <Route path="categories" element={<RequirePerm path="/admin/categories"><AdminCategories /></RequirePerm>} />
+        <Route path="choices" element={<RequirePerm path="/admin/choices"><AdminChoices /></RequirePerm>} />
+        <Route path="combos" element={<RequirePerm path="/admin/combos"><AdminCombos /></RequirePerm>} />
         <Route path="catalogue" element={<RequirePerm path="/admin/catalogue"><AdminCatalogue /></RequirePerm>} />
         <Route path="collections" element={<RequirePerm path="/admin/collections"><AdminCollections /></RequirePerm>} />
         <Route path="customer-app" element={<RequirePerm path="/admin/customer-app"><AdminCustomerApp /></RequirePerm>} />

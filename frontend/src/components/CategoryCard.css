@@ -1,59 +1,8 @@
-.category-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    cursor: pointer;
-    transition: all var(--transition-normal);
-    min-width: 85px;
+/* Category chip (see .cx-chip in cx/cx-theme.css) */
+.category-card { padding: 6px 14px 6px 6px; height: 42px; }
+.category-card .cx-art {
+    width: 30px; height: 30px; border-radius: 50%; background: var(--cx-sf2); padding: 3px;
 }
-
-.category-card:hover {
-    transform: translateY(-2px);
-}
-
-.category-image-wrapper {
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    overflow: hidden;
-    border: 3px solid transparent;
-    transition: all var(--transition-normal);
-    box-shadow: var(--shadow-md);
-    background: white;
-    /* Ensure clean background for contained images */
-}
-
-.category-card.active .category-image-wrapper {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
-}
-
-.category-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform var(--transition-normal);
-}
-
-.category-card:hover .category-image {
-    transform: scale(1.1);
-}
-
-.category-name {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    text-align: center;
-    transition: color var(--transition-fast);
-    max-width: 80px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.category-card.active .category-name {
-    color: var(--primary);
-    font-weight: 600;
-}
+.category-card.on .cx-art { background: rgba(255, 255, 255, .25); }
+.category-card .category-name { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+.category-card.cx-all { padding: 6px 16px; }

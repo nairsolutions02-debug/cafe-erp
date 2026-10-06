@@ -7,6 +7,8 @@ import useMenuLang, { tableToken } from '../mobile/useMenuLang';
 import { W } from '../mobile/staffText';
 import { readKdsTheme, setKdsTheme, onThemeChange } from '../mobile/useAdminTheme';
 import { playTones } from '../../lib/sound';
+import { LineNote } from './ChoicePicker';
+import { lineText } from './choices';
 import './POS.css';
 
 const NEXT = { queued: 'preparing', preparing: 'ready', ready: 'queued' };
@@ -89,7 +91,9 @@ const AdminKitchen = () => {
     const toggleFull = () => (document.fullscreenElement ? document.exitFullscreen?.() : document.documentElement.requestFullscreen?.())?.catch?.(() => {});
     const ageCls = (m) => (m >= 15 ? 'late' : m >= 8 ? 'warn' : '');
     const open = (i) => i.status !== 'served';
-    const inStation = (i, st) => st === 'all' || (i.station || 'hot') === st;
+    // A combo shows at every station that makes one of its picks (a breakfast combo reaches the coffee bar and the hot kitchen)
+    const stationsOf = (i) => (Array.isArray(i.stations) && i.stations.length ? i.stations : [i.station || 'hot']);
+    const inStation = (i, st) => st === 'all' || stationsOf(i).includes(st);
     const used = ['hot', 'bar', 'cold'].map(k => [k, t(W[k])]).filter(([k]) => orders.some(o => o.items.some(i => open(i) && inStation(i, k))));
     const view = used.some(([k]) => k === station) ? station : 'all';
     const all = orders
@@ -148,11 +152,11 @@ const AdminKitchen = () => {
                             <ul className="ticket-items">
                                 {items.map(i => (
                                     <li key={i.id}>
-                                        <button type="button" className={`ticket-item ${i.status}`} disabled={!canEdit} aria-label={`${i.quantity} ${i.name}: ${LABEL[i.status] || i.status}. Tap for ${LABEL[NEXT[i.status]] || 'ready'}`}
+                                        <button type="button" className={`ticket-item ${i.status}`} disabled={!canEdit} aria-label={`${i.quantity} ${lineText(i)}: ${LABEL[i.status] || i.status}. Tap for ${LABEL[NEXT[i.status]] || 'ready'}`}
                                             onClick={() => set(o.id, i.id, NEXT[i.status] || 'ready')}>
                                             <span className="ti-q">{i.quantity}</span>
-                                            <span className="ti-name">{i.name}{i.note && <small>{i.note}</small>}</span>
-                                            {view === 'all' && used.length > 1 && <span className="ti-st">{STATION_SHORT[i.station || 'hot']}</span>}
+                                            <span className="ti-name">{i.name}<LineNote item={i} className="ti-opts" /></span>
+                                            {view === 'all' && used.length > 1 && <span className="ti-st">{stationsOf(i).map(k => STATION_SHORT[k]).join(' + ')}</span>}
                                             <span className="ti-check" aria-hidden="true">{i.status === 'ready' ? '✓' : i.status === 'preparing' ? '•••' : ''}</span>
                                         </button>
                                     </li>
@@ -178,7 +182,7 @@ const AdminKitchen = () => {
                         {earlier.map(({ o, items }) => (
                             <li key={o.id}>
                                 <b>{o.tableNumber ? `${t(W.table)} ${o.tableNumber}` : o.tokenNumber || o.orderNumber}</b>
-                                <span>{items.map(i => `${i.quantity}× ${i.name}`).join(', ')}</span>
+                                <span>{items.map(i => `${i.quantity}× ${lineText(i)}`).join(', ')}</span>
                                 <small>{Math.round(age(o) / 60)}h</small>
                             </li>
                         ))}

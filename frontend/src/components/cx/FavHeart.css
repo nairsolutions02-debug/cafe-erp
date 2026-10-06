@@ -1,0 +1,12 @@
+/* Heart button on dish cards and the dish page */
+.cx-heart {
+    width: 38px; height: 38px; border-radius: 50%; display: inline-grid; place-items: center; flex-shrink: 0; padding: 0;
+    background: var(--cx-bg2); color: var(--cx-mu); border: 1px solid var(--cx-ln); cursor: pointer;
+    box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .35);
+    backdrop-filter: blur(var(--cx-blur)); -webkit-backdrop-filter: blur(var(--cx-blur));
+}
+.cx-heart svg { width: 19px; height: 19px; }
+.cx-heart.on { color: #E11D48; }
+.cx-heart.pop svg { animation: cx-heart-pop .38s ease; }
+@keyframes cx-heart-pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .cx-heart.pop svg { animation: none; } }

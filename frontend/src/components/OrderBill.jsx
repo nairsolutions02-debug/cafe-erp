@@ -2,6 +2,7 @@ import React from 'react';
 import './OrderBill.css';
 import { FiCheck, FiX, FiFileText } from 'react-icons/fi';
 import { useBrand } from '../context/BrandContext';
+import { noteRows } from '../lib/print';
 
 const OrderBill = ({ order, orders, onCancel }) => {
     const brand = useBrand();
@@ -60,7 +61,8 @@ const OrderBill = ({ order, orders, onCancel }) => {
     // Consolidate items by ID/name to show quantities neatly
     const consolidatedItems = {};
     aggregated.items.forEach(item => {
-        const id = item.menuItem?._id || item.menuItem || item.name; // Fallback key
+        // Same dish with another size or other choices (or another combo) stays on its own line
+        const id = `${item.menuItem?._id || item.menuItem || item.comboId || ''}|${item.name}|${item.note || ''}|${item.price}`;
         if (consolidatedItems[id]) {
             consolidatedItems[id].quantity += item.quantity;
             consolidatedItems[id].total += (item.total || (item.price * item.quantity));
@@ -114,7 +116,9 @@ const OrderBill = ({ order, orders, onCancel }) => {
                 <div className="bill-items">
                     {finalItems.map((item, index) => (
                         <div key={index} className="bill-item">
-                            <span>{item.name || item.menuItem?.name || 'Item'}</span>
+                            <span>{item.name || item.menuItem?.name || 'Item'}
+                                {noteRows(item).map((n, k) => <small key={k} style={{ display: 'block', fontSize: '0.78em', opacity: 0.8, lineHeight: 1.3 }}>{n}</small>)}
+                            </span>
                             <span className="qty">{item.quantity}</span>
                             <span className="total">₹{((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
                         </div>

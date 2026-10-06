@@ -1,351 +1,208 @@
+/* Customer app top bar (phone: slim bar; laptop 1024 px and up: full navigation). Colours from the theme (--cx-*). */
 .header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: var(--text-light);
-    padding: 16px;
-    padding-top: calc(16px + var(--safe-area-top));
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 60;
+    color: var(--cx-tx);
+    padding: 10px 16px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    border-width: 0 0 1px;
+    border-radius: 0;
+    background: color-mix(in srgb, var(--cx-bgs) 86%, transparent);
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
 }
 
 .header-content {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    max-width: 1200px;
+    gap: 10px;
+    max-width: 1320px;
     margin: 0 auto;
+    min-width: 0;
 }
 
 .header-logo {
     display: flex;
     align-items: center;
+    gap: 10px;
     text-decoration: none;
+    color: var(--cx-tx);
     flex-shrink: 0;
-}
-
-.logo-image {
-    height: 42px;
-    width: auto;
-    border-radius: 50%;
-    /* Optional circle trim since image is circular */
-    border: 2px solid rgba(255, 255, 255, 0.2);
-}
-
-.header-search {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-full);
-    padding: 8px 16px;
-    margin: 0 16px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: all 0.2s ease;
-}
-
-.header-search:focus-within {
-    background: white;
-    transform: scale(1.02);
-}
-
-.header-search:focus-within .search-icon {
-    color: var(--primary);
-}
-
-.header-search:focus-within input {
-    color: var(--text-primary);
-}
-
-.header-search:focus-within input::placeholder {
-    color: var(--text-muted);
-}
-
-.search-icon {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 1.2rem;
-    margin-right: 8px;
-    flex-shrink: 0;
-}
-
-.header-search form {
-    flex: 1;
-    display: flex;
-}
-
-.header-search input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 0.95rem;
-    outline: none;
-    font-family: inherit;
-}
-
-.header-search input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-}
-
-.header-back {
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    color: white;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.header-back:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.05);
-}
-
-.header-back:active {
-    transform: scale(0.95);
-}
-
-.header-title {
-    font-size: 1.125rem;
-    font-weight: 600;
-    flex: 1;
     min-width: 0;
-    margin: 0 12px;
+}
+.logo-image {
+    height: 38px;
+    width: 38px;
+    object-fit: cover;
+    border-radius: 12px;
+    display: block;
+}
+.logo-mark {
+    width: 36px; height: 36px; border-radius: 11px; display: grid; place-items: center; font-weight: 800; font-size: 1.1rem;
+}
+.logo-name {
+    font-family: var(--cx-fh);
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -.2px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 46vw;
 }
+
+.header-back { width: 40px; height: 40px; font-size: 1.15rem; }
+
+.header-title {
+    font-family: var(--cx-fh);
+    font-size: 1.2rem;
+    font-weight: 700;
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--cx-tx);
+}
+/* A page with a title shows the title, not the logo (phone) */
+.header-title ~ .header-gap { display: none; }
+.header-content:has(.header-title) .header-logo { display: none; }
+
+.header-gap { flex: 1; }
 
 .header-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    flex-shrink: 0;
 }
+.header-actions .cx-ib { width: 40px; height: 40px; font-size: 1.1rem; }
 
-.header-icon-btn {
-    position: relative;
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    padding: 10px;
-    border-radius: var(--radius-full);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    text-decoration: none;
-    transition: all var(--transition-fast);
-}
-
-.header-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
-}
-
-/* Hide profile and history buttons on mobile since it's in bottom nav */
-.profile-btn,
-.history-btn {
-    display: none;
-}
-
-@media (min-width: 768px) {
-
-    .profile-btn,
-    .history-btn {
-        display: flex;
-    }
-}
-
-.cart-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    background: var(--error);
-    color: white;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: bounce 0.3s ease;
-}
-
-@keyframes bounce {
-
-    0%,
-    100% {
-        transform: scale(1);
-    }
-
-    50% {
-        transform: scale(1.2);
-    }
-}
-
-/* Search Dropdown */
-.search-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 16px;
-    /* Align with search input margin */
-    right: 16px;
-    background: white;
-    border-radius: var(--radius-md);
-    margin-top: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    overflow: hidden;
-    z-index: 1000;
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.search-result-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #f0f0f0;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-}
-
-.search-result-item:last-child {
-    border-bottom: none;
-}
-
-.search-result-item:hover {
-    background: var(--bg-secondary);
-}
-
-.search-item-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.search-item-name {
-    font-weight: 500;
-    color: var(--text-primary);
-    font-size: 0.95rem;
-}
-
-.search-item-category {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-}
-
-.search-item-price {
-    font-weight: 600;
-    color: var(--primary);
-    font-size: 0.95rem;
-}
-
-/* Header Points Badge */
 .header-points-badge {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-    padding: 6px 10px;
-    border-radius: var(--radius-full);
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #333;
-    box-shadow: 0 2px 8px rgba(255, 165, 0, 0.4);
+    gap: 5px;
+    padding: 6px 11px 6px 8px;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: .85rem;
+    color: var(--cx-tx);
+    text-decoration: none;
 }
 
-.header-points-badge .points-coin {
-    font-size: 0.85rem;
+/* Phone: no search box and no laptop links in the bar (Home and Menu have their own search; the bottom bar has the pages) */
+.header .header-search,
+.header .header-desk-nav,
+.header .desk-only,
+.header .header-points-badge { display: none; }
+
+/* Home on a phone: the greeting at the top of the page takes the bar's place */
+@media (max-width: 1023px) {
+    .header.header-home { display: none; }
 }
 
-.header-points-badge .points-num {
-    line-height: 1;
-}
-/* Phones: the header also carries the table, points and cart, so search is a round button that opens
-   across the whole header when tapped */
-@media (max-width: 480px) {
-    .header-content {
-        position: relative;
-    }
-
-    .header-search {
-        flex: 0 0 auto;
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        margin: 0 8px;
-        justify-content: center;
-    }
-
-    .header-search .search-icon {
-        margin: 0;
-    }
-
-    .header-search form {
-        flex: 0;
-        width: 0;
-        overflow: hidden;
-    }
-
-    .header-search:focus-within {
-        position: absolute;
-        left: 12px;
-        right: 12px;
-        width: auto;
-        margin: 0;
-        padding: 0 14px;
-        justify-content: flex-start;
-        z-index: 5;
-        transform: none;
-    }
-
-    .header-search:focus-within .search-icon {
-        margin-right: 8px;
-    }
-
-    .header-search:focus-within form {
-        flex: 1;
-        width: auto;
-    }
+@media (max-width: 380px) {
+    .header { padding-left: 12px; padding-right: 12px; }
+    .header-actions { gap: 6px; }
+    .header-actions .cx-ib { width: 36px; height: 36px; }
 }
 
-/* Laptop page links (the bottom bar only shows on phones) */
-.header-desk-nav {
-    display: none;
-}
+/* ---------------- Laptop ---------------- */
+@media (min-width: 1024px) {
+    .header { padding: 14px 32px; }
+    .header-content { gap: 24px; }
+    .header-content:has(.header-title) .header-logo { display: flex; }
+    .header-title { display: none; }
+    .header-title ~ .header-gap { display: block; }
+    .header .header-back { display: none; }
+    .logo-image { height: 40px; width: 40px; }
+    .logo-name { font-size: 1.3rem; max-width: 240px; }
 
-@media (min-width: 768px) {
-    .header-desk-nav {
+    .header .header-desk-nav { display: flex; gap: 22px; align-items: center; }
+    .header-desk-nav a {
+        color: var(--cx-mu);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: .95rem;
+        padding: 6px 0;
+        border-bottom: 2px solid transparent;
+        transition: color .15s ease;
+    }
+    .header-desk-nav a:hover { color: var(--cx-tx); }
+    .header-desk-nav a.active { color: var(--cx-tx); border-bottom-color: var(--cx-pr2); }
+
+    .header .desk-only { display: inline-grid; }
+    .header .header-points-badge { display: inline-flex; }
+    .header-avatar { width: 42px; height: 42px; font-size: 1.05rem; }
+
+    .header .header-search {
         display: flex;
         align-items: center;
-        gap: 4px;
-        margin-right: 12px;
+        position: relative;
+        width: min(340px, 28vw);
+        height: 44px;
+        padding: 0 16px;
+        border-radius: 999px;
+        cursor: text;
     }
-
-    .header-desk-nav a {
-        padding: 8px 14px;
-        border-radius: var(--radius-full);
-        color: rgba(255, 255, 255, 0.85);
-        font-weight: 600;
-        font-size: 0.92rem;
-        text-decoration: none;
-        white-space: nowrap;
+    .header-search:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--cx-pr2) 25%, transparent); }
+    .search-icon { color: var(--cx-mu); font-size: 1.1rem; margin-right: 8px; flex-shrink: 0; }
+    .header-search form { flex: 1; display: flex; min-width: 0; }
+    .header-search input {
+        width: 100%;
+        background: transparent;
+        border: 0;
+        color: var(--cx-tx);
+        font: inherit;
+        font-size: .92rem;
+        outline: none;
     }
-
-    .header-desk-nav a:hover {
-        background: rgba(255, 255, 255, 0.12);
-        color: white;
-    }
-
-    .header-desk-nav a.active {
-        background: rgba(255, 255, 255, 0.22);
-        color: white;
-    }
+    .header-search input::placeholder { color: var(--cx-mu); }
+    .header-search input::-webkit-search-cancel-button { display: none; }
 }
+
+/* Search results under the laptop search box */
+.search-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--cx-bg2);
+    border: 1px solid var(--cx-ln);
+    border-radius: 18px;
+    box-shadow: 0 18px 40px -16px rgba(0, 0, 0, .35);
+    padding: 6px;
+    z-index: 1000;
+    max-height: 420px;
+    overflow-y: auto;
+}
+.search-result-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    color: var(--cx-tx);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+.search-result-item:hover { background: var(--cx-sf2); }
+.search-item-pic {
+    width: 42px; height: 42px; border-radius: 12px; background: var(--cx-sf2); display: grid; place-items: center; overflow: hidden; flex-shrink: 0;
+}
+.search-item-pic img { width: 100%; height: 100%; object-fit: cover; }
+.search-item-pic .cx-art { width: 36px; height: 36px; }
+.search-item-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.search-item-name { font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.search-item-category { font-size: .74rem; color: var(--cx-mu); }
+.search-item-price { font-weight: 800; color: var(--cx-tx); font-size: .9rem; }
+
+/* Height of the top bar, for things that stick just under it (Menu category chips) */
+html.cx-themed body { --cx-head-h: calc(61px + env(safe-area-inset-top, 0px)); }
+@media (min-width: 1024px) { html.cx-themed body { --cx-head-h: 73px; } }

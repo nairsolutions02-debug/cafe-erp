@@ -769,19 +769,96 @@ tr:hover td {
 }
 
 /* Corner style from Settings → Brand & look (Soft is the normal look; data-corners is set on <html>) */
-html[data-corners="square"] :is(.btn, .input, .card, .modal, .po-in, .po-card, .po-act, .po-grid button, .po-sheet, .tile, .pos-cart, .pos-menu,
+html[data-corners="square"]:not(.cx-themed) :is(.btn, .input, .card, .modal, .po-in, .po-card, .po-act, .po-grid button, .po-sheet, .tile, .pos-cart, .pos-menu,
     .ticket, .ticket-item, .day-card, .more-tile, .more-list, .stat-card, .stat-tile, .settings-card, .menu-card, .category-card, .chips button,
     .section-tab, .po-chips button, .kds-chips button, .cx-card, .bl-sec, .order-card, .panel, .hp-sec, .tk-item, select, textarea,
     input:not([type="checkbox"]):not([type="radio"]):not([type="color"])) {
     border-radius: 4px !important;
 }
-html[data-corners="square"] :is(.po-sheet, .pos.is-phone .pos-cart) {
+html[data-corners="square"]:not(.cx-themed) :is(.po-sheet, .pos.is-phone .pos-cart) {
     border-radius: 8px 8px 0 0 !important;
 }
-html[data-corners="round"] :is(.btn, .chips button, .section-tab, .po-chips button, .kds-chips button, .po-act, .seg button) {
+html[data-corners="round"]:not(.cx-themed) :is(.btn, .chips button, .section-tab, .po-chips button, .kds-chips button, .po-act, .seg button) {
     border-radius: 999px !important;
 }
-html[data-corners="round"] :is(.card, .po-in, .po-card, .tile, .ticket, .day-card, .more-tile, .stat-card, .settings-card, .menu-card,
+html[data-corners="round"]:not(.cx-themed) :is(.card, .po-in, .po-card, .tile, .ticket, .day-card, .more-tile, .stat-card, .settings-card, .menu-card,
     .category-card, .order-card, .panel, .bl-sec, .hp-sec, .tk-item) {
     border-radius: 22px !important;
+}
+
+/* ==========================================================================
+   Customer app: the theme from Me → Look (lib/cxThemes.js puts the --cx-* variables and the class .cx-themed
+   on <html>, customer screens only). The older shared variables are pointed at the theme here, on <body>,
+   so every customer stylesheet follows the theme; the staff app never has .cx-themed.
+   ========================================================================== */
+html.cx-themed body {
+  --primary: var(--cx-pr2);
+  --primary-dark: var(--cx-pr2);
+  --primary-light: var(--cx-pr2);
+  --primary-soft: color-mix(in srgb, var(--cx-pr2) 14%, var(--cx-bgs));
+  --bg-primary: var(--cx-pr2);
+  --bg-secondary: var(--cx-bgs);
+  --bg-card: var(--cx-sf);
+  --text-primary: var(--cx-tx);
+  --text-secondary: color-mix(in srgb, var(--cx-tx) 72%, var(--cx-mu));
+  --text-muted: var(--cx-mu);
+  --border-color: var(--cx-ln2);
+  --border: var(--cx-ln2);
+  --font-body: var(--cx-fb);
+  --radius-lg: var(--cx-r);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .05);
+  --shadow-md: 0 8px 22px -12px rgba(40, 20, 5, .28);
+  --shadow-lg: 0 18px 36px -16px rgba(40, 20, 5, .35);
+  --cx-shadow: 0 14px 30px -18px rgba(40, 20, 5, .35);
+  /* dark versions of fixed colours (cx-dark-auto.css) use the theme too */
+  --d-bg: var(--cx-bgs);
+  --d-surface: var(--cx-bg2);
+  --d-surface-2: color-mix(in srgb, var(--cx-tx) 8%, var(--cx-bgs));
+  --d-line: var(--cx-ln2);
+  --d-ink: var(--cx-tx);
+  --d-ink-2: color-mix(in srgb, var(--cx-tx) 75%, var(--cx-mu));
+  --d-muted: var(--cx-mu);
+  background: var(--cx-bgs);
+  color: var(--cx-tx);
+  font-family: var(--cx-fb);
+}
+html.cx-themed.cx-theme-dark body { --cx-shadow: 0 14px 30px -16px rgba(0, 0, 0, .7); --shadow-md: 0 8px 22px -12px rgba(0, 0, 0, .6); }
+/* The theme background (gradients for the glass themes) stays put while the page scrolls */
+html.cx-themed body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: var(--cx-bg);
+  pointer-events: none;
+}
+html.cx-themed.cx-theme-dark { color-scheme: dark; }
+html.cx-themed :is(h1, h2, h3, .cx-h) { font-family: var(--cx-fh); letter-spacing: -.2px; }
+html.cx-themed ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--cx-mu) 50%, transparent); }
+
+html.cx-themed .btn { border-radius: 999px; font-weight: 700; }
+html.cx-themed .btn-primary { background: var(--cx-pr); color: var(--cx-pi); box-shadow: 0 10px 22px -12px var(--cx-pr2); }
+html.cx-themed .btn-primary:hover:not(:disabled) { background: var(--cx-pr); filter: brightness(1.06); }
+html.cx-themed .btn-secondary { background: transparent; color: var(--cx-pr2); border: 1.5px solid var(--cx-pr2); }
+html.cx-themed .btn-secondary:hover:not(:disabled) { background: var(--cx-pr); color: var(--cx-pi); border-color: transparent; }
+html.cx-themed .btn-ghost { color: var(--cx-pr2); }
+html.cx-themed .input,
+html.cx-themed :is(.profile-section, .rw-card) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  background: var(--cx-sf);
+  border: 1.5px solid var(--cx-ln2);
+  color: var(--cx-tx);
+  border-radius: 16px;
+}
+html.cx-themed .input::placeholder { color: var(--cx-mu); }
+html.cx-themed .card { background: var(--cx-sf); border: 1px solid var(--cx-ln); border-radius: var(--cx-r); }
+html.cx-themed .empty-state-icon { color: var(--cx-mu); }
+html.cx-themed .spinner { border-color: color-mix(in srgb, var(--cx-pr2) 20%, transparent); border-top-color: var(--cx-pr2); }
+html.cx-themed .loading-screen { color: var(--cx-mu); }
+html.cx-themed .page-header { background: var(--cx-pr); color: var(--cx-pi); }
+html.cx-themed .quantity-btn { border-color: var(--cx-pr2); color: var(--cx-pr2); }
+html.cx-themed .quantity-btn:hover { background: var(--cx-pr); color: var(--cx-pi); }
+/* Glass themes: frosted cards and bars */
+html.cx-theme-glass :is(.card, .cx-card) {
+  backdrop-filter: blur(var(--cx-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--cx-blur)) saturate(140%);
 }

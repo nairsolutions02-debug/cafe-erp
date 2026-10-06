@@ -3,6 +3,7 @@ import { shortOfferList } from '../lib/offerList';
 import { Link } from 'react-router-dom';
 import { FiGift, FiInstagram, FiCamera, FiCopy, FiStar } from 'react-icons/fi';
 import Header from '../components/Header';
+import Art from '../components/cx/Art';
 import { useAuth } from '../context/AuthContext';
 import { getMyRewards, getPortalConfig, setMyDates, uploadCustomerSelfie, submitInstagramClaim } from '../utils/api';
 import './Rewards.css';
@@ -15,7 +16,7 @@ const DEFAULT_EN = {
     heading: 'Your rewards',
     pointsLabel: 'Chai-ching! You have {points} points',
     progress: "You're {left} away from {reward}!",
-    noRewards: 'No rewards yet — your first one is brewing ☕',
+    noRewards: 'No rewards yet — your first one is brewing',
     pointsAdded: 'Chai-ching! {points} points added',
     instagram: 'Tag us on Instagram, earn a treat',
     underReview: 'Under review — up to 2 days',
@@ -28,7 +29,7 @@ const DEFAULT_TR = {
         heading: 'आपके रिवॉर्ड',
         pointsLabel: 'चाय-चिंग! आपके पास {points} पॉइंट हैं',
         progress: '{reward} से बस {left} दूर!',
-        noRewards: 'अभी कोई रिवॉर्ड नहीं — पहला बन रहा है ☕',
+        noRewards: 'अभी कोई रिवॉर्ड नहीं — पहला बन रहा है',
         pointsAdded: 'चाय-चिंग! {points} पॉइंट जुड़ गए',
         instagram: 'Instagram पर हमें टैग करें, ट्रीट पाएँ',
         underReview: 'जाँच चल रही है — 2 दिन तक',
@@ -40,7 +41,7 @@ const DEFAULT_TR = {
         heading: 'Aapke rewards',
         pointsLabel: 'Chai-ching! Aapke paas {points} points hain',
         progress: '{reward} se bas {left} door!',
-        noRewards: 'Abhi koi reward nahi — pehla ban raha hai ☕',
+        noRewards: 'Abhi koi reward nahi — pehla ban raha hai',
         pointsAdded: 'Chai-ching! {points} points jud gaye',
         instagram: 'Instagram pe humein tag karo, treat pao',
         underReview: 'Check ho raha hai — 2 din tak',
@@ -189,6 +190,7 @@ const Rewards = () => {
 
             {show.points && r.points != null && (
                 <section className="rw-hero">
+                    <Art kind="cookie" className="rw-hero-art" />
                     <div className="rw-points">{r.points}</div>
                     <div>{fill(tx('pointsLabel'), { points: r.points })}</div>
                     <small>{t(W.worth, { amount: Number(r.pointsValue).toLocaleString('en-IN') })}</small>

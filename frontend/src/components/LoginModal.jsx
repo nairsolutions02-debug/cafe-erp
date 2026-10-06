@@ -156,6 +156,16 @@ const LoginModal = () => {
         }
     };
 
+    // Default: one full-screen sign-in (name + mobile, no OTP), in the customer app's theme
+    if (!isAdmin && !isPlatform && !OTP_LOGIN_ENABLED) {
+        return (
+            <div className="cxj-overlay" role="dialog" aria-modal="true" aria-label={brand.name}>
+                <QuickLoginForm />
+                <p className="cxj-consent">{t(W.consent)}</p>
+            </div>
+        );
+    }
+
     return (
         <div className="login-modal-overlay">
             <div className="login-modal">
@@ -176,7 +186,7 @@ const LoginModal = () => {
                             </button>
                             <a href="/admin" className="btn btn-ghost btn-full">{t(W.backAdmin)}</a>
                         </div>
-                    ) : !OTP_LOGIN_ENABLED ? <QuickLoginForm /> : (<>
+                    ) : (<>
                     {step === 'phone' && (
                         <form onSubmit={handleSendOTP}>
                             <p className="modal-title">{t(W.welcome)}</p>

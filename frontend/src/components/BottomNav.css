@@ -1,64 +1,73 @@
+/* Phone bottom bar. Floating glass pill (default) or a classic full-width bar (html[data-cx-nav="classic"]).
+   --cx-nav-h on <body> is the room it takes, so fixed bars on other pages can sit just above it. */
+html.cx-themed body { --cx-nav-h: calc(92px + env(safe-area-inset-bottom, 0px)); }
+html.cx-themed[data-cx-nav="classic"] body { --cx-nav-h: calc(68px + env(safe-area-inset-bottom, 0px)); }
+
 .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: white;
+    left: 14px;
+    right: 14px;
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    max-width: 520px;
+    margin: 0 auto;
+    height: 64px;
+    border-radius: 999px;
     display: flex;
     justify-content: space-around;
-    padding: 8px 0;
-    padding-bottom: calc(8px + var(--safe-area-bottom));
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+    align-items: center;
+    padding: 0 6px;
     z-index: 100;
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
+    box-shadow: 0 16px 34px -14px rgba(0, 0, 0, .42);
+    background: var(--cx-sf, #fff);
 }
+/* Solid themes: a solid bar; glass themes: frosted */
+html:not(.cx-theme-glass) .bottom-nav { background: var(--cx-bg2, #fff); }
 
 .nav-item {
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    padding: 8px 16px;
-    text-decoration: none;
-    color: var(--text-muted);
-    transition: all var(--transition-fast);
-    border-radius: var(--radius-md);
-}
-
-.nav-item.active {
-    color: var(--primary);
-}
-
-.nav-item.active .nav-icon {
-    transform: scale(1.1);
-}
-
-.nav-icon {
-    font-size: 1.5rem;
-    transition: transform var(--transition-fast);
-}
-
-.nav-label {
-    font-size: 0.75rem;
-    font-weight: 500;
-}
-
-@media (min-width: 768px) {
-    .bottom-nav {
-        display: none;
-    }
-}
-/* Five tabs share the width equally, so the bar fits even 320 px phones */
-.bottom-nav .nav-item {
-    flex: 1;
-    min-width: 0;
+    gap: 3px;
     padding: 6px 2px;
+    text-decoration: none;
+    color: var(--cx-mu, #7a6548);
+    border-radius: 999px;
+    transition: color .15s ease;
+    -webkit-tap-highlight-color: transparent;
 }
-
-.bottom-nav .nav-label {
+.nav-item.active { color: var(--cx-pr2, var(--primary)); }
+.nav-icon-wrap { position: relative; display: grid; place-items: center; }
+.nav-icon { font-size: 1.3rem; transition: transform .15s ease; }
+.nav-item.active .nav-icon { transform: translateY(-1px) scale(1.08); }
+.nav-item.active .nav-icon-wrap::after {
+    content: ""; position: absolute; bottom: -5px; left: 50%; width: 4px; height: 4px; border-radius: 50%;
+    background: currentColor; transform: translateX(-50%);
+}
+.nav-label {
+    font-size: .68rem;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+    margin-top: 2px;
 }
+
+/* Classic bar along the bottom edge */
+html[data-cx-nav="classic"] .bottom-nav {
+    left: 0; right: 0; bottom: 0; max-width: none; height: auto; border-radius: 20px 20px 0 0;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
+    border-width: 1px 0 0; box-shadow: 0 -6px 22px -10px rgba(0, 0, 0, .25);
+}
+
+@media (min-width: 1024px) {
+    .bottom-nav { display: none; }
+    html.cx-themed body { --cx-nav-h: 0px; }
+}
+@media (max-width: 340px) {
+    .bottom-nav { left: 8px; right: 8px; }
+    .nav-label { font-size: .62rem; }
+}
+html.cx-no-tabs .bottom-nav, html.cx-no-tabs .floating-cart-btn { display: none; }

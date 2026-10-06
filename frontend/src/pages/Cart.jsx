@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { shortOfferList } from '../lib/offerList';
 import { useNavigate } from 'react-router-dom';
-import { FiMinus, FiPlus, FiShoppingCart, FiAward, FiLock, FiAlertTriangle, FiDroplet, FiMapPin, FiShoppingBag } from 'react-icons/fi';
-import { BiDish } from 'react-icons/bi';
+import { FiMinus, FiPlus, FiAward, FiLock, FiAlertTriangle, FiDroplet, FiMapPin, FiShoppingBag, FiEdit2, FiGift, FiTrash2 } from 'react-icons/fi';
+import Art from '../components/cx/Art';
+import { artFor } from '../components/cx/artKinds';
 import Header from '../components/Header';
 import AnimatedSearchInput from '../components/AnimatedSearchInput';
 import { useCart } from '../context/CartContext';
@@ -18,6 +19,7 @@ import {
     calculateRedemption,
     getLoyaltyOffers,
     quoteOrder,
+    quoteLines,
     getCheckoutInfo,
     getMyRewards,
 } from '../utils/api';
@@ -100,12 +102,25 @@ const W = {
     placeOrder: T('Place Order • ₹{amt}', 'ऑर्डर करें · ₹{amt}', 'Order karo · ₹{amt}'),
     placeFailed: T('Failed to place order', 'ऑर्डर नहीं हो पाया', 'Order nahi ho paya'),
     ok: T('OK', 'ठीक है', 'OK'),
+    edit: T('Edit', 'बदलें', 'Badlo'),
+    each: T('₹{n} each', '₹{n} एक का', '₹{n} ek ka'),
+    less: T('One less', 'एक कम', 'Ek kam'),
+    more: T('One more', 'एक और', 'Ek aur'),
+    removeLine: T('Remove {name}', '{name} हटाएँ', '{name} hatao'),
+    notNow: T('Not available right now. Please remove it to order.', 'अभी नहीं मिलेगा। ऑर्डर के लिए इसे हटाएँ।', 'Abhi nahi milega. Order ke liye ise hatao.'),
+    fixCart: T('Some items are not available right now. Remove them to place the order.', 'कुछ चीज़ें अभी नहीं मिलेंगी। ऑर्डर के लिए उन्हें हटाएँ।', 'Kuch items abhi nahi milenge. Order ke liye unhe hatao.'),
 };
+
+const rupees = (n) => Number(n).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+const lineName = (l, lang) => (lang === 'hi' && l.nameHi) || l.name;
+const lineWords = (l, lang) => (lang === 'hi' && l.choiceTextHi) || l.choiceText || l.sizeName || '';
+// Dishes with sizes or choices open their page instead of a blind add
+const needsPage = (item) => (item.sizes?.length > 0) || (item.optionGroups?.length > 0);
 
 const Cart = () => {
     const navigate = useNavigate();
     const { lang, t } = useCxLang();
-    const { items: cart, updateQuantity, removeItem, clearCart, subtotal: getCartTotal, addItem } = useCart();
+    const { items: cart, updateLineQty, removeLine, clearCart, subtotal: getCartTotal, addItem, itemsForServer, syncPrices } = useCart();
     const { isAuthenticated } = useAuth();
     const { cfg, show, nudge } = usePortal();
     const tableMode = cfg?.tables?.mode || 'qr';
@@ -145,14 +160,42 @@ const Cart = () => {
 
     // Exact bill from the server for the signed-in customer
     const [quote, setQuote] = useState(null);
-    const cartKey = cart.map(i => `${i._id}:${i.quantity}`).join(',');
+    const serverItems = itemsForServer();
+    const cartKey = JSON.stringify(serverItems);
+    // Lines the server will not sell right now (dish switched off, combo time over)
+    const [problems, setProblems] = useState({});
+
+    // Server price of every line with its size and choices (the app only estimates)
+    useEffect(() => {
+        if (cart.length === 0) { setProblems({}); return undefined; }
+        let cancelled = false;
+        const keys = cart.map(i => i.key);
+        const timer = setTimeout(async () => {
+            try {
+                const res = await quoteLines(serverItems);
+                if (cancelled) return;
+                syncPrices(Object.fromEntries((res.data || []).map((l, n) => [keys[n], l.price])));
+                setProblems({});
+            } catch {
+                // find the line(s) that fail, one by one
+                const bad = {};
+                await Promise.all(serverItems.map(async (it, n) => {
+                    try { await quoteLines([it]); } catch (e) { bad[keys[n]] = e.response?.data?.message || e.message || 'x'; }
+                }));
+                if (!cancelled) setProblems(bad);
+            }
+        }, 300);
+        return () => { cancelled = true; clearTimeout(timer); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [cartKey]);
+
     useEffect(() => {
         if (!isAuthenticated || cart.length === 0) { setQuote(null); return undefined; }
         let cancelled = false;
         const timer = setTimeout(async () => {
             try {
                 const res = await quoteOrder(
-                    cart.map(i => ({ menuItem: i._id, quantity: i.quantity })),
+                    serverItems,
                     couponApplied ? couponCode : '',
                     usePoints && selectedOffer ? selectedOffer._id : null,
                     useCash && !(usePoints && selectedOffer));
@@ -308,16 +351,17 @@ const Cart = () => {
             setError(t(W.emptyTitle));
             return;
         }
+        if (Object.keys(problems).length) {
+            setError(t(W.fixCart));
+            return;
+        }
 
         setLoading(true);
         setError('');
 
         try {
             const orderData = {
-                items: cart.map(item => ({
-                    menuItem: item._id,
-                    quantity: item.quantity
-                })),
+                items: serverItems,
                 couponCode: couponApplied ? couponCode : '',
                 pointsUsed: usePoints ? pointsUsed : 0,
                 loyaltyOfferId: usePoints && selectedOffer ? selectedOffer._id : null,
@@ -371,7 +415,7 @@ const Cart = () => {
             <div className="cart-page">
                 <Header title={t(W.cart)} showBack showCart={false} />
                 <div className="empty-cart">
-                    <div className="empty-cart-icon"><FiShoppingCart /></div>
+                    <Art kind="latte" className="empty-cart-art" />
                     <h2>{t(W.emptyTitle)}</h2>
                     <p>{t(W.emptyText)}</p>
                     <button onClick={() => navigate('/menu')} className="btn btn-primary">
@@ -406,10 +450,10 @@ const Cart = () => {
                                         <div key={item._id} className="result-item">
                                             <div className="result-item-info">
                                                 <div className="result-item-image">
-                                                    {item.image ? (
+                                                    {item.image && show('photos') ? (
                                                         <img src={getImageUrl(item.image)} alt={item.name} />
                                                     ) : (
-                                                        <span><BiDish /></span>
+                                                        <Art kind={artFor(item)} />
                                                     )}
                                                 </div>
                                                 <div className="result-item-details">
@@ -420,6 +464,7 @@ const Cart = () => {
                                             <button
                                                 className="add-quick-btn"
                                                 onClick={() => {
+                                                    if (needsPage(item)) { navigate(`/item/${item._id}`); return; }
                                                     addItem(item);
                                                     setSearchTerm('');
                                                     setSearchResults([]);
@@ -441,33 +486,50 @@ const Cart = () => {
                 <div className="cart-section">
                     <h3 className="section-title">{t(W.yourItems)}</h3>
                     <div className="cart-items">
-                        {cart.map(item => (
-                            <div key={item._id} className="cart-item">
-                                <div className="cart-item-image">
-                                    {item.image ? (
-                                        <img src={getImageUrl(item.image)} alt={item.name} />
-                                    ) : (
-                                        <span><BiDish /></span>
-                                    )}
-                                </div>
-                                <div className="cart-item-info">
-                                    <h4>{item.name}</h4>
-                                    <span className="cart-item-price">₹{item.price}</span>
-                                </div>
-                                <div className="cart-item-controls">
-                                    <div className="quantity-controls">
-                                        <button onClick={() => updateQuantity(item._id, item.quantity - 1)}>
-                                            <FiMinus />
-                                        </button>
-                                        <span>{item.quantity}</span>
-                                        <button onClick={() => updateQuantity(item._id, item.quantity + 1)}>
-                                            <FiPlus />
-                                        </button>
+                        {cart.map(line => {
+                            const words = lineWords(line, lang);
+                            const bad = problems[line.key];
+                            const editTo = line.combo ? `/combo/${line.combo}` : `/item/${line._id}`;
+                            return (
+                                <div key={line.key} className={`cart-line ${bad ? 'bad' : ''}`}>
+                                    <button type="button" className="cart-line-ph" onClick={() => navigate(editTo, { state: { editKey: line.key } })} aria-label={t(W.edit)}>
+                                        {line.image && show('photos') ? <img src={getImageUrl(line.image)} alt="" /> : <Art kind={line.art || artFor(line)} />}
+                                    </button>
+                                    <div className="cart-line-info">
+                                        <h4>{!line.combo && <i className={`cart-veg ${line.isVeg === false ? 'non' : ''}`} aria-hidden="true" />}{lineName(line, lang)}</h4>
+                                        {line.combo ? (
+                                            <ul className="cart-line-picks">
+                                                {(line.picks || []).map((p, n) => {
+                                                    const pw = (lang === 'hi' && p.choiceTextHi) || p.choiceText || p.sizeName;
+                                                    return <li key={n}>{(lang === 'hi' && p.nameHi) || p.name}{pw ? <span> · {pw}</span> : null}</li>;
+                                                })}
+                                            </ul>
+                                        ) : words && <p className="cart-line-words">{words}</p>}
+                                        {line.note && <p className="cart-line-note">“{line.note}”</p>}
+                                        {bad && <p className="cart-line-bad">{t(W.notNow)}</p>}
+                                        <div className="cart-line-row">
+                                            <span className="cart-line-each">{t(W.each, { n: rupees(line.price) })}</span>
+                                            <button type="button" className="cart-line-edit" onClick={() => navigate(editTo, { state: { editKey: line.key } })}>
+                                                <FiEdit2 /> {t(W.edit)}
+                                            </button>
+                                        </div>
                                     </div>
-                                    <span className="cart-item-total">₹{item.price * item.quantity}</span>
+                                    <div className="cart-line-side">
+                                        <div className="cart-qty">
+                                            <button type="button" onClick={() => updateLineQty(line.key, line.quantity - 1)} aria-label={line.quantity <= 1 ? t(W.removeLine, { name: line.name }) : t(W.less)}>
+                                                {line.quantity <= 1 ? <FiTrash2 /> : <FiMinus />}
+                                            </button>
+                                            <span>{line.quantity}</span>
+                                            <button type="button" onClick={() => updateLineQty(line.key, line.quantity + 1)} aria-label={t(W.more)} disabled={!!bad}>
+                                                <FiPlus />
+                                            </button>
+                                        </div>
+                                        <b className="cart-line-total">₹{rupees(line.price * line.quantity)}</b>
+                                        {bad && <button type="button" className="cart-line-remove" onClick={() => removeLine(line.key)}>{t(W.remove)}</button>}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -521,7 +583,7 @@ const Cart = () => {
                             <div className="my-gifts">
                                 {myCoupons.slice(0, 3).map(c => (
                                     <button key={c.code} type="button" className="my-gift" onClick={() => handleApplyCoupon(c.code)}>
-                                        <span>{/birthday/i.test(c.title) ? '🎂' : '🎁'}</span>
+                                        <span className="my-gift-ic"><FiGift /></span>
                                         <span className="my-gift-text"><b>{sayReward(c.reward, lang)}</b><small>{c.title}</small></span>
                                         <span className="my-gift-apply">{t(W.apply)}</span>
                                     </button>
@@ -630,16 +692,17 @@ const Cart = () => {
                 {/* Recommendations */}
                 {recommendations.length > 0 && (
                     <div className="cart-section">
-                        <h3 className="section-title">💡 {t(W.dontForget)}</h3>
+                        <h3 className="section-title">{t(W.dontForget)}</h3>
                         <div className="recommendations-scroll">
                             {recommendations.map(item => (
                                 <div key={item._id} className="recommend-card">
-                                    <span className="recommend-name">{item.name}</span>
+                                    <span className="recommend-ph">{item.image && show('photos') ? <img src={getImageUrl(item.image)} alt="" /> : <Art kind={artFor(item)} />}</span>
+                                    <span className="recommend-name">{(lang === 'hi' && item.nameHi) || item.name}</span>
                                     <div className="recommend-footer">
                                         <span className="recommend-price">₹{item.price}</span>
                                         <button
                                             className="recommend-add-btn"
-                                            onClick={() => addItem(item)}
+                                            onClick={() => (needsPage(item) ? navigate(`/item/${item._id}`) : addItem(item))}
                                         >
                                             {t(W.addCaps)}
                                         </button>
@@ -652,21 +715,20 @@ const Cart = () => {
 
                 {/* Upsell Item Check */}
                 {upsellItem && !cart.find(item => item._id === upsellItem._id) && (
-                    <div className="cart-section water-upsell-section" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
-                        <div className="water-upsell-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px' }}>
-                            <div className="water-info" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                <div className="water-icon" style={{ fontSize: '24px', color: 'var(--primary)' }}>
+                    <div className="cart-section water-upsell-section">
+                        <div className="water-upsell-content">
+                            <div className="water-info">
+                                <div className="water-icon">
                                     <FiDroplet />
                                 </div>
                                 <div className="water-text">
-                                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>{t(upsellItem.name.includes('Water') ? W.forgotWater : W.forgotSomething)}</h4>
-                                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t(W.upsellAdd, { name: upsellItem.name, price: upsellItem.price })}</span>
+                                    <h4>{t(upsellItem.name.includes('Water') ? W.forgotWater : W.forgotSomething)}</h4>
+                                    <span>{t(W.upsellAdd, { name: upsellItem.name, price: upsellItem.price })}</span>
                                 </div>
                             </div>
                             <button
                                 onClick={() => addItem(upsellItem)}
-                                className="btn btn-sm btn-outline-primary"
-                                style={{ padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                                className="water-add"
                             >
                                 <FiPlus /> {t(W.add)}
                             </button>
@@ -709,9 +771,9 @@ const Cart = () => {
                     {/* Itemized Product List */}
                     <div className="bill-items-list">
                         {cart.map(item => (
-                            <div key={item._id} className="bill-item-row">
+                            <div key={item.key} className="bill-item-row">
                                 <div className="bill-item-info">
-                                    <span className="bill-item-name">{item.name}</span>
+                                    <span className="bill-item-name">{lineName(item, lang)}{item.sizeName ? ` (${item.sizeName})` : ''}</span>
                                     <span className="bill-item-qty">x{item.quantity}</span>
                                 </div>
                                 <span className="bill-item-price">₹{(item.price * item.quantity).toFixed(2)}</span>
@@ -773,7 +835,7 @@ const Cart = () => {
                 <button
                     onClick={handlePlaceOrder}
                     className="place-order-btn"
-                    disabled={loading || cart.length === 0}
+                    disabled={loading || cart.length === 0 || Object.keys(problems).length > 0}
                 >
                     {loading ? t(W.placing) : t(W.placeOrder, { amt: total.toFixed(2) })}
                 </button>

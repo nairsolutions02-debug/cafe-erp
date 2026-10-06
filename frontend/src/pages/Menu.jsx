@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { FiGrid, FiSearch, FiAlertCircle, FiCheck } from 'react-icons/fi';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { FiGrid, FiList, FiSearch, FiAlertCircle, FiCheck, FiX } from 'react-icons/fi';
 import Header from '../components/Header';
 import CategoryCard from '../components/CategoryCard';
 import MenuCard from '../components/MenuCard';
 import MenuCardSkeleton from '../components/MenuCardSkeleton';
-import { getCategories, getMenuItems, getShopItem } from '../utils/api';
+import { getCategories, getMenuItems } from '../utils/api';
 import FloatingCartBtn from '../components/FloatingCartBtn';
 import { usePortal } from '../context/PortalContext';
 import AnnouncementStrip from '../components/cx/AnnouncementStrip';
 import BannerCarousel from '../components/cx/BannerCarousel';
-import ItemSheet from '../components/cx/ItemSheet';
+import CombosRow from '../components/cx/CombosRow';
 import './Menu.css';
 
 import useCxLang, { T } from '../lib/cxLang';
@@ -29,7 +29,15 @@ const W = {
     noItems: T('No items found', 'कोई आइटम नहीं मिला', 'Koi item nahi mila'),
     tryOther: T('Try selecting a different category', 'कोई दूसरी कैटेगरी चुनकर देखें', 'Koi aur category choose karke dekho'),
     seenAll: T("You've seen all items!", 'आपने सारे आइटम देख लिए!', 'Saare items dekh liye!'),
+    categories: T('Categories', 'कैटेगरी', 'Categories'),
+    grid: T('Show as tiles', 'टाइल में दिखाएँ', 'Tiles mein dikhao'),
+    list: T('Show as a list', 'लिस्ट में दिखाएँ', 'List mein dikhao'),
+    clear: T('Clear search', 'खोज हटाएँ', 'Search hatao'),
+    count: T('{n} dishes', '{n} आइटम', '{n} items'),
 };
+
+const LAYOUT_KEY = 'cx-menu-layout';
+const readLayout = () => { try { return localStorage.getItem(LAYOUT_KEY) === 'list' ? 'list' : 'grid'; } catch { return 'grid'; } };
 
 const Menu = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -44,18 +52,24 @@ const Menu = () => {
     const [page, setPage] = useState(1);
     const { show } = usePortal();
     const { t } = useCxLang();
-    const [sheetItem, setSheetItem] = useState(null);
+    const navigate = useNavigate();
+    const [layout, setLayout] = useState(readLayout);
+    const pickLayout = (l) => { setLayout(l); try { localStorage.setItem(LAYOUT_KEY, l); } catch { /* private mode */ } };
 
-    // A banner linking to an item opens its sheet (/menu?item=<id>)
+    // Old links to a dish (/menu?item=<id>) open the dish page
     const itemParam = searchParams.get('item');
     useEffect(() => {
-        if (!itemParam) return;
-        getShopItem(itemParam).then(r => r.data && setSheetItem(r.data)).catch(() => {});
-    }, [itemParam]);
-    const closeSheet = () => {
-        setSheetItem(null);
-        if (itemParam) { const p = new URLSearchParams(searchParams); p.delete('item'); setSearchParams(p, { replace: true }); }
-    };
+        if (itemParam) navigate(`/item/${encodeURIComponent(itemParam)}`, { replace: true });
+    }, [itemParam, navigate]);
+
+    // Combos in the top bar (/menu?view=combos): scroll to the combos strip
+    const view = searchParams.get('view');
+    const combosRef = useRef();
+    useEffect(() => {
+        if (view !== 'combos') return undefined;
+        const tm = setTimeout(() => combosRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400);
+        return () => clearTimeout(tm);
+    }, [view]);
 
     // Intersection Observer ref
     const observerRef = useRef();
@@ -242,102 +256,105 @@ const Menu = () => {
         ));
     };
 
+    const filtered = !!selectedCategory || !!searchParams.get('search');
+
     return (
         <div className="menu-page">
             <Header title={t(W.menu)} showBack />
 
-            <AnnouncementStrip />
-            {!selectedCategory && !searchParams.get('search') && <BannerCarousel />}
+            <div className="menu-wrap">
+                <AnnouncementStrip />
 
-            {/* Search Bar */}
-            <div className="menu-search-container">
-                <div className="menu-search-bar">
-                    <FiSearch className="menu-search-icon" />
-                    <input
-                        type="text"
-                        placeholder={displayPlaceholder}
-                        aria-label={t(W.searchLabel)}
-                        value={menuSearch}
-                        onChange={handleSearchChange}
-                        className="menu-search-input"
-                    />
-                </div>
-            </div>
-
-            {/* Categories Horizontal Scroll */}
-            <div className="categories-container">
-                <div
-                    className={`category-card ${!selectedCategory ? 'active' : ''}`}
-                    onClick={() => handleCategoryClick('')}
-                    style={{ marginLeft: '16px' }}
-                >
-                    <div className="category-image-wrapper" style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        background: 'var(--bg-secondary)'
-                    }}>
-                        <FiGrid size={24} style={{ color: !selectedCategory ? 'var(--primary)' : 'var(--text-secondary)' }} />
-                    </div>
-                    <span className="category-name">{t(W.all)}</span>
-                </div>
-                <div className="horizontal-scroll hide-scrollbar" style={{ marginLeft: 0, flex: 1 }}>
-                    {categories.map(cat => (
-                        <CategoryCard
-                            key={cat._id}
-                            category={cat}
-                            isActive={selectedCategory === cat._id}
-                            onClick={handleCategoryClick}
+                {/* Search + tiles / list */}
+                <div className="menu-search-container">
+                    <label className="menu-search-bar cx-glass">
+                        <FiSearch className="menu-search-icon" aria-hidden="true" />
+                        <input
+                            type="search"
+                            placeholder={displayPlaceholder}
+                            aria-label={t(W.searchLabel)}
+                            value={menuSearch}
+                            onChange={handleSearchChange}
+                            className="menu-search-input"
                         />
-                    ))}
+                        {menuSearch && (
+                            <button type="button" className="menu-search-clear" aria-label={t(W.clear)}
+                                onClick={() => handleSearchChange({ target: { value: '' } })}><FiX /></button>
+                        )}
+                    </label>
+                    <div className="menu-layout cx-glass" role="group">
+                        <button type="button" className={layout === 'grid' ? 'on' : ''} aria-pressed={layout === 'grid'} aria-label={t(W.grid)} title={t(W.grid)} onClick={() => pickLayout('grid')}><FiGrid /></button>
+                        <button type="button" className={layout === 'list' ? 'on' : ''} aria-pressed={layout === 'list'} aria-label={t(W.list)} title={t(W.list)} onClick={() => pickLayout('list')}><FiList /></button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Menu Items Grid */}
-            <div className="menu-items-container">
-                {loading ? (
-                    <div className="menu-grid">
-                        {renderSkeletons(6)}
-                    </div>
-                ) : menuItems.length === 0 ? (
-                    <div className="empty-state">
-                        <div className="empty-state-icon"><FiAlertCircle /></div>
-                        <p className="empty-state-title">{t(W.noItems)}</p>
-                        <p className="empty-state-text">{t(W.tryOther)}</p>
-                    </div>
-                ) : (
-                    <>
-                        <div className={`menu-grid ${show('photos') ? '' : 'no-photos'}`}>
-                            {menuItems.map(item => (
-                                <MenuCard key={item._id} item={item} onOpen={setSheetItem} />
-                            ))}
-
-                            {/* Loading more skeletons */}
-                            {loadingMore && renderSkeletons(2)}
-                        </div>
-
-                        {/* Intersection Observer trigger element */}
-                        {hasMore && (
-                            <div
-                                ref={loadMoreRef}
-                                className="load-more-trigger"
-                                style={{ height: '20px', margin: '20px 0' }}
+                {/* Category chips, stuck under the top bar while scrolling */}
+                <nav className="categories-container" aria-label={t(W.categories)}>
+                    <div className="cx-scroll-x menu-cats">
+                        <button type="button" className={`cx-chip cx-glass category-card cx-all ${!selectedCategory ? 'on' : ''}`}
+                            aria-pressed={!selectedCategory} onClick={() => handleCategoryClick('')}>
+                            {t(W.all)}
+                        </button>
+                        {categories.map(cat => (
+                            <CategoryCard
+                                key={cat._id}
+                                category={cat}
+                                isActive={selectedCategory === cat._id}
+                                onClick={handleCategoryClick}
                             />
-                        )}
+                        ))}
+                    </div>
+                </nav>
 
-                        {/* End of list indicator */}
-                        {!hasMore && menuItems.length > ITEMS_PER_PAGE && (
-                            <div className="end-of-list">
-                                <span><FiCheck /> {t(W.seenAll)}</span>
+                {!filtered && <BannerCarousel className="menu-banners" />}
+                {!filtered && <div ref={combosRef} id="combos" className="menu-combos"><CombosRow /></div>}
+
+                {/* Menu Items Grid */}
+                <div className="menu-items-container">
+                    {!loading && allItems.length > 0 && <p className="menu-count">{t(W.count, { n: allItems.length })}</p>}
+                    {loading ? (
+                        <div className={`menu-grid ${layout === 'list' ? 'is-list' : ''}`}>
+                            {renderSkeletons(6)}
+                        </div>
+                    ) : menuItems.length === 0 ? (
+                        <div className="empty-state">
+                            <div className="empty-state-icon"><FiAlertCircle /></div>
+                            <p className="empty-state-title">{t(W.noItems)}</p>
+                            <p className="empty-state-text">{t(W.tryOther)}</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className={`menu-grid ${layout === 'list' ? 'is-list' : ''} ${show('photos') ? '' : 'no-photos'}`}>
+                                {menuItems.map(item => (
+                                    <MenuCard key={item._id} item={item} layout={layout} />
+                                ))}
+
+                                {/* Loading more skeletons */}
+                                {loadingMore && renderSkeletons(2)}
                             </div>
-                        )}
-                    </>
-                )}
+
+                            {/* Intersection Observer trigger element */}
+                            {hasMore && (
+                                <div
+                                    ref={loadMoreRef}
+                                    className="load-more-trigger"
+                                    style={{ height: '20px', margin: '20px 0' }}
+                                />
+                            )}
+
+                            {/* End of list indicator */}
+                            {!hasMore && menuItems.length > ITEMS_PER_PAGE && (
+                                <div className="end-of-list">
+                                    <span><FiCheck /> {t(W.seenAll)}</span>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
 
             {/* Floating Cart Button */}
             <FloatingCartBtn />
-            {sheetItem && <ItemSheet item={sheetItem} onClose={closeSheet} />}
         </div>
     );
 };

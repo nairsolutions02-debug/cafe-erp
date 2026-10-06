@@ -10,9 +10,12 @@ const HTML_DEFAULTS = {
 }
 
 // Installable app manifest with the cafe's name and colour (served in dev, emitted on build)
+// start_url "/" opens the customer home page; the table they scanned stays remembered on the phone (lib/qrTable.js)
 const manifest = (env) => JSON.stringify({
+  id: '/',
   name: env.VITE_CAFE_NAME || HTML_DEFAULTS.VITE_CAFE_NAME,
   short_name: (env.VITE_CAFE_NAME || HTML_DEFAULTS.VITE_CAFE_NAME).slice(0, 12),
+  description: `${env.VITE_CAFE_NAME || HTML_DEFAULTS.VITE_CAFE_NAME} - ${env.VITE_CAFE_TAGLINE || HTML_DEFAULTS.VITE_CAFE_TAGLINE}`,
   start_url: '/',
   scope: '/',
   display: 'standalone',

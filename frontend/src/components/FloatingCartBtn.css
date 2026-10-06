@@ -1,45 +1,38 @@
+/* Cart pill above the bottom bar (phones and tablets) */
 .floating-cart-btn {
     position: fixed;
-    bottom: 90px;
-    left: 16px;
-    right: 16px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white;
-    padding: 16px 24px;
-    border-radius: var(--radius-lg);
+    bottom: calc(var(--cx-nav-h, 90px) + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    max-width: 440px;
+    padding: 10px 10px 10px 16px;
+    border-radius: 999px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
     text-decoration: none;
-    font-weight: 600;
-    box-shadow: 0 4px 20px color-mix(in srgb, var(--primary) 40%, transparent);
+    font-weight: 700;
+    font-size: .9rem;
+    box-shadow: 0 14px 30px -12px var(--cx-pr2, rgba(0, 0, 0, .4));
     z-index: 90;
-    animation: slideUp 0.3s ease;
+    animation: fcb-up .3s ease;
+}
+@keyframes fcb-up { from { transform: translate(-50%, 30px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+.floating-cart-btn.cart-bump { animation: fcb-bump .45s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes fcb-bump { 40% { transform: translate(-50%, 0) scale(1.05); } }
+
+.floating-cart-count { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.floating-cart-go {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: rgba(255, 255, 255, .2); padding: 7px 12px; border-radius: 999px;
 }
 
-@keyframes slideUp {
-    from {
-        transform: translateY(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
+/* Laptops: the cart with its count is in the top bar */
+@media (min-width: 1024px) {
+    .floating-cart-btn { display: none; }
 }
-
-.floating-cart-count {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    font-size: 0.875rem;
-}
-
-@media (min-width: 768px) {
-    .floating-cart-btn {
-        max-width: 400px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
+@media (prefers-reduced-motion: reduce) {
+    .floating-cart-btn, .floating-cart-btn.cart-bump { animation: none; }
 }

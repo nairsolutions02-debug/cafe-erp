@@ -1,92 +1,31 @@
-.history-page {
-    padding-bottom: 100px;
-}
+/* Order history (customer app). Colours from the theme (--cx-*). */
+.history-page { min-height: 100vh; padding-bottom: calc(var(--cx-nav-h, 90px) + 20px); color: var(--cx-tx); }
+.history-page .empty-state { max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.history-page .empty-state p { color: var(--cx-mu); margin-bottom: 12px; }
+.empty-art { width: 120px; height: 120px; margin-bottom: 8px; }
+.loading-state { display: flex; justify-content: center; padding: 60px; }
 
-.loading-state {
-    display: flex;
-    justify-content: center;
-    padding: 60px;
-}
-
-.orders-list {
-    padding: 16px;
-}
-
+.orders-list { padding: 14px 16px; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
 .order-card {
-    display: block;
-    background: white;
-    border-radius: var(--radius-lg);
-    padding: 16px;
-    margin-bottom: 12px;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: var(--shadow-sm);
-    transition: all var(--transition-fast);
+    display: flex; gap: 12px; align-items: flex-start; border-radius: var(--cx-r, 22px); padding: 12px; text-decoration: none; color: var(--cx-tx);
+    box-shadow: var(--cx-shadow); transition: transform .15s ease;
 }
-
-.order-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.order-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.order-number {
-    font-weight: 600;
-    font-size: 0.95rem;
-}
-
-.order-status {
-    padding: 4px 10px;
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.badge-success {
-    background: rgba(34, 197, 94, 0.1);
-    color: var(--success);
-}
-
-.badge-error {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--error);
-}
-
-.badge-warning {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--warning);
-}
-
-.badge-primary {
-    background: color-mix(in srgb, var(--primary) 10%, transparent);
-    color: var(--primary);
-}
-
-.order-items-summary {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: 12px;
-    line-height: 1.4;
-}
-
-.order-card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.order-date {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-.order-total {
-    font-weight: 700;
-    color: var(--primary);
-}
+.order-card:hover { transform: translateY(-2px); }
+.order-pic { width: 58px; height: 58px; border-radius: 16px; background: var(--cx-sf2); display: grid; place-items: center; flex-shrink: 0; }
+.order-pic .cx-art { width: 48px; height: 48px; }
+.order-main { flex: 1; min-width: 0; }
+.order-card-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.order-number { font-weight: 800; font-size: .95rem; }
+.order-status { padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+.history-page .badge-success { background: rgba(34, 197, 94, .14); color: #16A34A; }
+.history-page .badge-error { background: rgba(239, 68, 68, .14); color: #DC2626; }
+.history-page .badge-warning { background: rgba(245, 158, 11, .16); color: #B45309; }
+.history-page .badge-primary { background: color-mix(in srgb, var(--cx-pr2) 14%, transparent); color: var(--cx-pr2); }
+html.cx-theme-dark .history-page :is(.badge-success) { color: #4ADE80; }
+html.cx-theme-dark .history-page :is(.badge-error) { color: #F87171; }
+html.cx-theme-dark .history-page :is(.badge-warning) { color: #FBBF24; }
+.order-items-summary { font-size: .86rem; color: var(--cx-mu); margin: 0 0 8px; line-height: 1.4; overflow-wrap: anywhere; }
+.order-card-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.order-date { font-size: .76rem; color: var(--cx-mu); }
+.order-total { font-weight: 800; color: var(--cx-tx); }
+@media (min-width: 1024px) { .orders-list { padding-top: 28px; } }

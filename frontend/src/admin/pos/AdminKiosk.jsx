@@ -8,6 +8,8 @@ import { ensureDevice, confirmDevice, getDevice, nextOrderNumber, cacheGet, cach
 import { printBill } from '../../lib/print';
 import { SyncPill } from './AdminPOS';
 import { estimateTotal, inr } from './money';
+import { ChoicePicker, LineNote } from './ChoicePicker';
+import { groupsById, hasChoices } from './choices';
 import './POS.css';
 import { useBrand } from '../../context/BrandContext';
 import './Kiosk.css';
@@ -72,6 +74,7 @@ const AdminKiosk = () => {
     const [custQuery, setCustQuery] = useState('');
     const [custResults, setCustResults] = useState([]);
     const [numpad, setNumpad] = useState(null);
+    const [choicePick, setChoicePick] = useState(null);
     const [approval, setApproval] = useState(null);
     const [busy, setBusy] = useState(false);
     const [toast, setToast] = useState(null);
@@ -99,11 +102,10 @@ const AdminKiosk = () => {
             setRegulars(reg.data);
             cacheSet('kiosk-items', it.data);
             cacheSet('kiosk-regulars', reg.data);
-            if (!cacheGet('pos-catalogue')) {
-                const c = (await getPosCatalogue()).data;
-                cacheSet('pos-catalogue', c);
-                setTax(c);
-            }
+            // The counter catalogue also carries sizes and choice groups, so refresh it each time
+            const c = (await getPosCatalogue()).data;
+            cacheSet('pos-catalogue', c);
+            setTax(c);
             const s = (await getCurrentShifts()).data;
             setShift(s.open.find(x => x.drawer === 'cash_kiosk') || null);
             const st = (await getSettings()).data;
@@ -132,13 +134,27 @@ const AdminKiosk = () => {
     }, [items]);
     const shown = items.filter(i => !filter || (filter.startsWith('b:') ? `b:${i.brandId}` === filter : `c:${i.categoryId}` === filter));
 
-    const add = (item, unit = null, qty = 1) => {
+    // Sizes and choice groups come from the counter catalogue (kiosk items do not carry them)
+    const groups = useMemo(() => groupsById(tax?.optionGroups), [tax]);
+    const fullItem = (item) => (tax?.items || []).find(x => x.id === item.id);
+    const needsPick = (item) => hasChoices(fullItem(item), groups);
+
+    // opts: { sel: {size, choices}, qty, price, name, words } from the choice picker
+    const add = (item, unit = null, qty = 1, opts = null) => {
         setNumpad(null);
-        const key = `${item.id}:${unit?.id || ''}`;
+        if (!unit && !opts && needsPick(item)) {
+            setChoicePick(item);
+            return;
+        }
+        setChoicePick(null);
+        const pickKey = opts ? `${opts.sel.size || ''}:${[...opts.sel.choices].sort().join(',')}` : '';
+        const key = `${item.id}:${unit?.id || ''}:${pickKey}`;
+        const n = opts?.qty || qty;
         const lines = tab.lines.some(l => l.key === key)
-            ? tab.lines.map(l => (l.key === key ? { ...l, qty: l.qty + qty } : l))
-            : [...tab.lines, { key, menuItemId: item.id, unitId: unit?.id || null, name: item.name + (unit ? ` (${unit.name})` : ''),
-                price: unit ? unit.price : item.price, qty, restricted: item.isRestricted }];
+            ? tab.lines.map(l => (l.key === key ? { ...l, qty: l.qty + n } : l))
+            : [...tab.lines, { key, menuItemId: item.id, unitId: unit?.id || null, name: opts ? opts.name : item.name + (unit ? ` (${unit.name})` : ''),
+                price: opts ? opts.price : unit ? unit.price : item.price, qty: n, restricted: item.isRestricted,
+                size: opts?.sel.size || undefined, choices: opts ? opts.sel.choices : undefined, choiceText: opts?.words || '' }];
         updateTab({ lines });
     };
     const setQty = (key, qty) => updateTab({ lines: qty <= 0 ? tab.lines.filter(l => l.key !== key) : tab.lines.map(l => (l.key === key ? { ...l, qty } : l)) });
@@ -180,12 +196,12 @@ const AdminKiosk = () => {
         const p = {
             clientId: newClientId(), orderNumber, deviceCode: code, channel: 'kiosk', tokenNumber: token,
             customerId: tab.customer?.id, customerPhone: tab.customer?.id ? undefined : tab.customer?.phone, customerName: tab.customer?.id ? undefined : tab.customer?.name,
-            items: tab.lines.map(l => ({ menuItem: l.menuItemId, quantity: l.qty, unitId: l.unitId || undefined })),
+            items: tab.lines.map(l => ({ menuItem: l.menuItemId, quantity: l.qty, unitId: l.unitId || undefined, size: l.size, choices: l.choices })),
             payFullBy: method, drawer: 'cash_kiosk', approverPhone: approver?.phone, approverPin: approver?.pin,
         };
         try {
             const res = await runOrQueue('create_staff_order', { p }, `${orderNumber} · kiosk · ${method}`);
-            const order = res.data || { orderNumber, items: tab.lines.map(l => ({ name: l.name, quantity: l.qty, total: l.price * l.qty })), total };
+            const order = res.data || { orderNumber, items: tab.lines.map(l => ({ name: l.name, quantity: l.qty, note: l.choiceText, total: l.price * l.qty })), total };
             setToast({ order, method, queued: !!res.queued, who: tab.customer?.name });
             setApproval(null);
             closeTab();
@@ -272,7 +288,7 @@ const AdminKiosk = () => {
                         onPointerDown={() => startPress(i)} onPointerUp={() => endPress(i)} onPointerLeave={() => { if (press.current && press.current !== 'long') clearTimeout(press.current); }}
                         onContextMenu={e => { e.preventDefault(); clearTimeout(press.current); press.current = 'long'; setNumpad(i); }} aria-label={`Add ${i.name}`}>
                         <span className="ktile-name">{i.name}</span>
-                        <span className="ktile-price">{inr(i.price)}{i.units.length ? ` · ${i.units[0].name} ${inr(i.units[0].price)}` : ''}</span>
+                        <span className="ktile-price">{inr(i.price)}{needsPick(i) ? ' · choices' : ''}{i.units.length ? ` · ${i.units[0].name} ${inr(i.units[0].price)}` : ''}</span>
                         {i.left != null && <span className={`ktile-left${i.left <= 0 ? ' out' : ''}`}>{i.left} left</span>}
                     </button>
                 ))}
@@ -283,7 +299,7 @@ const AdminKiosk = () => {
                 <div className="kiosk-lines">
                     {tab.lines.map(l => (
                         <div key={l.key} className="kline">
-                            <span>{l.name}</span>
+                            <span>{l.name}<LineNote item={{ note: l.choiceText }} /></span>
                             <span className="kline-ctrl">
                                 <button aria-label={`Less ${l.name}`} onClick={() => setQty(l.key, l.qty - 1)}><FiMinus /></button>
                                 <strong>{l.qty}</strong>
@@ -312,7 +328,10 @@ const AdminKiosk = () => {
                 </div>
             </div>
 
-            {numpad && <NumPad item={numpad} onAdd={add} onClose={() => setNumpad(null)} />}
+            {numpad && (needsPick(numpad)
+                ? <ChoicePicker item={fullItem(numpad)} groups={groups} onClose={() => setNumpad(null)} onAdd={(opts) => add(numpad, null, 1, opts)} />
+                : <NumPad item={numpad} onAdd={add} onClose={() => setNumpad(null)} />)}
+            {choicePick && <ChoicePicker item={fullItem(choicePick)} groups={groups} onClose={() => setChoicePick(null)} onAdd={(opts) => add(choicePick, null, 1, opts)} />}
             {approval && (
                 <div className="modal-overlay" onClick={() => setApproval(null)}>
                     <div className="modal" role="dialog" aria-label="Manager approval" onClick={e => e.stopPropagation()}>

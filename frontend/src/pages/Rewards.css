@@ -1,31 +1,44 @@
-.rewards-page { padding-bottom: 100px; }
+/* Rewards (customer app). Colours from the theme (--cx-*). */
+.rewards-page { min-height: 100vh; padding-bottom: calc(var(--cx-nav-h, 90px) + 20px); color: var(--cx-tx); }
+.rewards-page > :not(.header) { max-width: 640px; margin-left: auto; margin-right: auto; }
 .rw-pad { padding: 16px; }
-.rw-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 20px; color: var(--text-muted); }
+.rw-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 20px; color: var(--cx-mu); text-align: center; }
 .rw-hero {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-    color: white; text-align: center; padding: 28px 16px; display: flex; flex-direction: column; gap: 6px; align-items: center;
+    position: relative; overflow: hidden; margin: 14px 16px; border-radius: var(--cx-r, 22px);
+    background: var(--cx-ban); color: var(--cx-ban-tx); padding: 26px 22px; display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
+    box-shadow: 0 16px 30px -18px rgba(40, 20, 5, .45);
 }
-.rw-points { font-size: 3rem; font-weight: 800; line-height: 1; }
-.rw-chip { display: inline-block; background: rgba(255, 255, 255, 0.2); border-radius: var(--radius-full); padding: 4px 12px; font-size: 0.85rem; font-weight: 700; }
-.rw-card .rw-chip { background: var(--bg-secondary); color: var(--primary-dark); }
+.rewards-page > .rw-hero { margin: 14px 16px; }
+.rw-hero > *:not(.rw-hero-art) { position: relative; z-index: 1; }
+.rw-hero-art { position: absolute; right: -18px; bottom: -22px; width: 150px; height: 150px; opacity: .95; transform: rotate(-12deg); }
+.rw-points { font-family: var(--cx-fh); font-size: 3.2rem; font-weight: 800; line-height: 1; }
+.rw-hero small { opacity: .85; }
+.rw-chip { display: inline-block; background: rgba(255, 255, 255, .22); border-radius: 999px; padding: 4px 12px; font-size: .82rem; font-weight: 700; margin-top: 6px; }
+.rw-card .rw-chip { background: var(--cx-sf2); color: var(--cx-pr2); }
 .rw-card {
-    background: var(--bg-card); margin: 12px 16px; border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-md);
-    display: flex; flex-direction: column; gap: 8px;
+    background: var(--cx-sf); border: 1px solid var(--cx-ln); margin: 12px 16px; border-radius: var(--cx-r, 22px); padding: 18px;
+    box-shadow: var(--cx-shadow); display: flex; flex-direction: column; gap: 8px;
+    backdrop-filter: blur(var(--cx-blur)) saturate(140%); -webkit-backdrop-filter: blur(var(--cx-blur)) saturate(140%);
 }
-.rw-card h3 { margin: 0; font-size: 1rem; display: flex; gap: 6px; align-items: center; }
+.rewards-page > .rw-card { margin: 12px 16px; }
+@media (min-width: 672px) { .rewards-page > .rw-card, .rewards-page > .rw-hero { margin-left: auto; margin-right: auto; } }
+.rw-card h3 { margin: 0; font-size: 1.05rem; display: flex; gap: 8px; align-items: center; }
+.rw-card h3 svg { color: var(--cx-pr2); }
+.rw-card .muted, .rewards-page .muted { color: var(--cx-mu); }
 .rw-big { font-size: 1.1rem; font-weight: 700; margin: 0; }
 .rw-progress { display: flex; flex-direction: column; gap: 4px; }
-.rw-bar { height: 10px; background: var(--bg-secondary); border-radius: var(--radius-full); overflow: hidden; }
-.rw-bar span { display: block; height: 100%; background: var(--success); border-radius: var(--radius-full); transition: width 0.4s; }
-.rw-coupon { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 2px dashed var(--primary); border-radius: var(--radius-md); padding: 10px; }
+.rw-bar { height: 10px; background: var(--cx-sf2); border-radius: 999px; overflow: hidden; }
+.rw-bar span { display: block; height: 100%; background: var(--cx-pr); border-radius: 999px; transition: width .4s; }
+.rw-coupon { display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 2px dashed var(--cx-pr2); border-radius: 16px; padding: 10px 12px; }
 .rw-coupon div { display: flex; flex-direction: column; min-width: 0; }
-.rw-coupon small, .rw-hist small { color: var(--text-muted); display: block; }
-.rw-coupon button { border: 0; background: var(--primary); color: white; border-radius: var(--radius-sm); padding: 8px 10px; font-weight: 800; letter-spacing: 1px; cursor: pointer; white-space: nowrap; }
+.rw-coupon small, .rw-hist small { color: var(--cx-mu); display: block; }
+.rw-coupon button { border: 0; background: var(--cx-pr); color: var(--cx-pi); border-radius: 999px; padding: 8px 12px; font-weight: 800; letter-spacing: 1px; cursor: pointer; white-space: nowrap; display: inline-flex; gap: 6px; align-items: center; }
 .rw-ig { display: flex; flex-direction: column; gap: 8px; }
-.rw-selfie { height: 120px; border: 2px dashed var(--primary); border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--primary); font-weight: 700; display: flex; gap: 6px; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+.rw-selfie { height: 120px; border: 2px dashed var(--cx-pr2); border-radius: 16px; background: var(--cx-sf2); color: var(--cx-pr2); font: inherit; font-weight: 700; display: flex; gap: 6px; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
 .rw-selfie img { height: 100%; object-fit: cover; }
 .rw-dates { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: end; }
 .rw-dates button { grid-column: 1 / -1; }
-.rw-link { color: var(--primary); font-weight: 700; text-decoration: none; }
-.rw-hist { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--bg-secondary); padding: 6px 0; font-size: 0.9rem; }
+.rw-link { color: var(--cx-pr2); font-weight: 700; text-decoration: none; }
+.rw-hist { display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--cx-ln); padding: 8px 0; font-size: .9rem; }
 .rw-hist strong { text-align: right; }
+@media (min-width: 1024px) { .rewards-page { padding-top: 12px; } }

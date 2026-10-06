@@ -7,6 +7,8 @@ import { useOutbox, runOrQueue, newClientId, retryFailed, dismissFailed } from '
 import { ensureDevice, getDevice, nextOrderNumber, cacheGet, cacheSet } from '../../lib/device';
 import { printKot, printBill } from '../../lib/print';
 import { estimateTotal, inr } from './money';
+import { ChoicePicker, ComboPicker, LineNote } from './ChoicePicker';
+import { groupsById, hasChoices, priceDish } from './choices';
 import useIsPhone from '../mobile/useIsPhone';
 import useMenuLang from '../mobile/useMenuLang';
 import { W } from '../mobile/staffText';
@@ -128,6 +130,9 @@ const AdminPOS = () => {
     const [error, setError] = useState('');
     const [shift, setShift] = useState(undefined);
     const [unitPick, setUnitPick] = useState(null);
+    // Dishes with sizes or choices open a picker; combos open a slot picker
+    const [choicePick, setChoicePick] = useState(null);
+    const [comboPick, setComboPick] = useState(null);
     const [autoKot, setAutoKot] = useState(() => localStorage.getItem('pos-auto-kot') === '1');
     const searchRef = useRef(null);
     const cartRef = useRef(null);
@@ -168,34 +173,59 @@ const AdminPOS = () => {
     }, [online, loadCatalogue]);
 
     const items = useMemo(() => (cat?.items || []).filter(i => i.is_available && i.sold_in_shop !== false), [cat]);
+    const groups = useMemo(() => groupsById(cat?.optionGroups), [cat]);
+    const itemsById = useMemo(() => Object.fromEntries(items.map(i => [i.id, i])), [items]);
+    const combos = cat?.combos || [];
     const topCats = useMemo(() => (cat?.categories || []).filter(c => c.is_active && !c.parent_id), [cat]);
     const inCategory = (i) => {
         if (category === 'all') return true;
         const c = (cat?.categories || []).find(x => x.id === i.category_id);
         return i.category_id === category || c?.parent_id === category;
     };
-    const shown = items.filter(i => inCategory(i) && (!search || i.name.toLowerCase().includes(search.toLowerCase())));
+    const matches = (name) => !search || name.toLowerCase().includes(search.toLowerCase());
+    const showCombos = category === 'combos';
+    const shown = showCombos ? [] : items.filter(i => inCategory(i) && matches(i.name));
+    const shownCombos = showCombos ? combos.filter(c => matches(c.name)) : [];
 
-    const add = (item, unit) => {
-        if (!unit && item.item_units?.length && !unitPick) {
+    const addLine = (line, qty = 1) => setCart(c => {
+        const found = c.find(l => l.key === line.key);
+        if (found) return c.map(l => (l.key === line.key ? { ...l, qty: l.qty + qty } : l));
+        return [...c, { ...line, qty, note: '' }];
+    });
+    // opts: { sel: {size, choices}, qty, price, name, words } from the choice picker
+    const add = (item, unit, opts) => {
+        if (!unit && !opts && item.item_units?.length && !unitPick) {
             setUnitPick(item);
             return;
         }
         setUnitPick(null);
-        const key = `${item.id}:${unit?.id || ''}`;
-        const price = unit ? Number(unit.sale_price ?? item.price * unit.factor) : Number(item.price);
-        setCart(c => {
-            const found = c.find(l => l.key === key);
-            if (found) return c.map(l => (l.key === key ? { ...l, qty: l.qty + 1 } : l));
-            return [...c, { key, menuItemId: item.id, unitId: unit?.id || null, name: item.name + (unit ? ` (${unit.name})` : ''), price, qty: 1, note: '', restricted: item.is_restricted }];
-        });
+        if (!unit && !opts && hasChoices(item, groups)) {
+            setChoicePick(item);
+            return;
+        }
+        setChoicePick(null);
+        const pickKey = opts ? `${opts.sel.size || ''}:${[...opts.sel.choices].sort().join(',')}` : '';
+        const price = opts ? opts.price : unit ? Number(unit.sale_price ?? item.price * unit.factor) : Number(item.price);
+        addLine({
+            key: `${item.id}:${unit?.id || ''}:${pickKey}`, menuItemId: item.id, unitId: unit?.id || null,
+            name: opts ? opts.name : item.name + (unit ? ` (${unit.name})` : ''), price, restricted: item.is_restricted,
+            size: opts?.sel.size || undefined, choices: opts ? opts.sel.choices : undefined, choiceText: opts?.words || '',
+        }, opts?.qty || 1);
     };
+    const addCombo = (combo, { picks, qty, price, words }) => {
+        setComboPick(null);
+        addLine({ key: `combo:${combo.id}:${JSON.stringify(picks)}`, comboId: combo.id, picks, name: combo.name, price, choiceText: words }, qty);
+    };
+    // The kitchen reads the choices first, then the staff note (the same as the database writes it)
+    const lineNote = (l) => [l.choiceText, l.note].filter(Boolean).join(' · ');
     const setQty = (key, qty) => setCart(c => (qty <= 0 ? c.filter(l => l.key !== key) : c.map(l => (l.key === key ? { ...l, qty } : l))));
 
     const subtotal = cart.reduce((a, l) => a + l.price * l.qty, 0);
     const discountAmount = disc.value === '' ? 0 : disc.type === 'pct' ? Math.round(subtotal * Number(disc.value)) / 100 : Number(disc.value);
     const payload = () => ({
-        items: cart.map(l => ({ menuItem: l.menuItemId, quantity: l.qty, unitId: l.unitId || undefined, note: l.note || undefined })),
+        items: cart.map(l => (l.comboId
+            ? { combo: l.comboId, quantity: l.qty, picks: l.picks, note: l.note || undefined }
+            : { menuItem: l.menuItemId, quantity: l.qty, unitId: l.unitId || undefined, size: l.size, choices: l.choices, note: l.note || undefined })),
         manualDiscount: discountAmount || 0,
         customerId: customer?.id || undefined,
         couponCode: customer?.id && giftCode ? giftCode : undefined,
@@ -267,7 +297,7 @@ const AdminPOS = () => {
             const order = res.data || {
                 orderNumber, tokenNumber: p.tokenNumber, tableNumber: table?.table_number || '', channel: orderType,
                 createdAt: new Date().toISOString(), staffName: user?.name, specialInstructions: note,
-                items: cart.map(l => ({ name: l.name, quantity: l.qty, note: l.note })),
+                items: cart.map(l => ({ name: l.name, quantity: l.qty, note: lineNote(l), comboId: l.comboId, price: l.price, total: l.price * l.qty })),
             };
             setDone({ order, queued: !!res.queued, change, paid: !!payment });
             if (autoKot) printKot(order);
@@ -303,10 +333,14 @@ const AdminPOS = () => {
                     <div className="pos-search">
                         <FiSearch />
                         <input ref={searchRef} className="input" placeholder="Search item…" value={search} onChange={e => setSearch(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter' && shown[0]) { add(shown[0]); setSearch(''); } }} />
+                            onKeyDown={e => {
+                                if (e.key !== 'Enter') return;
+                                if (shown[0]) { add(shown[0]); setSearch(''); } else if (shownCombos[0]) { setComboPick(shownCombos[0]); setSearch(''); }
+                            }} />
                     </div>
                     <div className="chips">
                         <button className={category === 'all' ? 'active' : ''} onClick={() => setCategory('all')}>All</button>
+                        {combos.length > 0 && <button className={showCombos ? 'active' : ''} onClick={() => setCategory('combos')}>Combos</button>}
                         {topCats.map(c => <button key={c.id} className={category === c.id ? 'active' : ''} onClick={() => setCategory(c.id)}>{c.name}</button>)}
                     </div>
                     <div className="tiles">
@@ -314,11 +348,19 @@ const AdminPOS = () => {
                             <button key={i.id} className={`tile${i.is_restricted ? ' restricted' : ''}`} onClick={() => add(i)}>
                                 <span className={`veg-dot ${i.is_veg ? 'veg' : 'nonveg'}`} />
                                 <span className="tile-name">{i.name}</span>
-                                <span className="tile-price">{inr(i.price)}{i.item_units?.length ? ' +packs' : ''}</span>
+                                <span className="tile-price">{hasChoices(i, groups) ? <>{i.sizes?.length ? 'from ' : ''}{inr(Math.min(priceDish(i, {}, groups).price, ...(i.sizes || []).map(s => Number(s.price) || 0)))}<span className="tile-tag">choices</span></> : inr(i.price)}{i.item_units?.length ? ' +packs' : ''}</span>
                                 {qtyOf(i.id) > 0 && <span className="tile-qty" aria-label={`${qtyOf(i.id)} in cart`}>{qtyOf(i.id)}</span>}
                             </button>
                         ))}
-                        {shown.length === 0 && <p className="muted">No items match.</p>}
+                        {shownCombos.map(c => (
+                            <button key={c.id} className="tile tile-combo" onClick={() => setComboPick(c)}>
+                                <span className="tile-name">{c.name}</span>
+                                <span className="tile-sub">{(c.slots || []).map(s => s.name).join(' + ')}</span>
+                                <span className="tile-price">{inr(c.price)}<span className="tile-tag">combo</span></span>
+                                {cart.some(l => l.comboId === c.id) && <span className="tile-qty">{cart.reduce((a, l) => a + (l.comboId === c.id ? l.qty : 0), 0)}</span>}
+                            </button>
+                        ))}
+                        {shown.length === 0 && shownCombos.length === 0 && <p className="muted">{showCombos ? 'No combos on sale right now.' : 'No items match.'}</p>}
                     </div>
                 </section>
 
@@ -380,7 +422,7 @@ const AdminPOS = () => {
                         {cart.map(l => (
                             <div key={l.key} className="line">
                                 <div className="line-main">
-                                    <span className="line-name">{l.name}</span>
+                                    <span className="line-name">{l.name}<LineNote item={{ note: l.choiceText, comboId: l.comboId }} /></span>
                                     <span className="num">{inr(l.price * l.qty)}</span>
                                 </div>
                                 <div className="line-ctrl">
@@ -456,6 +498,9 @@ const AdminPOS = () => {
                     </div>
                 </div>
             )}
+
+            {choicePick && <ChoicePicker item={choicePick} groups={groups} onClose={() => setChoicePick(null)} onAdd={(opts) => add(choicePick, null, opts)} />}
+            {comboPick && <ComboPicker combo={comboPick} itemsById={itemsById} groups={groups} onClose={() => setComboPick(null)} onAdd={(r) => addCombo(comboPick, r)} />}
 
             {/* Phones: the cart sits below the menu, so a bar at the bottom shows the total and jumps to it */}
             {cart.length > 0 && (isPhone ? !cartOpen : !cartInView) && (

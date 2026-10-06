@@ -6,23 +6,25 @@
     justify-content: center;
     gap: 20px;
     padding: 24px 16px 96px;
-    background: radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 60%), var(--bg-secondary);
+    background: var(--cx-hero, radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--primary) 18%, transparent), transparent 60%), var(--bg-secondary));
+    font-family: var(--cx-fb, inherit);
     text-align: center;
 }
-.ts-logo { height: 56px; object-fit: contain; }
+.ts-logo { height: 56px; object-fit: contain; border-radius: 14px; }
 .ts-card {
     width: 100%;
     max-width: 380px;
-    background: var(--bg-card);
-    border-radius: 20px;
+    background: var(--cx-bg2, var(--bg-card));
+    border: 1px solid var(--cx-ln, transparent);
+    border-radius: var(--cx-r, 20px);
     padding: 24px 20px;
     box-shadow: 0 12px 32px rgba(62, 42, 20, .12);
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
-.ts-card h1 { font-size: 1.45rem; color: var(--text-primary); margin: 0; }
-.ts-card p { color: var(--text-secondary); margin: 0; font-size: .95rem; }
+.ts-card h1 { font-size: 1.45rem; color: var(--cx-tx, var(--text-primary)); margin: 0; font-family: var(--cx-fh, inherit); }
+.ts-card p { color: var(--cx-mu, var(--text-secondary)); margin: 0; font-size: .95rem; }
 .ts-card .btn-full { width: 100%; margin-top: 6px; }
 .ts-kicker { font-size: .8rem !important; text-transform: uppercase; letter-spacing: .08em; color: var(--primary) !important; font-weight: 600; }
 .ts-pin {

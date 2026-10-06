@@ -1459,3 +1459,271 @@ html.kds-display .admin-content { padding: 12px 16px !important; }
     margin: 0;
     min-width: 0;
 }
+
+/* Sizes, choices and combos: what goes under a dish name (cart, kitchen ticket) */
+.line-opts {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #8A4B06;
+    line-height: 1.3;
+    margin-top: 2px;
+}
+
+.line-opts .lo-pick,
+.ti-opts .lo-pick {
+    display: block;
+}
+
+.line-opts .lo-pick::before,
+.ti-opts .lo-pick::before {
+    content: '+ ';
+    font-weight: 700;
+}
+
+.line-opts .lo-text,
+.ti-opts .lo-text {
+    display: block;
+}
+
+/* Kitchen ticket: the choices are what the barista must make, so they are big and never cut short */
+.ti-opts {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.98rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--k-warn-ink);
+    white-space: normal;
+    overflow-wrap: break-word;
+}
+
+/* A combo made at two stations: the station names stack so the dish names keep their width */
+.ti-st {
+    max-width: 44px;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.ti-opts .lo-pick {
+    color: var(--k-ink);
+    padding: 2px 0;
+}
+
+.ti-opts .lo-pick + .lo-pick {
+    border-top: 1px dashed var(--k-line);
+}
+
+.ti-opts .lo-text {
+    color: var(--k-warn-ink);
+}
+
+.ticket-item.ready .ti-opts {
+    color: var(--k-ok-ink);
+}
+
+.tile-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #FCEBD2;
+    color: #8A4B06;
+    font-size: 0.68rem;
+    font-weight: 700;
+    vertical-align: 1px;
+}
+
+.tile-sub {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.2;
+}
+
+.tile-combo {
+    background: #FFF6E6;
+    border-color: #F1D7AE;
+}
+
+/* Staff picker sheet: big buttons for size, each choice group and combo slots */
+.cp-overlay {
+    z-index: 1200;
+}
+
+.modal.cp-sheet {
+    display: flex;
+    flex-direction: column;
+    max-width: 560px;
+    max-height: min(92vh, 860px);
+    overflow: hidden;
+    padding: 0;
+}
+
+.cp-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px 10px;
+    border-bottom: 1px solid #eadfcb;
+}
+
+.cp-head h2 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.cp-head p {
+    margin: 2px 0 0;
+}
+
+.cp-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.cp-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.cp-gname {
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.cp-gname .muted {
+    font-weight: 500;
+    margin-left: 4px;
+}
+
+.cp-opts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+    gap: 8px;
+}
+
+.cp-opts button {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-height: 56px;
+    padding: 9px 12px;
+    border: 2px solid #eadfcb;
+    border-radius: 12px;
+    background: #fffdf8;
+    color: var(--text-primary);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.cp-opts button b {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.cp-opts button small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.cp-opts button.on {
+    border-color: var(--primary);
+    background: #FDF0DE;
+    box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.cp-opts button.on small {
+    color: var(--primary-dark);
+}
+
+.cp-opts button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.cp-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed #eadfcb;
+}
+
+.cp-slot:last-child {
+    border-bottom: 0;
+}
+
+.cp-slot-name {
+    font-size: 1.02rem;
+}
+
+.cp-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-left: 10px;
+    border-left: 3px solid #F1D7AE;
+}
+
+.cp-foot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px calc(12px + env(safe-area-inset-bottom));
+    border-top: 1px solid #eadfcb;
+}
+
+.cp-add {
+    flex: 1;
+    min-height: 52px;
+}
+
+.cp-qty {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cp-qty button {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    border: 1px solid #eadfcb;
+    background: #fffdf8;
+    color: var(--text-primary);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.cp-qty b {
+    min-width: 28px;
+    text-align: center;
+    font-size: 1.1rem;
+    font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+    .cp-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .modal.cp-sheet {
+        max-width: none;
+        max-height: 92vh;
+        border-radius: 18px 18px 0 0;
+    }
+
+    .cp-opts {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}

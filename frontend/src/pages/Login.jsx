@@ -128,6 +128,15 @@ const Login = () => {
         }
     };
 
+    // Default: the one-screen sign-in (name + mobile, no OTP)
+    if (!OTP_LOGIN_ENABLED) {
+        return (
+            <div className="cxj-page">
+                <QuickLoginForm onSuccess={() => navigate(returnTo)} />
+            </div>
+        );
+    }
+
     return (
         <div className="login-page">
             <div className="login-header">
@@ -137,7 +146,7 @@ const Login = () => {
             </div>
 
             <div className="login-card">
-                {!OTP_LOGIN_ENABLED ? <QuickLoginForm title="Welcome!" titleClassName="login-title" subtitleClassName="login-subtitle" /> : (<>
+                <>
                 {step === 'phone' && (
                     <form onSubmit={handleSendOTP}>
                         <h2>Welcome!</h2>
@@ -264,7 +273,7 @@ const Login = () => {
                         </button>
                     </form>
                 )}
-                </>)}
+                </>
             </div>
 
             <p className="login-footer">

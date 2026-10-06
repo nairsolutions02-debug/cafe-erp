@@ -6,6 +6,18 @@ import { mergeBrand, readBrandCache } from './brandStore';
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const money = (n) => Number(n || 0).toFixed(2);
 
+// A line's note holds its choices ("Oat, Hazelnut · extra hot"); a combo's note lists each pick
+// ("Latte (Large) [Oat] + Croissant · no sugar"), printed one pick per row so the kitchen misses nothing
+const isCombo = (i) => !!(i.comboId || i.combo_id || i.combo === true || i.options?.combo || (!i.menuItem && / \+ /.test(i.note || '')));
+export function noteRows(i) {
+    const note = String(i?.note || '').trim();
+    if (!note) return [];
+    if (!isCombo(i)) return [note];
+    const at = note.lastIndexOf(' · ');
+    const picks = (at >= 0 ? note.slice(0, at) : note).split(' + ').map(x => x.trim()).filter(Boolean).map(x => `+ ${x}`);
+    return at >= 0 ? [...picks, note.slice(at + 3)] : picks;
+}
+
 const page = (title, body) => `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title>
 <style>
   @page { size: 80mm auto; margin: 3mm; }
@@ -16,6 +28,8 @@ const page = (title, body) => `<!doctype html><html><head><meta charset="utf-8">
   hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
   table { width: 100%; border-collapse: collapse; } td { vertical-align: top; padding: 1px 0; }
   .note { font-style: italic; padding-left: 8px; }
+  .opt { font-size: 15px; font-weight: bold; padding-left: 4px; }
+  .sub { font-size: 11px; padding-left: 8px; }
 </style></head><body>${body}<script>window.onload=function(){window.print();setTimeout(function(){window.close()},500)}</script></body></html>`;
 
 function open(html) {
@@ -40,8 +54,8 @@ export function printKot(order, { cafeName = '' } = {}) {
       <div class="c">${esc(order.orderNumber)} · ${new Date(order.createdAt || Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
       <div class="c">${esc((order.channel || '').replace('_', ' ').toUpperCase())}${order.staffName ? ' · ' + esc(order.staffName) : ''}</div>
       <hr>
-      <table>${(order.items || []).map(i => `<tr><td class="big">${esc(i.quantity)} ×</td><td class="big">${esc(i.name)}</td></tr>
-        ${i.note ? `<tr><td></td><td class="note">${esc(i.note)}</td></tr>` : ''}`).join('')}</table>
+      <table>${(order.items || []).map(i => `<tr><td class="big" style="white-space:nowrap;padding-right:4px">${esc(i.quantity)} ×</td><td class="big">${esc(i.name)}</td></tr>
+        ${noteRows(i).map(n => `<tr><td></td><td class="opt">${esc(n)}</td></tr>`).join('')}`).join('')}</table>
       ${order.specialInstructions ? `<hr><div class="b">Note: ${esc(order.specialInstructions)}</div>` : ''}
       <hr>`;
     open(page('KOT', body));
@@ -50,7 +64,7 @@ export function printKot(order, { cafeName = '' } = {}) {
 // Customer bill
 export function printBill(order) {
     const r = order.restaurantInfo || {};
-    const rows = (order.items || []).map(i => `<tr><td>${esc(i.name)}</td><td class="r">${esc(i.quantity)}</td><td class="r">${money(i.total)}</td></tr>`).join('');
+    const rows = (order.items || []).map(i => `<tr><td>${esc(i.name)}${noteRows(i).map(n => `<div class="sub">${esc(n)}</div>`).join('')}</td><td class="r">${esc(i.quantity)}</td><td class="r">${money(i.total)}</td></tr>`).join('');
     const taxes = (order.taxDetails || []).map(t => `<tr><td>${esc(t.name)} ${esc(t.rate)}%</td><td></td><td class="r">${money(t.amount)}</td></tr>`).join('');
     const pays = (order.payments || []).map(p => `<tr><td>Paid ${esc(String(p.method).toUpperCase())}</td><td></td><td class="r">${money(p.amount)}</td></tr>`).join('');
     // The cafe logo (Settings → Brand & look), printed in grey; only an uploaded logo, never the standard one

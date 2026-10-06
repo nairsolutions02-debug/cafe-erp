@@ -40,6 +40,8 @@ export const NAV_SECTIONS = [
         items: [
             { path: '/admin/menu', icon: FiGrid, label: L('Items', 'आइटम', 'Items'), perm: 'menu.view' },
             { path: '/admin/categories', icon: FiList, label: L('Categories', 'श्रेणियाँ', 'Category'), perm: 'menu.view' },
+            { path: '/admin/choices', icon: FiCheckSquare, label: L('Sizes & choices', 'साइज़ और विकल्प', 'Size aur choices'), perm: 'menu.view' },
+            { path: '/admin/combos', icon: FiGift, label: L('Combos', 'कॉम्बो', 'Combo'), perm: 'menu.view' },
             { path: '/admin/recipes', icon: FiBookOpen, label: L('Recipes & Costing', 'रेसिपी और लागत', 'Recipe aur laagat'), perm: 'inventory.view' },
             { path: '/admin/catalogue', icon: FiLayers, label: L('Brands & Taxes', 'ब्रांड और टैक्स', 'Brand aur tax'), perm: 'menu.view' },
             { path: '/admin/collections', icon: FiLayout, label: L('Homepage Sections', 'होमपेज सेक्शन', 'Homepage section'), perm: 'collections.view' },

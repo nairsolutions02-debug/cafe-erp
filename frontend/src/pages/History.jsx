@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Header';
+import Art from '../components/cx/Art';
+import { artFor } from '../components/cx/artKinds';
 import { useAuth } from '../context/AuthContext';
 import { getMyOrders } from '../utils/api';
 import './History.css';
@@ -69,7 +71,7 @@ const History = () => {
             <div className="history-page">
                 <Header title={t(W.title)} />
                 <div className="empty-state">
-                    <div className="empty-state-icon">📋</div>
+                    <Art kind="latte" className="empty-art" />
                     <h3>{t(W.loginTitle)}</h3>
                     <p>{t(W.loginSub)}</p>
                     <Link to="/login" className="btn btn-primary">{t(W.login)}</Link>
@@ -95,7 +97,7 @@ const History = () => {
 
             {orders.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-state-icon">📋</div>
+                    <Art kind="latte" className="empty-art" />
                     <h3>{t(W.emptyTitle)}</h3>
                     <p>{t(W.emptySub)}</p>
                     <Link to="/menu" className="btn btn-primary">{t(W.browse)}</Link>
@@ -103,7 +105,9 @@ const History = () => {
             ) : (
                 <div className="orders-list">
                     {orders.map(order => (
-                        <Link key={order._id} to={`/order/${order._id}`} className="order-card">
+                        <Link key={order._id} to={`/order/${order._id}`} className="order-card cx-glass">
+                            <span className="order-pic" aria-hidden="true"><Art kind={artFor(order.items?.[0])} /></span>
+                            <div className="order-main">
                             <div className="order-card-header">
                                 <span className="order-number">#{order.orderNumber}</span>
                                 <span className={`order-status badge-${getStatusColor(order.status)}`}>
@@ -127,6 +131,7 @@ const History = () => {
                                     </span>
                                     <span className="order-total">₹{order.total.toFixed(2)}</span>
                                 </div>
+                            </div>
                             </div>
                         </Link>
                     ))}

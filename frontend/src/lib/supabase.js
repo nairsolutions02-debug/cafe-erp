@@ -14,6 +14,9 @@ export const TENANT_SLUG = (import.meta.env.VITE_TENANT_SLUG || 'default').trim(
 
 export const supabase = createClient(url || 'http://localhost:54321', anonKey || 'missing-anon-key', {
     global: { headers: { 'x-tenant-slug': TENANT_SLUG } },
+    // Customers stay signed in on their phone for months: the session is kept in this browser's storage and renewed
+    // in the background (the refresh token has no end date unless the Supabase project sets a session time limit).
+    auth: { persistSession: true, autoRefreshToken: true },
 });
 
 // OTP login stays switched off until VITE_OTP_LOGIN=true

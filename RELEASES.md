@@ -4,6 +4,42 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Customer app redesign: themes, dish page, sizes and choices, combos, favourites, install (2026-10-06)
+
+Built in one go from the approved demo ("pura ek sath complete karo").
+
+| Area | Change |
+| --- | --- |
+| Look | 9 themes (Latte Cream, Caramel Sand, Espresso Glass, Saffron Pop, Matcha Mist, Berry Glass, Ocean Glass, Midnight Gold, Masala Chai) + "Make my own". Owner switches them on in **Customer app → Look & themes**, marks one ★ first, sets glass, corners, heading font and the bottom bar. Customers pick theme and light/dark in **Me → Look** (if allowed) |
+| New screens | Home (greeting, search, banners, combos, popular), Menu (sticky chips, tiles/list, 4 columns on laptop), floating bottom bar, laptop top bar. Drawn pictures replace emojis and empty photos |
+| Dish page | Sizes with their own price, choice groups (pick one: Milk, Sugar, Ice; pick many with a limit: Flavours, Extra shot), live price, note, "Your usual" choices, Make it a combo, Goes well with, Good to know. On a laptop it is two columns |
+| Combos | Slots (pick a drink, pick a bite), upgrade price per dish, days and times, double points, suggested on dish pages. Sold in the customer app and at the Counter |
+| Favourites | ♥ on every dish, **Saved** tab with "your way", **Order again** of past orders |
+| First scan | Welcome screen (table, language) → one sign-in screen → home. Back later: "Welcome back" with your usual. Sign-in kept on the phone; if the phone lost it, "Welcome back, name?" signs in with one tap |
+| Install | After the first order: Android one button; iPhone a 2-tap guide with an arrow to Share. Not again for 14 days after Not now |
+| Admin | **Menu → Sizes & choices** (groups, ready-made starters, add to many dishes), **Menu → Combos**, item form tabs (Sizes, Choices, Goes well with, Details page, drawn picture), banners with drawn art, 3 languages, combo links and show-between times |
+| Staff | Counter and Kiosk pickers for sizes and choices (Counter also sells combos, also offline). Kitchen, Orders, History, KOT and bill show the choices; combos show each pick and reach every station that makes one |
+| Prices | Always worked out on the server from the size and choices; missing choices fall back to the defaults |
+
+**Deploy**
+1. Supabase → SQL Editor → paste `supabase/upgrades/2026-10-cx-redesign.sql` → Run → Success (needed before the new site: the menu, dish page, cart and counter call the new functions)
+2. Vercel redeploys from `main`
+
+**Test checklist**
+- [ ] Admin → Menu → Sizes & choices → "Ready-made groups" → add Milk and Flavour to a coffee; give it Small/Medium/Large
+- [ ] Customer: open that coffee → pick Large + Oat + a flavour → price on the button matches the bill
+- [ ] Admin → Menu → Combos → make "Coffee + bite" → customer home shows it → add with an upgrade
+- [ ] Kitchen ticket and KOT show the choices and each combo pick
+- [ ] Counter: the coffee opens the picker; Combos chip sells a combo
+- [ ] Admin → Customer app → Look & themes → switch Espresso Glass on and make it ★ first → Save look → customer app opens dark glass
+- [ ] Customer Me → Look → pick another theme → stays on that phone
+- [ ] ♥ a dish → Saved shows it; Order again re-adds a past order
+- [ ] Scan a table QR in a new browser → Welcome → sign in → home; scan again → Welcome back
+- [ ] Android Chrome: after the first order the install popup shows; iPhone Safari shows the 2-tap guide
+- [ ] Banners: drawn art and Hindi words show; a 3 pm–6 pm banner hides outside those times
+
+---
+
 ## Hand-over, pay options and points as cash (2026-10-06)
 
 Built from the approved demo ("aligned, go green").

@@ -10,6 +10,7 @@ import { usePortal } from '../context/PortalContext';
 import { clearQrTable, getQrTable } from '../lib/qrTable';
 import Confetti from '../components/cx/Confetti';
 import { useCart } from '../context/CartContext';
+import { checkLines, lineFromOrderItem } from '../components/cx/reorder';
 import { inr } from '../admin/pos/money';
 
 // What staff typed as the reason, without the internal "(approved by …)" note
@@ -75,16 +76,12 @@ const OrderDetails = () => {
     const { show, nudge } = usePortal();
     const justPlaced = !!location.state?.justPlaced;
     const navigate = useNavigate();
-    const { addItem } = useCart();
+    const { addLine } = useCart();
 
-    // Cancelled: put the same dishes back in the cart so ordering again is one tap
-    const orderAgain = () => {
-        (order.items || []).forEach(i => {
-            if (!i.menuItem || i.isRestricted) return;
-            for (let n = 0; n < i.quantity; n++) {
-                addItem({ _id: i.menuItem._id, name: i.menuItem.name, price: i.menuItem.price, image: i.menuItem.image, isAvailable: true });
-            }
-        });
+    // Cancelled: put the same dishes back in the cart (same size and choices, today's price) so ordering again is one tap
+    const orderAgain = async () => {
+        const { ok } = await checkLines((order.items || []).filter(i => !i.isRestricted).map(lineFromOrderItem));
+        ok.forEach(addLine);
         navigate('/cart');
     };
 

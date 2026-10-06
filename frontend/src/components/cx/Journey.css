@@ -1,0 +1,246 @@
+/* First scan, sign in once, welcome back, install as an app. Styled only with the --cx-* theme variables
+   (lib/cxThemes.js); the values after the comma are the Latte Cream theme, used until a theme is applied. */
+.cxj-wel, .cxj-wb, .cxj-page, .cxj-overlay, .cxj-sheet-wrap, .cxj-signin {
+    --j-bg: var(--cx-bg, #FFF6EC);
+    --j-bg2: var(--cx-bg2, #FFFBF6);
+    --j-sf: var(--cx-sf, #FFFFFF);
+    --j-sf2: var(--cx-sf2, #FCEFE0);
+    --j-ln: var(--cx-ln, rgba(120, 80, 40, .10));
+    --j-ln2: var(--cx-ln2, #E6D3BF);
+    --j-tx: var(--cx-tx, #2B1A10);
+    --j-mu: var(--cx-mu, #7A6455);
+    --j-pr: var(--cx-pr, #D9700C);
+    --j-pr2: var(--cx-pr2, #B85F0A);
+    --j-pi: var(--cx-pi, #FFFFFF);
+    --j-hero: var(--cx-hero, linear-gradient(160deg, #3B2416, #1E120B));
+    --j-r: var(--cx-r, 22px);
+    font-family: var(--cx-fb, inherit);
+    color: var(--j-tx);
+    box-sizing: border-box;
+}
+.cxj-wel *, .cxj-wb *, .cxj-page *, .cxj-overlay *, .cxj-sheet-wrap * { box-sizing: border-box; }
+.cxj-h { font-family: var(--cx-fh, inherit); letter-spacing: -.3px; margin: 0; color: inherit; }
+.cxj-mu { color: var(--j-mu); }
+.cxj-grow { flex: 1; min-width: 0; }
+.cxj-small { font-size: 12px; line-height: 1.45; margin: 0; }
+
+/* Buttons */
+.cxj-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px;
+    border: 0; border-radius: 999px; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
+    background: var(--j-pr); color: var(--j-pi);
+    box-shadow: 0 10px 24px -10px var(--j-pr2);
+    transition: transform .15s ease, opacity .15s ease;
+}
+.cxj-btn:active { transform: scale(.98); }
+.cxj-btn:disabled { opacity: .55; cursor: default; transform: none; }
+.cxj-btn svg { width: 18px; height: 18px; }
+.cxj-later {
+    display: block; margin: 10px auto 0; padding: 8px 12px; border: 0; background: none; font: inherit;
+    font-size: 13px; font-weight: 600; color: var(--j-mu); cursor: pointer;
+}
+.cxj-ib {
+    width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+    color: var(--j-tx); cursor: pointer; font-size: 20px; padding: 0;
+}
+.cxj-appic {
+    border-radius: 22%; display: grid; place-items: center; margin: 0 auto 12px; overflow: hidden;
+    background: var(--j-pr); color: var(--j-pi); font-weight: 800; font-family: var(--cx-fh, inherit);
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, .4);
+}
+.cxj-appic img { width: 100%; height: 100%; object-fit: cover; background: #fff; }
+.cxj-av {
+    width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+    font-weight: 800; background: var(--j-pr); color: var(--j-pi); font-family: var(--cx-fh, inherit);
+}
+.cxj-av-lg { width: 72px; height: 72px; font-size: 28px; margin: 0 auto 12px; }
+.cxj-av-xl {
+    width: 84px; height: 84px; font-size: 32px; margin: 0 auto 14px;
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--j-pr2) 28%, transparent);
+}
+
+/* Floating coffee beans */
+.cxj-beans { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.cxj-beans span {
+    position: absolute; display: block; opacity: .8; rotate: var(--r, 0deg);
+    animation: cxj-drift 7s ease-in-out infinite;
+}
+.cxj-beans .cx-art { width: 100%; }
+@keyframes cxj-drift { 50% { transform: translateY(-10px) rotate(14deg); } }
+
+/* 1 · Welcome (first scan) */
+.cxj-wel {
+    position: relative; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center;
+    background: var(--j-hero); overflow: hidden;
+    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+}
+.cxj-wel-art { flex: 1; min-height: 220px; width: 100%; display: grid; place-items: center; position: relative; padding: 28px 0 12px; }
+.cxj-wel-art .cx-art { width: min(250px, 62vw); max-height: 42vh; filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .35)); }
+.cxj-float { animation: cxj-float 4.5s ease-in-out infinite; }
+@keyframes cxj-float { 50% { transform: translateY(-10px); } }
+.cxj-wel-panel {
+    position: relative; width: calc(100% - 28px); max-width: 460px; margin: 0 14px 14px;
+    border-radius: 30px; padding: 22px 20px 18px; background: var(--j-bg2); color: var(--j-tx);
+    border: 1px solid var(--j-ln); box-shadow: 0 -10px 40px -20px rgba(0, 0, 0, .5);
+    animation: cxj-up .5s cubic-bezier(.2, 1, .3, 1) both;
+}
+.cxj-wel-panel h1 { font-size: clamp(26px, 8vw, 32px); line-height: 1.05; margin: 12px 0 8px; }
+.cxj-wel-panel p { font-size: 14px; line-height: 1.5; margin: 0 0 16px; }
+.cxj-tbl {
+    display: inline-flex; gap: 6px; align-items: center; padding: 6px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700; max-width: 100%; color: var(--j-tx);
+}
+@keyframes cxj-up { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Language buttons (welcome panel) */
+.cx-lang-chips.cxj-langs { display: flex; gap: 6px; margin: 0 0 14px; flex-wrap: nowrap; }
+.cx-lang-chips.cxj-langs button {
+    flex: 1; min-width: 0; padding: 9px 0; border-radius: 12px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+    background: var(--j-sf); color: var(--j-tx); border: 1px solid var(--j-ln2);
+}
+.cx-lang-chips.cxj-langs button.on { background: var(--j-pr); color: var(--j-pi); border-color: transparent; }
+.cx-lang-chips.cxj-lang-mini { display: flex; gap: 4px; }
+.cx-lang-chips.cxj-lang-mini button {
+    padding: 6px 10px; border-radius: 999px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+    background: var(--j-sf); color: var(--j-mu); border: 1px solid var(--j-ln);
+}
+.cx-lang-chips.cxj-lang-mini button.on { background: var(--j-pr); color: var(--j-pi); border-color: transparent; }
+
+/* 2 · Sign in once */
+.cxj-page {
+    min-height: 100vh; min-height: 100dvh; background: var(--j-bg);
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+.cxj-overlay {
+    position: fixed; inset: 0; z-index: 1200; overflow-y: auto; overscroll-behavior: contain; background: var(--j-bg);
+    padding: calc(env(safe-area-inset-top, 0px) + 12px) 20px calc(env(safe-area-inset-bottom, 0px) + 20px);
+}
+.cxj-signin { max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; }
+.cxj-signin-top { display: flex; justify-content: space-between; align-items: center; min-height: 42px; gap: 8px; }
+.cxj-signin-head { text-align: center; margin: 14px 0 22px; animation: cxj-up .45s ease both; }
+.cxj-signin-head h1 { font-size: clamp(22px, 7vw, 26px); line-height: 1.15; }
+.cxj-signin-head p { font-size: 13px; margin: 6px 0 0; line-height: 1.5; }
+.cxj-field {
+    min-height: 52px; border-radius: 16px; display: flex; align-items: center; gap: 10px; padding: 0 14px; margin-bottom: 10px;
+    font-size: 15px; cursor: text;
+}
+.cxj-field > svg { color: var(--j-mu); flex-shrink: 0; width: 18px; height: 18px; }
+.cxj-field input {
+    flex: 1; min-width: 0; height: 50px; border: 0; outline: 0; background: transparent; font: inherit; color: var(--j-tx);
+}
+.cxj-field input::placeholder { color: var(--j-mu); opacity: .8; }
+.cxj-field:focus-within { border-color: var(--j-pr2); box-shadow: 0 0 0 3px color-mix(in srgb, var(--j-pr2) 18%, transparent); }
+.cxj-field-static { cursor: default; font-weight: 600; }
+.cxj-pfx { font-weight: 700; padding-right: 10px; border-right: 1px solid var(--j-ln2); }
+.cxj-bday { border-radius: 16px; margin-bottom: 10px; overflow: hidden; }
+.cxj-bday-row {
+    width: 100%; min-height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border: 0; background: none;
+    font: inherit; font-size: 14px; color: var(--j-tx); cursor: pointer; text-align: left;
+}
+.cxj-bday-row > svg { color: var(--j-mu); flex-shrink: 0; width: 18px; height: 18px; }
+.cxj-gift { font-size: 12px; color: var(--j-pr2); text-align: right; max-width: 45%; }
+.cxj-chev { transition: transform .2s; }
+.cxj-bday.open .cxj-chev { transform: rotate(180deg); }
+.cxj-bday-body { padding: 0 14px 12px; display: grid; gap: 8px; }
+.cxj-bday-body .cxj-small svg { vertical-align: -2px; }
+.cxj-dob { display: grid; grid-template-columns: 1fr 1.6fr; gap: 8px; }
+.cxj-dob label { display: grid; gap: 4px; font-size: 12px; color: var(--j-mu); font-weight: 600; }
+.cxj-dob select {
+    height: 42px; border-radius: 12px; border: 1px solid var(--j-ln2); background: var(--j-sf); color: var(--j-tx);
+    font: inherit; font-size: 14px; padding: 0 10px;
+}
+.cxj-note { display: flex; gap: 10px; font-size: 12.5px; line-height: 1.45; padding: 12px; border-radius: 16px; margin: 4px 0 14px; }
+.cxj-note > svg { flex-shrink: 0; color: var(--j-pr2); width: 18px; height: 18px; margin-top: 1px; }
+.cxj-error {
+    margin: 0 0 12px; padding: 10px 12px; border-radius: 12px; font-size: 13px; font-weight: 600;
+    color: #B91C1C; background: color-mix(in srgb, #EF4444 12%, transparent);
+}
+.cx-dark .cxj-error { color: #FCA5A5; }
+.cxj-foot { font-size: 11.5px; text-align: center; margin: 12px 0 0; line-height: 1.45; }
+.cxj-consent { max-width: 420px; margin: 18px auto 0; font-size: 11px; line-height: 1.5; text-align: center; color: var(--j-mu); }
+
+/* 3 · Welcome back */
+.cxj-wb {
+    position: relative; min-height: 100vh; min-height: 100dvh; display: flex; justify-content: center; align-items: center;
+    padding: 24px; background: var(--j-hero); overflow: hidden; cursor: pointer; text-align: center; outline: none;
+}
+.cxj-wb-in { position: relative; width: 100%; max-width: 400px; animation: cxj-up .4s ease both; }
+.cxj-wb h1 { font-size: clamp(26px, 8vw, 30px); line-height: 1.1; color: #fff; }
+.cxj-wb-sub { color: rgba(255, 255, 255, .85); font-size: 14px; margin: 8px 0 22px; min-height: 1.3em; }
+.cxj-card {
+    width: 100%; border-radius: 24px; padding: 12px; display: flex; gap: 12px; align-items: center; text-align: left;
+    margin-bottom: 12px; background: var(--j-bg2); color: var(--j-tx); border: 1px solid var(--j-ln); cursor: default;
+}
+.cxj-card b { display: block; font-size: 14px; line-height: 1.25; }
+.cxj-card small { display: block; font-size: 12px; line-height: 1.35; }
+.cxj-ph {
+    width: 64px; height: 64px; border-radius: 16px; background: var(--j-sf2); display: grid; place-items: center;
+    flex-shrink: 0; overflow: hidden;
+}
+.cxj-ph .cx-art { height: 56px; width: 56px; }
+.cxj-ph img { width: 100%; height: 100%; object-fit: cover; }
+.cxj-ph-icon { color: var(--j-pr2); }
+.cxj-ph-icon svg { width: 28px; height: 28px; }
+.cxj-add {
+    width: 42px; height: 42px; border-radius: 50%; border: 0; display: grid; place-items: center; flex-shrink: 0; cursor: pointer;
+    background: var(--j-pr); color: var(--j-pi); font-size: 20px; transition: transform .2s;
+}
+.cxj-add:active { transform: scale(.9); }
+.cxj-add.on { background: #16A34A; color: #fff; }
+.cxj-pop { animation: cxj-up .45s cubic-bezier(.2, 1.2, .4, 1) both; }
+.cxj-progress { width: 100%; height: 4px; border-radius: 9px; background: rgba(255, 255, 255, .25); overflow: hidden; margin-top: 18px; }
+.cxj-progress i { display: block; height: 100%; border-radius: 9px; background: #fff; }
+.cxj-progress i.wait { width: 40%; animation: cxj-load 1.2s ease-in-out infinite; }
+.cxj-progress i.go { width: 100%; transform-origin: left; animation: cxj-fill linear both; }
+@keyframes cxj-load { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+@keyframes cxj-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.cxj-wb-small { font-size: 12px; margin: 8px 0 0; color: rgba(255, 255, 255, .85); }
+
+/* 4 · Install as an app */
+.cxj-sheet-wrap { position: fixed; inset: 0; z-index: 1300; display: flex; align-items: flex-end; justify-content: center; }
+.cxj-dim { position: absolute; inset: 0; background: rgba(0, 0, 0, .45); animation: cxj-fade .25s ease both; }
+@keyframes cxj-fade { from { opacity: 0; } }
+.cxj-sheet {
+    position: relative; width: 100%; max-width: 520px; border-radius: 30px 30px 0 0; background: var(--j-bg2); color: var(--j-tx);
+    padding: 10px 20px calc(env(safe-area-inset-bottom, 0px) + 24px); text-align: center;
+    box-shadow: 0 -20px 50px -20px rgba(0, 0, 0, .5); animation: cxj-sheet .35s cubic-bezier(.2, 1, .3, 1) both;
+    max-height: 92vh; overflow-y: auto;
+}
+@keyframes cxj-sheet { from { transform: translateY(100%); } }
+.cxj-sheet-wrap.ios:not(.ipad) .cxj-sheet { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 78px); }
+.cxj-grab { width: 40px; height: 5px; border-radius: 9px; background: var(--j-ln2); margin: 0 auto 16px; }
+.cxj-sheet h2 { font-size: 20px; line-height: 1.25; margin-bottom: 6px; }
+.cxj-sheet-sub { font-size: 13px; line-height: 1.5; margin: 0 0 16px; }
+.cxj-perks { display: flex; gap: 8px; margin-bottom: 16px; }
+.cxj-perks div {
+    flex: 1; min-width: 0; border-radius: 14px; padding: 10px 6px; font-size: 11.5px; font-weight: 600; line-height: 1.3;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+}
+.cxj-perks svg { color: var(--j-pr2); width: 18px; height: 18px; }
+.cxj-steps { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; text-align: left; }
+.cxj-step { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 16px; font-size: 13.5px; line-height: 1.6; }
+.cxj-n {
+    width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; flex-shrink: 0;
+    background: var(--j-pr); color: var(--j-pi);
+}
+.cxj-key {
+    display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 8px; font-weight: 700;
+    background: var(--j-sf2); white-space: nowrap; vertical-align: baseline;
+}
+.cxj-key svg { width: 14px; height: 14px; }
+.cxj-point {
+    position: fixed; z-index: 1301; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+    display: flex; flex-direction: column; align-items: center; gap: 0; padding: 5px 10px 3px; border-radius: 12px;
+    background: var(--j-pr); color: var(--j-pi); font-size: 12px; font-weight: 700; pointer-events: none;
+    transform: translateX(-50%); animation: cxj-bob 1.2s ease-in-out infinite;
+}
+.cxj-point svg { width: 26px; height: 26px; stroke-width: 3; }
+.cxj-sheet-wrap.dots .cxj-point { left: auto; right: 10px; transform: none; animation-name: cxj-bob-r; }
+.cxj-sheet-wrap.ipad .cxj-point { top: 8px; bottom: auto; left: auto; right: 96px; transform: none; animation-name: cxj-bob-up; }
+@keyframes cxj-bob { 50% { transform: translateX(-50%) translateY(6px); } }
+@keyframes cxj-bob-r { 50% { transform: translateY(6px); } }
+@keyframes cxj-bob-up { 50% { transform: translateY(-6px); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .cxj-beans span, .cxj-float, .cxj-point, .cxj-wel-panel, .cxj-signin-head, .cxj-wb-in, .cxj-pop, .cxj-sheet, .cxj-progress i.wait { animation: none; }
+}

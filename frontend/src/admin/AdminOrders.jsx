@@ -12,6 +12,7 @@ import CancelModal from './CancelModal';
 import { printKot, printBill } from '../lib/print';
 import { inr } from './pos/money';
 import { tableToken } from './mobile/useMenuLang';
+import { LineNote } from './pos/ChoicePicker';
 import './AdminOrders.css';
 import './pos/POS.css';
 
@@ -437,7 +438,7 @@ const AdminOrders = () => {
 
                                                 <ul className="ao-items">
                                                     {order.items.map((item, i) => (
-                                                        <li key={i}><b>{item.quantity}</b><span>{item.name}</span></li>
+                                                        <li key={i}><b>{item.quantity}</b><span>{item.name}<LineNote item={item} /></span></li>
                                                     ))}
                                                 </ul>
 

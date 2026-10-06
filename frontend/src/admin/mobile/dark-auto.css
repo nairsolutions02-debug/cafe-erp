@@ -128,6 +128,11 @@
         color: var(--d-ink-2);
     }
 
+    .theme-dark .ca-bprev-copy em {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
     /* admin/AdminCustomers.css */
     .theme-dark .stat-card {
         background: var(--d-surface);
@@ -210,6 +215,10 @@
 
     .theme-dark .history-table-container {
         background: var(--d-surface);
+    }
+
+    .theme-dark .hist-items .line-opts {
+        color: hsl(31 80% 72%);
     }
 
     /* admin/AdminLayout.css */
@@ -649,6 +658,44 @@
         border: 1px solid var(--d-line);
     }
 
+    /* admin/brand/CxLook.css */
+    .theme-dark .lk-switch span {
+        background: hsl(37 18% 17%);
+    }
+
+    .theme-dark .lk-switch span::after {
+        background: var(--d-surface);
+    }
+
+    .theme-dark .lk-check.ok {
+        background: hsl(137 45% 17%);
+        color: hsl(143 72% 72%);
+    }
+
+    .theme-dark .lk-check.bad {
+        background: hsl(8 45% 17%);
+        color: hsl(4 76% 72%);
+    }
+
+    .theme-dark .lk-danger {
+        color: hsl(4 76% 72%);
+    }
+
+    .theme-dark .lk-unsaved {
+        background: hsl(48 45% 17%);
+        color: hsl(23 80% 72%);
+    }
+
+    .theme-dark .cxp-ban-copy em {
+        background: var(--d-surface);
+        color: var(--d-ink);
+    }
+
+    .theme-dark .cxp-heart {
+        background: var(--d-surface);
+        color: hsl(347 77% 72%);
+    }
+
     /* admin/club/Club.css */
     .theme-dark .cb-tag {
         background: hsl(43 45% 17%);
@@ -862,6 +909,38 @@
 
     .theme-dark .formula {
         background: hsl(38 45% 17%);
+    }
+
+    /* admin/menu/Menu2.css */
+    .theme-dark .m2-pill {
+        background: hsl(34 45% 17%);
+        color: hsl(28 80% 72%);
+    }
+
+    .theme-dark .m2-pill.grey {
+        background: hsl(210 40% 17%);
+        color: var(--d-ink-2);
+    }
+
+    .theme-dark .m2-chip em {
+        color: hsl(143 72% 72%);
+    }
+
+    .theme-dark .m2-error {
+        background: hsl(8 45% 17%);
+        color: hsl(4 76% 72%);
+    }
+
+    .theme-dark .m2-save {
+        color: hsl(143 72% 72%);
+    }
+
+    .theme-dark .m2-switch > span {
+        background: hsl(37 18% 17%);
+    }
+
+    .theme-dark .m2-switch > span::after {
+        background: var(--d-surface);
     }
 
     /* admin/mobile/PhoneOrders.css */
@@ -1184,6 +1263,50 @@
     .theme-dark .shift-old {
         background: hsl(35 45% 17%);
         color: hsl(33 80% 72%);
+    }
+
+    .theme-dark .line-opts {
+        color: hsl(31 80% 72%);
+    }
+
+    .theme-dark .tile-tag {
+        background: hsl(36 45% 17%);
+        color: hsl(31 80% 72%);
+    }
+
+    .theme-dark .tile-combo {
+        background: hsl(38 45% 17%);
+        border-color: var(--d-line);
+    }
+
+    .theme-dark .cp-head {
+        border-bottom: 1px solid var(--d-line);
+    }
+
+    .theme-dark .cp-opts button {
+        border: 2px solid var(--d-line);
+        background: hsl(43 45% 17%);
+    }
+
+    .theme-dark .cp-opts button.on {
+        background: hsl(35 45% 17%);
+    }
+
+    .theme-dark .cp-slot {
+        border-bottom: 1px dashed var(--d-line);
+    }
+
+    .theme-dark .cp-sub {
+        border-left: 3px solid var(--d-line);
+    }
+
+    .theme-dark .cp-foot {
+        border-top: 1px solid var(--d-line);
+    }
+
+    .theme-dark .cp-qty button {
+        border: 1px solid var(--d-line);
+        background: hsl(43 45% 17%);
     }
 
     /* admin/pos/PickupScreen.css */

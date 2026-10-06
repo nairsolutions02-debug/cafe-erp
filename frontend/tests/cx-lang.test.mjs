@@ -48,7 +48,8 @@ const CUSTOMER_FILES = [
     'pages/Home.jsx', 'pages/Menu.jsx', 'pages/Cart.jsx', 'pages/OrderDetails.jsx', 'pages/History.jsx', 'pages/Profile.jsx',
     'pages/Rewards.jsx', 'pages/TableScan.jsx', 'components/Header.jsx', 'components/BottomNav.jsx', 'components/LoginModal.jsx',
     'components/QuickLoginForm.jsx', 'components/MenuCard.jsx', 'components/OrderStatus.jsx', 'components/DishFeedback.jsx',
-    'components/FloatingCartBtn.jsx', 'components/Footer.jsx', 'components/cx/ItemSheet.jsx', 'components/cx/TableChip.jsx',
+    'components/FloatingCartBtn.jsx', 'components/Footer.jsx', 'components/cx/TableChip.jsx', 'pages/Dish.jsx', 'pages/Combo.jsx', 'pages/Saved.jsx',
+    'components/cx/FavHeart.jsx', 'components/cx/CombosRow.jsx',
     'components/cx/RewardBar.jsx', 'pages/club/ClubCards.jsx',
 ];
 const read = (f) => readFileSync(new globalThis.URL(`../src/${f}`, import.meta.url), 'utf8');

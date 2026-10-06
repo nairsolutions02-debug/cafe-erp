@@ -68,6 +68,7 @@ const conv = {
     uuid: (v) => (v === '' || v == null ? null : v),
     textOrNull: (v) => (v === '' || v == null ? null : String(v)),
     list: (v) => (typeof v === 'string' ? (v ? JSON.parse(v) : []) : v || []),
+    json: (v) => (typeof v === 'string' ? (v ? JSON.parse(v) : undefined) : v ?? undefined),
     date: (v) => (v === '' || v == null ? undefined : v),
 };
 
@@ -160,6 +161,7 @@ const MENU = {
     priceIncludesTax: ['price_includes_tax', 'bool'], taxGroup: ['tax_group_id', 'uuid'],
     isRestricted: ['is_restricted', 'bool'], sku: ['sku', 'text'], hsnCode: ['hsn_code', 'text'],
     soldInShop: ['sold_in_shop', 'bool'], soldAtKiosk: ['sold_at_kiosk', 'bool'],
+    sizes: ['sizes', 'json'], optionGroups: ['option_groups', 'list'], pairs: ['pairs', 'list'], details: ['details', 'json'],
 };
 
 const menuToClient = (row) => {
@@ -706,7 +708,7 @@ export const saSavePlan = async (plan) => {
 // Everything the counter needs to work offline: menu with pack units, categories, tables
 export const getPosCatalogue = async () => {
     const [items, cats, tables] = await Promise.all([
-        supabase.from('menu_items').select('id, name, price, mrp, image, is_veg, is_available, is_restricted, sold_in_shop, item_type, category_id, brand_id, tax_group_id, price_includes_tax, item_units(id, name, factor, sale_price)').order('name'),
+        supabase.from('menu_items').select('id, name, price, mrp, image, is_veg, is_available, is_restricted, sold_in_shop, item_type, category_id, brand_id, tax_group_id, price_includes_tax, sizes, option_groups, item_units(id, name, factor, sale_price)').order('name'),
         supabase.from('categories').select('id, name, parent_id, sort_order, is_active').order('sort_order'),
         supabase.from('dining_tables').select('id, table_number, status').order('table_number'),
     ]);
@@ -715,8 +717,14 @@ export const getPosCatalogue = async () => {
         supabase.from('settings').select('value').eq('key', 'tax_config').maybeSingle(),
         supabase.from('brands').select('id, name').order('name'),
     ]);
+    // Sizes, choice groups and combos on sale, kept with the catalogue so the counter can sell them offline
+    const [optionGroups, combos] = await Promise.all([
+        supabase.from('option_groups').select('id, name, pick, min_pick, max_pick, choices, sort_order').order('sort_order').order('name'),
+        supabase.rpc('combos_on_sale'),
+    ]);
     return ok({ items: unwrap(items), categories: unwrap(cats), tables: unwrap(tables), taxGroups: unwrap(groups),
-        defaultTax: unwrap(taxSetting)?.value || [], brands: unwrap(brands) });
+        defaultTax: unwrap(taxSetting)?.value || [], brands: unwrap(brands),
+        optionGroups: optionGroups.error ? [] : optionGroups.data, combos: combos.error ? [] : combos.data || [] });
 };
 export const quoteStaffOrder = async (p) => ok(await rpc('quote_staff_order', { p }));
 export const createStaffOrder = async (p) => ok(await rpc('create_staff_order', { p }));
@@ -980,3 +988,57 @@ export const saveDailyTasks = async (tasks) => ok(await rpc('save_daily_tasks', 
 export const saveSettingsBatch = async (values) =>
     ok(unwrap(await supabase.from('settings').upsert(Object.entries(values).map(([key, value]) => ({ key, value }))).select('key')));
 export const uploadBrandLogo = async (file) => uploadImage(file, 'brand');
+
+// ---------------------------------------------------------------------------
+// Dish choices, combos, favourites (customer app redesign)
+//   cart line for a dish:  {menuItem, quantity, size, choices: [choiceId], note}
+//   cart line for a combo: {combo, quantity, picks: [{menuItem, size, choices}], note}
+// The server always works out the price from these; the app only shows it.
+// ---------------------------------------------------------------------------
+export const getDishDetail = async (id) => ok(await rpc('dish_detail', { p_id: id }));
+export const getCombosOnSale = async () => ok(await rpc('combos_on_sale'));
+export const getDishesWithChoices = async () => ok(await rpc('dishes_with_choices'));
+// Price of each line with its size and choices: [{name, price, note, options}]
+export const quoteLines = async (items) => ok(await rpc('quote_lines', { p_items: items }));
+export const toggleFavourite = async (menuItemId) => ok(await rpc('toggle_favourite', { p_menu_item: menuItemId }));
+export const getMyFavourites = async () => ok(await rpc('my_favourites'));
+export const getMyUsual = async () => ok(await rpc('my_usual'));
+
+// Choice groups (Milk, Sugar, Flavour…), shared by many dishes
+const OPTION_GROUP = {
+    name: ['name', 'text'], nameHi: ['name_hi', 'text'], pick: ['pick', 'text'],
+    minPick: ['min_pick', 'int'], maxPick: ['max_pick', 'int'], choices: ['choices', 'json'], order: ['sort_order', 'int'],
+};
+export const getOptionGroups = async () =>
+    ok(listToClient(unwrap(await supabase.from('option_groups').select().order('sort_order').order('name'))));
+export const saveOptionGroup = async (id, data) => {
+    const row = toDb(data, OPTION_GROUP);
+    const q = id ? supabase.from('option_groups').update(row).eq('id', id) : supabase.from('option_groups').insert(row);
+    return ok(toClient(unwrap(await q.select().single(), 'option_groups')));
+};
+export const deleteOptionGroup = async (id) => {
+    removed(await supabase.from('option_groups').delete().eq('id', id).select('id'));
+    return ok({ message: 'Deleted' });
+};
+
+// Combos: slots [{name, nameHi, items: [{menuItem, extra}]}], days 0 (Sunday)…6, times 'HH:MM'
+const COMBO = {
+    name: ['name', 'text'], nameHi: ['name_hi', 'text'], description: ['description', 'text'], image: ['image', 'text'],
+    art: ['art', 'text'], bg: ['bg', 'text'], price: ['price', 'num'], slots: ['slots', 'json'], days: ['days', 'list'],
+    timeFrom: ['time_from', 'textOrNull'], timeTo: ['time_to', 'textOrNull'], isActive: ['is_active', 'bool'],
+    doublePoints: ['double_points', 'bool'], suggest: ['suggest', 'bool'], taxGroup: ['tax_group_id', 'uuid'],
+    order: ['sort_order', 'int'],
+};
+export const getCombos = async () =>
+    ok(listToClient(unwrap(await supabase.from('combos').select().order('sort_order').order('name'))));
+export const saveCombo = async (id, data) => {
+    const row = toDb(data, COMBO);
+    const image = await uploadImage(imageFrom(data), 'combos');
+    if (image) row.image = image;
+    const q = id ? supabase.from('combos').update(row).eq('id', id) : supabase.from('combos').insert(row);
+    return ok(toClient(unwrap(await q.select().single(), 'combos')));
+};
+export const deleteCombo = async (id) => {
+    removed(await supabase.from('combos').delete().eq('id', id).select('id'));
+    return ok({ message: 'Deleted' });
+};

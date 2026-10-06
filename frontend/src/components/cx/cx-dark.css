@@ -1,28 +1,10 @@
-/* Customer app in dark (Settings → Brand & look → "Customer app opens in"). The class .cx-dark sits on <html>
-   only on customer screens; the staff app has its own .theme-dark. Generated colours are in cx-dark-auto.css;
-   these hand-written rules load after it. Screen only: printing is never dark. */
+/* Customer app on a dark theme (Me → Look, or the owner's first theme). The class .cx-dark sits on <html> only on
+   customer screens while the theme on screen is dark; the staff app has its own .theme-dark. The colours come from
+   the theme (--cx-*, see lib/cxThemes.js and index.css), so every dark theme looks its own way.
+   Generated colours are in cx-dark-auto.css; these hand-written rules load after it. Screen only: printing is never dark. */
 @media screen {
     html.cx-dark {
-        --d-bg: #15110D;
-        --d-surface: #1F1A15;
-        --d-surface-2: #2A231C;
-        --d-line: #3A3027;
-        --d-ink: #F5EBDD;
-        --d-ink-2: #CDBBA2;
-        --d-muted: #A8957B;
-        --bg-secondary: #15110D;
-        --bg-card: #1F1A15;
-        --text-primary: #F5EBDD;
-        --text-secondary: #CDBBA2;
-        --text-muted: #A8957B;
-        --text-light: #FFFAEF;
-        --primary-soft: color-mix(in srgb, var(--primary) 24%, #1F1A15);
         color-scheme: dark;
-    }
-
-    html.cx-dark body {
-        background: #15110D;
-        color: #F5EBDD;
     }
 
     .cx-dark .input,
@@ -40,60 +22,30 @@
     }
 
     .cx-dark .modal,
-    .cx-dark .card,
     .cx-dark .toast {
         background: var(--d-surface);
         color: var(--d-ink);
-    }
-
-    .cx-dark .btn-secondary {
-        background: transparent;
-        color: color-mix(in srgb, var(--primary) 62%, white);
-        border-color: color-mix(in srgb, var(--primary) 62%, white);
-    }
-
-    .cx-dark .btn-ghost {
-        color: color-mix(in srgb, var(--primary) 62%, white);
     }
 
     .cx-dark .btn-success {
         background: #15803D;
     }
 
-    /* Prices and links drawn in the brand colour need a lighter shade on dark */
-    .cx-dark :is(.price, .menu-card-price, .item-price, .cart-item-price, .text-primary, .view-all, .link-btn) {
-        color: color-mix(in srgb, var(--primary) 62%, white);
-    }
-
-    /* Header search sits on the coloured header: keep it see-through */
-    .cx-dark .animated-search-input,
-    .cx-dark .header-search input {
+    /* Header search: see-through, the bar behind it is already themed */
+    .cx-dark .animated-search-input {
         background: transparent;
         border: 0;
     }
 
-    .cx-dark .header-search:focus-within {
-        background: var(--d-surface);
-    }
-
-    /* Brand-tinted panels: a deep tint of the brand colour instead of a pale one */
-    .cx-dark .announce,
+    /* Brand-tinted panels: a deep tint of the theme colour instead of a pale one */
     .cx-dark .item-sheet-badges span {
-        background: color-mix(in srgb, var(--primary) 22%, #1F1A15);
-        color: color-mix(in srgb, var(--primary) 60%, white);
+        background: color-mix(in srgb, var(--cx-pr2) 22%, var(--cx-bgs));
+        color: var(--cx-pr2);
     }
 
     .cx-dark .milestone-card,
     .cx-dark .pickup-card {
-        background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 26%, #1F1A15), #1F1A15);
-    }
-
-    .cx-dark .reward-ring .ring-bg {
-        stroke: color-mix(in srgb, var(--primary) 25%, #1F1A15);
-    }
-
-    .cx-dark .hero-section {
-        background: linear-gradient(135deg, #15110D 0%, color-mix(in srgb, var(--primary) 18%, #15110D) 100%);
+        background: linear-gradient(135deg, color-mix(in srgb, var(--cx-pr2) 24%, var(--cx-bgs)), var(--cx-bg2));
     }
 
     .cx-dark .loyalty-section {
@@ -104,7 +56,7 @@
     /* Birthday boxes: deep pink to gold instead of pale */
     .cx-dark :is(.cl-ask, .cl-gift, .my-gift) {
         background: linear-gradient(135deg, #3E1A29, #3A2F14);
-        color: #F5EBDD;
+        color: var(--cx-tx);
     }
 
     .cx-dark .cl-ask p,
@@ -113,7 +65,7 @@
     }
 
     .cx-dark .cl-gift button {
-        background: #1F1A15;
+        background: var(--cx-bg2);
         color: #F07AA6;
     }
 
