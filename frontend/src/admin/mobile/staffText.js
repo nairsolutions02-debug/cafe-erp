@@ -46,6 +46,8 @@ export const W = {
     pay: T('Pay', 'पेमेंट', 'Pay'),
     // Kitchen
     tickets: T('tickets', 'टिकट', 'ticket'),
+    toCook: T('to cook', 'बनाने हैं', 'banane hain'),
+    readyWaiting: T('ready for pickup', 'उठाने के लिए तैयार', 'pickup ke liye ready'),
     oldest: T('oldest', 'सबसे पुराना', 'sabse purana'),
     hot: T('Hot kitchen', 'गरम किचन', 'Garam kitchen'),
     bar: T('Coffee bar', 'कॉफ़ी बार', 'Coffee bar'),

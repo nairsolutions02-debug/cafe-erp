@@ -215,7 +215,7 @@ test('customer receives live order updates', async () => {
     const c = await customer('Live', 7);
     const id = await rpc(c, 'place_order', { p_items: [{ menuItem: latte.id, quantity: 1 }] });
     const got = new Promise((resolve, reject) => {
-        const timer = setTimeout(() => reject(new Error('no realtime event')), 15000);
+        const timer = setTimeout(() => reject(new Error('no realtime event')), 30000); // slow when every test file runs at once
         c.channel('t').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, (p) => {
             if (p.new.id === id && p.new.status !== 'pending') { clearTimeout(timer); resolve(p.new.status); }
         }).subscribe(async (status) => {

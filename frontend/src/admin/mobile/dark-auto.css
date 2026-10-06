@@ -434,6 +434,10 @@
     }
 
     /* admin/AdminStaff.css */
+    .theme-dark .admin-staff .usage.full {
+        background: var(--d-surface);
+    }
+
     .theme-dark .tabs {
         border-bottom: 1px solid var(--d-line);
     }
@@ -1160,6 +1164,11 @@
     .theme-dark .sound-chip {
         background: hsl(48 45% 17%);
         color: hsl(22 78% 72%);
+    }
+
+    .theme-dark .shift-old {
+        background: hsl(35 45% 17%);
+        color: hsl(33 80% 72%);
     }
 
     /* admin/pos/PickupScreen.css */

@@ -85,10 +85,10 @@ const AdminRoute = ({ children }) => {
 
 // Shows a section only to roles that have its permission; otherwise goes to the first allowed one
 const RequirePerm = ({ path, children }) => {
-  const { hasPerm } = useAuth();
+  const { hasPerm, user } = useAuth();
   const perm = ADMIN_NAV.find(n => n.path === path)?.perm;
   if (!perm || hasPerm(perm)) return children;
-  const fallback = firstAllowedPath(hasPerm);
+  const fallback = firstAllowedPath(hasPerm, user?.homePath);
   if (fallback && fallback !== path) return <Navigate to={fallback} replace />;
   return <div className="no-access"><h2>No access</h2><p>Your role doesn't include any admin sections yet. Ask the owner to update it.</p></div>;
 };

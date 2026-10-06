@@ -163,8 +163,9 @@ const MyDay = () => {
                 {drawer !== undefined && (
                     <section className="day-card">
                         <h2>{tl(D.today)}</h2>
-                        {drawer && <div className="month-row"><span><strong>{inr(drawer.expectedCash)}</strong> {tl(D.inDrawer)}</span></div>}
-                        <Link to="/admin/shifts" className={`btn ${drawer ? 'btn-ghost' : 'btn-primary'} day-shift`}>{drawer ? tl(D.closeShift) : tl(D.openShift)}</Link>
+                        {drawer?.canSee && <div className="month-row"><span><strong>{inr(drawer.expectedCash)}</strong> {tl(D.inDrawer)}</span></div>}
+                        {drawer && !drawer.canClose && <p className="muted small">{tl(D.shiftBy)} {drawer.openedBy}</p>}
+                        {(!drawer || drawer.canClose) && <Link to="/admin/shifts" className={`btn ${drawer ? 'btn-ghost' : 'btn-primary'} day-shift`}>{drawer ? tl(D.closeShift) : tl(D.openShift)}</Link>}
                     </section>
                 )}
                 {extras && <Tasks tasks={extras.tasks} canEdit={extras.canEditTasks} t={tl} onChange={(list) => setExtras({ ...extras, tasks: list })} />}
@@ -232,9 +233,10 @@ const MyDay = () => {
                     <h2>{tl(D.today)}</h2>
                     <div className="month-row">
                         {extras?.today && <><span><strong>{extras.today.orders}</strong> {tl(D.myOrders)}</span><span><strong>{inr(extras.today.sales)}</strong> {tl(D.mySales)}</span></>}
-                        {drawer && <span><strong>{inr(drawer.expectedCash)}</strong> {tl(D.inDrawer)}</span>}
+                        {drawer?.canSee && <span><strong>{inr(drawer.expectedCash)}</strong> {tl(D.inDrawer)}</span>}
                     </div>
-                    {drawer !== undefined && (
+                    {drawer && !drawer.canClose && <p className="muted small">{tl(D.shiftBy)} {drawer.openedBy}</p>}
+                    {drawer !== undefined && (!drawer || drawer.canClose) && (
                         <Link to="/admin/shifts" className={`btn ${drawer ? 'btn-ghost' : 'btn-primary'} day-shift`}>{drawer ? tl(D.closeShift) : tl(D.openShift)}</Link>
                     )}
                 </section>

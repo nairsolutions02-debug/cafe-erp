@@ -124,7 +124,7 @@ const LedgerTab = () => {
 };
 
 const ExpenseForm = ({ cats, onClose, onSaved }) => {
-    const [f, setF] = useState({ date: today(), categoryId: cats[0]?._id || '', amount: '', status: 'paid', accountCode: 'cash_office', vendorName: '', note: '', spreadMonths: 1 });
+    const [f, setF] = useState({ date: today(), categoryId: '', amount: '', status: 'paid', accountCode: 'cash_office', vendorName: '', note: '', spreadMonths: 1 });
     const [photo, setPhoto] = useState(null);
     const [error, setError] = useState('');
     const set = (k, v) => setF(x => ({ ...x, [k]: v }));
@@ -144,7 +144,8 @@ const ExpenseForm = ({ cats, onClose, onSaved }) => {
             <form onSubmit={submit}>
                 <div className="modal-body form-grid">
                     <div className="input-group"><label>Category</label>
-                        <select className="input" value={f.categoryId} onChange={e => set('categoryId', e.target.value)}>
+                        <select className="input" value={f.categoryId} onChange={e => set('categoryId', e.target.value)} required>
+                            <option value="" disabled>Choose a category…</option>
                             {cats.filter(c => c.isActive).map(c => <option key={c._id} value={c._id}>{c.name}</option>)}</select></div>
                     <div className="input-group"><label>Amount (₹)</label>
                         <input className="input" type="number" min="0" step="any" value={f.amount} onChange={e => set('amount', e.target.value)} required autoFocus /></div>
@@ -189,7 +190,7 @@ const RecurringPanel = ({ cats }) => {
         let due = new Date(d.getFullYear(), d.getMonth(), Number(f.dayOfMonth));
         if (due < new Date(d.getFullYear(), d.getMonth(), d.getDate())) due = new Date(d.getFullYear(), d.getMonth() + 1, Number(f.dayOfMonth));
         try {
-            await saveRecurringExpense({ ...f, categoryId: f.categoryId || cats[0]?._id, nextDue: due.toLocaleDateString('en-CA') });
+            await saveRecurringExpense({ ...f, categoryId: f.categoryId, nextDue: due.toLocaleDateString('en-CA') });
             setF({ name: '', categoryId: '', amount: '', dayOfMonth: 1 });
             load();
         } catch (err) {
@@ -213,7 +214,8 @@ const RecurringPanel = ({ cats }) => {
             {hasPerm('finance.edit') && (
                 <form className="form-grid three" onSubmit={add}>
                     <input className="input" placeholder="Name (e.g. Shop rent)" value={f.name} onChange={e => setF({ ...f, name: e.target.value })} required />
-                    <select className="input" value={f.categoryId} onChange={e => setF({ ...f, categoryId: e.target.value })} aria-label="Category">
+                    <select className="input" value={f.categoryId} onChange={e => setF({ ...f, categoryId: e.target.value })} aria-label="Category" required>
+                        <option value="" disabled>Category…</option>
                         {cats.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}</select>
                     <input className="input" type="number" placeholder="₹ amount" value={f.amount} onChange={e => setF({ ...f, amount: e.target.value })} required />
                     <input className="input" type="number" min="1" max="28" placeholder="Day of month" value={f.dayOfMonth} onChange={e => setF({ ...f, dayOfMonth: e.target.value })} aria-label="Day of month" />

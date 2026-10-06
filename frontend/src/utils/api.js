@@ -625,6 +625,9 @@ export const createRole = async ({ name, description }) =>
     ok(toClient(unwrap(await supabase.from('roles').insert({ name, description: description || '' }).select().single(), 'roles')));
 export const updateRole = async (id, { name, description }) =>
     ok(toClient(unwrap(await supabase.from('roles').update({ name, description }).eq('id', id).select().single(), 'roles')));
+// The page this role opens on after login (null = the first page it may use)
+export const setRoleHome = async (id, homePath) =>
+    ok(toClient(unwrap(await supabase.from('roles').update({ home_path: homePath || null }).eq('id', id).select().single(), 'roles')));
 export const deleteRole = async (id) => {
     removed(await supabase.from('roles').delete().eq('id', id).select('id'));
     return ok(true);
@@ -738,7 +741,7 @@ export const openShift = async (drawer, denoms, note = '') => ok(await rpc('open
 export const closeShift = async (id, denoms, upiReported, cardReported, reason, note = '') =>
     ok(await rpc('close_shift', { p_shift_id: id, p_denoms: denoms, p_upi_reported: upiReported, p_card_reported: cardReported, p_reason: reason, p_note: note }));
 export const cashMovement = async (drawer, kind, amount, note, categoryId = null, clientId = null) =>
-    ok(await rpc('cash_movement', { p_drawer: drawer, p_kind: kind, p_amount: Number(amount), p_note: note, p_category_id: categoryId, p_client_id: clientId }));
+    ok(await rpc('cash_movement_view', { p_drawer: drawer, p_kind: kind, p_amount: Number(amount), p_note: note, p_category_id: categoryId, p_client_id: clientId }));
 export const getShifts = async (from, to) => ok(await rpc('list_shifts', { p_from: from || null, p_to: to || null }));
 
 export const getExpenseCategories = async () =>

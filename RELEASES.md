@@ -4,6 +4,43 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Fix pack 2: everything found in the manager and waiter test (2026-10-06)
+
+From the test run as Manager and Waiter on laptop and phone.
+
+**What's fixed**
+
+| # | Area | Change |
+| --- | --- | --- |
+| 1 | Cash drawer | Only the person who opened a shift, or someone with Finance edit (owner, manager), can close it. Drawer amounts (cash expected, last close count) show only to the person who opened it and to people with Finance view. Others see “Counter shift open · opened by Kabir” and can still record a pay-out or move cash. The server enforces it, not just the screen |
+| 2 | Pay out | “What was it for?” must be chosen before Save. “Not an expense (e.g. salary advance)” is still there, but no longer picked for you, so a milk purchase cannot slip out of the P&L |
+| 3 | Add expense | Category starts empty (“Choose a category…”) and must be picked; it no longer defaults to Rent. Same for monthly bills |
+| 4 | Tables | Add Table / Add Multiple show only with Tables add rights, Delete only with Tables delete, Edit only with Tables edit |
+| 5 | Waiter sees the customer | Staff who cannot open customer records (waiters) now see the customer's first name on orders and alerts, never the phone number |
+| 6 | Opens on | Each role can open on its own page after login (Staff logins & Roles → Roles → Opens on). Waiter opens on Orders, Chef on Kitchen; others keep the first page they can use |
+| 7 | Old shifts | A shift still open from an earlier day shows an orange note on Cash & Shifts, and Finance → Today lists it under Shifts |
+| 8 | Kitchen | The header now reads “9 to cook · 1 ready for pickup”, matching the station chips |
+| 9 | Staff & Roles | The “6 of 50 staff users” line on the coloured header is readable |
+| — | Tests | New database test for drawer rights, first names and Opens on (145 tests pass) |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack-2.sql` → Run → Success.
+2. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Cashier opens the counter shift. Waiter's My day: “Counter shift open · opened by …”, no amount, no Close shift
+- [ ] Waiter → Cash & Shifts: no figures, no Close shift; Pay out still works
+- [ ] Manager → Cash & Shifts: figures and Close shift visible
+- [ ] Pay out: Save stays grey until “What was it for?” is chosen
+- [ ] Finance → Expenses → Add expense: Save asks you to choose a category
+- [ ] Waiter → Tables: no Add Table, no Delete
+- [ ] Waiter logs in: lands on Orders; order cards show the customer's first name
+- [ ] Owner → Staff logins & Roles → Roles → Waiter → Opens on → Tables → waiter logs in again: lands on Tables
+- [ ] Kitchen header: “… to cook”
+
+---
+
 ## Accept every QR order before the kitchen sees it (2026-10-06)
 
 Asked for after the full-screen alert: no QR order reaches the kitchen until a staff member taps Accept.

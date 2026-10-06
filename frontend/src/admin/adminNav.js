@@ -116,5 +116,8 @@ export const sectionFor = (pathname) => {
 };
 
 // Where to land after login: the first page the role allows (pages needing no permission, like My day, come last)
-export const firstAllowedPath = (hasPerm) =>
-    ADMIN_NAV.find(n => n.perm && hasPerm(n.perm))?.path || ADMIN_NAV.find(n => !n.perm)?.path || null;
+export const firstAllowedPath = (hasPerm, home = null) => {
+    const own = home && ADMIN_NAV.find(n => n.path === home);
+    if (own && (!own.perm || hasPerm(own.perm))) return own.path;
+    return ADMIN_NAV.find(n => n.perm && hasPerm(n.perm))?.path || ADMIN_NAV.find(n => !n.perm)?.path || null;
+};

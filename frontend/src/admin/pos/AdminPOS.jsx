@@ -293,7 +293,7 @@ const AdminPOS = () => {
                 {shift === null && hasPerm('orders.edit') && (
                     <Link className="shift-warn" to="/admin/shifts">No open shift on the counter drawer — open shift</Link>
                 )}
-                {shift && <span className="muted small">Shift open · cash expected {inr(shift.expectedCash)}</span>}
+                {shift && <span className="muted small">Shift open{shift.canSee ? ` · cash expected ${inr(shift.expectedCash)}` : ` · opened by ${shift.openedBy}`}</span>}
                 <label className="check small"><input type="checkbox" checked={autoKot}
                     onChange={e => { setAutoKot(e.target.checked); localStorage.setItem('pos-auto-kot', e.target.checked ? '1' : '0'); }} /> Print KOT automatically</label>
             </div>

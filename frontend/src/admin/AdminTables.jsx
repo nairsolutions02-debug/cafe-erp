@@ -145,12 +145,16 @@ const AdminTables = () => {
                             <FiPrinter /> QR Codes
                         </button>
                     )}
-                    <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)}>
-                        Add Multiple
-                    </button>
-                    <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
-                        <FiPlus /> Add Table
-                    </button>
+                    {hasPerm('tables.create') && (
+                        <>
+                            <button className="btn btn-secondary" onClick={() => setShowBulkModal(true)}>
+                                Add Multiple
+                            </button>
+                            <button className="btn btn-primary" onClick={() => { resetForm(); setShowModal(true); }}>
+                                <FiPlus /> Add Table
+                            </button>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -184,14 +188,17 @@ const AdminTables = () => {
                             )}
                             <button onClick={() => setQrTables([table])} className="icon-btn" title="Table QR code"><FiPrinter /></button>
                             {hasPerm('tables.edit') && <button onClick={() => handleReissue(table)} className="icon-btn" title="New QR code (old one stops working)"><FiRefreshCw /></button>}
-                            <button onClick={() => openEdit(table)} className="icon-btn edit"><FiEdit2 /></button>
-                            <button
-                                onClick={() => handleDelete(table._id)}
-                                className="icon-btn delete"
-                                disabled={table.status === 'occupied'}
-                            >
-                                <FiTrash2 />
-                            </button>
+                            {hasPerm('tables.edit') && <button onClick={() => openEdit(table)} className="icon-btn edit" title="Edit table"><FiEdit2 /></button>}
+                            {hasPerm('tables.delete') && (
+                                <button
+                                    onClick={() => handleDelete(table._id)}
+                                    className="icon-btn delete"
+                                    title="Delete table"
+                                    disabled={table.status === 'occupied'}
+                                >
+                                    <FiTrash2 />
+                                </button>
+                            )}
                         </div>
                     </div>
                 ))}

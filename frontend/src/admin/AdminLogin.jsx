@@ -24,9 +24,9 @@ const AdminLogin = () => {
         setError('');
 
         try {
-            if (mode === 'pin') await staffLogin(phone, pin);
-            else await adminLogin(email, password);
-            navigate('/admin');
+            const me = mode === 'pin' ? await staffLogin(phone, pin) : await adminLogin(email, password);
+            // Each role can open on its own page (Settings → Staff logins & Roles → Opens on)
+            navigate(me?.homePath || '/admin');
         } catch (err) {
             setError(err.response?.data?.message || 'Invalid credentials');
             setPin('');

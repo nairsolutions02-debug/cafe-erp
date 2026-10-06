@@ -109,8 +109,8 @@ const MoveForm = ({ shift, kind, onClose, onDone }) => {
     useEffect(() => { if (kind === 'payout') getExpenseCategories().then(r => setCats(r.data.filter(c => c.isActive))).catch(() => {}); }, [kind]);
     const submit = async () => {
         try {
-            const res = await runOrQueue('cash_movement', { p_drawer: shift.drawer, p_kind: kind, p_amount: Number(amount), p_note: note,
-                p_category_id: categoryId || null, p_client_id: newClientId() }, `${kind} ${inr(amount)} ${note}`);
+            const res = await runOrQueue('cash_movement_view', { p_drawer: shift.drawer, p_kind: kind, p_amount: Number(amount), p_note: note,
+                p_category_id: categoryId && categoryId !== 'none' ? categoryId : null, p_client_id: newClientId() }, `${kind} ${inr(amount)} ${note}`);
             onDone(res.queued);
         } catch (err) {
             setError(errorText(err));
@@ -123,9 +123,10 @@ const MoveForm = ({ shift, kind, onClose, onDone }) => {
                 <div className="input-group"><label>Amount (₹)</label>
                     <input className="input" type="number" value={amount} onChange={e => setAmount(e.target.value)} autoFocus /></div>
                 {kind === 'payout' && (
-                    <div className="input-group"><label>Expense category (records it as an expense)</label>
+                    <div className="input-group"><label>Expense category (records it as an expense) *</label>
                         <select className="input" value={categoryId} onChange={e => setCategoryId(e.target.value)}>
-                            <option value="">Not an expense (e.g. advance)</option>
+                            <option value="" disabled>Choose what it was for…</option>
+                            <option value="none">Not an expense (e.g. salary advance)</option>
                             {cats.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                         </select></div>
                 )}
@@ -135,7 +136,7 @@ const MoveForm = ({ shift, kind, onClose, onDone }) => {
             </div>
             <div className="modal-footer">
                 <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
-                <button className="btn btn-primary" disabled={!(Number(amount) > 0)} onClick={submit}>Save</button>
+                <button className="btn btn-primary" disabled={!(Number(amount) > 0) || (kind === 'payout' && !categoryId)} onClick={submit}>Save</button>
             </div>
         </Modal>
     );
@@ -174,7 +175,11 @@ const AdminShifts = () => {
                             {s ? (
                                 <>
                                     <p className="muted small">Opened {fmt(s.openedAt)} by {s.openedBy}</p>
-                                    <div className="kv">
+                                    {new Date(s.openedAt).toDateString() !== new Date().toDateString() && (
+                                        <p className="shift-old">Open since {fmt(s.openedAt)}. Count the cash and close it, then open a fresh shift for today.</p>
+                                    )}
+                                    {!s.canSee && <p className="muted">Only {s.openedBy} (who opened it) and the manager see the cash in this drawer. You can still record a pay-out or move cash.</p>}
+                                    {s.canSee && <div className="kv">
                                         <span>Opening cash</span><span>{inr(s.openingCash)}</span>
                                         <span>Cash sales (net of refunds)</span><span>{inr(s.cashSales)}</span>
                                         {s.khataSettled > 0 && <><span>Khata collected</span><span>{inr(s.khataSettled)}</span></>}
@@ -185,12 +190,12 @@ const AdminShifts = () => {
                                         <span>UPI in this shift</span><span>{inr(s.upiExpected)}</span>
                                         <span>Card in this shift</span><span>{inr(s.cardExpected)}</span>
                                         <span>Orders paid</span><span>{s.orders}</span>
-                                    </div>
+                                    </div>}
                                     <div className="btn-row">
                                         <button className="btn btn-ghost btn-sm" onClick={() => setModal({ type: 'move', kind: 'payout', shift: s })}>Pay out</button>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setModal({ type: 'move', kind: 'drop', shift: s })}>To safe</button>
                                         <button className="btn btn-ghost btn-sm" onClick={() => setModal({ type: 'move', kind: 'pay_in', shift: s })}>From safe</button>
-                                        <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'close', shift: s })}>Close shift</button>
+                                        {s.canClose && <button className="btn btn-primary btn-sm" onClick={() => setModal({ type: 'close', shift: s })}>Close shift</button>}
                                     </div>
                                 </>
                             ) : (

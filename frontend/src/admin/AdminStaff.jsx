@@ -3,8 +3,10 @@ import { FiPlus, FiKey, FiSliders, FiFileText, FiTrash2, FiLock } from 'react-ic
 import {
     getStaff, createStaff, setStaffPin, updateStaff, setStaffOverride,
     getRoles, createRole, updateRole, deleteRole, setRolePermission, getTermsText,
+    setRoleHome,
 } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { ADMIN_NAV } from './adminNav';
 import { MODULES, ACTIONS, MODULE_ACTIONS, SENSITIVE } from '../lib/permissions';
 import './AdminStaff.css';
 import InfoTip from './help/InfoTip';
@@ -100,6 +102,16 @@ const RolesPanel = ({ roles, reload, canEdit }) => {
                             ? <p className="muted"><FiLock /> The Owner role always has every permission and can't be changed.</p>
                             : <p className="muted">Tick what this role can do. Changes apply on the staff member's next screen load.</p>}
                     </div>
+                    {!role.isOwner && (
+                        <label className="role-home">Opens on
+                            <select className="input" disabled={!canEdit} value={role.homePath || ''} onChange={async (e) => {
+                                try { await setRoleHome(role._id, e.target.value); await reload(); } catch (err) { alert(errorText(err, 'Could not save')); }
+                            }}>
+                                <option value="">First page it can use</option>
+                                {ADMIN_NAV.filter(n => !n.perm || has(n.perm)).map(n => <option key={n.path} value={n.path}>{n.label}</option>)}
+                            </select>
+                        </label>
+                    )}
                     {canEdit && !role.isOwner && (
                         <div className="row-actions">
                             <button className="btn btn-ghost" onClick={rename}>Rename</button>

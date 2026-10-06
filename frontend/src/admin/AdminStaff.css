@@ -1,10 +1,17 @@
 .admin-staff .usage {
-    color: var(--text-muted);
+    /* Sits on the coloured page header: follow its text colour so it stays readable */
+    color: inherit;
+    opacity: 0.9;
     font-size: 0.9rem;
     margin-top: 4px;
 }
 
 .admin-staff .usage.full {
+    display: inline-block;
+    opacity: 1;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #fff;
     color: var(--error);
     font-weight: 600;
 }
@@ -316,4 +323,17 @@
     .staff-cards td.row-actions { justify-content: flex-end; }
     .staff-cards td .input.compact { max-width: 60%; }
     .theme-dark .staff-cards tr { background: #1F1A15; border-color: #3A3027; }
+}
+
+/* Roles: the page a role opens on after login */
+.role-home {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.role-home select {
+    min-width: 170px;
 }

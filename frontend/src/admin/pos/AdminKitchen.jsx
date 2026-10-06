@@ -98,6 +98,8 @@ const AdminKitchen = () => {
     // Tickets older than 6 hours were almost always served without a tap: keep them out of the way
     const tickets = all.filter(({ o }) => age(o) < OLD_MINUTES);
     const earlier = all.filter(({ o }) => age(o) >= OLD_MINUTES);
+    // The header counts what still needs cooking, the same way as the station chips
+    const toCook = tickets.filter(({ items }) => items.some(i => i.status !== 'ready'));
     const clearEarlier = async () => {
         if (!window.confirm(`${earlier.length} old tickets: mark them as served? Payments are not changed.`)) return;
         for (const { o } of earlier) await set(o.id, null, 'served');
@@ -113,7 +115,7 @@ const AdminKitchen = () => {
         <div className="kds">
             <div className="kds-head">
                 <h1>Kitchen</h1>
-                <span className="kds-sum">{tickets.length} {t(W.tickets)}{tickets.length > 0 ? ` · ${t(W.oldest)} ${age(tickets[0].o)} min` : ''}</span>
+                <span className="kds-sum">{toCook.length} {t(W.toCook)}{tickets.length > toCook.length ? ` · ${tickets.length - toCook.length} ${t(W.readyWaiting)}` : ''}{toCook.length > 0 ? ` · ${t(W.oldest)} ${age(toCook[0].o)} min` : ''}</span>
                 <button type="button" className={`kds-icon${sound ? ' on' : ''}`} aria-pressed={sound} aria-label="Sound for new orders"
                     onClick={() => { setSound(!sound); localStorage.setItem('kds-sound', sound ? '0' : '1'); }}><FiVolume2 /> <span>{t(sound ? W.soundOn : W.soundOff)}</span></button>
                 <button type="button" className="kds-icon" onClick={nextTheme} aria-label={`${t(W.themeLabel)}: ${t(W[`theme${theme[0].toUpperCase()}${theme.slice(1)}`])}`}

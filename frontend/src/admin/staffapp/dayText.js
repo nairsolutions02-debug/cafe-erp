@@ -23,6 +23,7 @@ export const D = {
     inDrawer: T('cash in drawer', 'ड्रॉअर में कैश', 'drawer mein cash'),
     openShift: T('Open shift', 'शिफ्ट खोलें', 'Shift kholo'),
     closeShift: T('Close shift', 'शिफ्ट बंद करें', 'Shift band karo'),
+    shiftBy: T('Counter shift open · opened by', 'काउंटर शिफ्ट खुली · खोली', 'Counter shift khuli · kholi'),
     tasks: T('Today’s tasks', 'आज के काम', 'Aaj ke kaam'),
     onePerLine: T('One task per line. Everyone on shift sees these every day.', 'हर लाइन में एक काम। शिफ्ट पर सबको रोज़ दिखेंगे।', 'Har line mein ek kaam. Shift pe sabko roz dikhenge.'),
     noTasks: T('No tasks yet. Tap Edit to add the cafe’s daily jobs.', 'अभी कोई काम नहीं। रोज़ के काम जोड़ने के लिए बदलें दबाएँ।', 'Abhi koi kaam nahi. Roz ke kaam add karne ke liye Badlo dabao.'),

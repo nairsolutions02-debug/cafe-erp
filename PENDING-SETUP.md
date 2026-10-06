@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-06)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -77,3 +77,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 
 ## 16. Accept every QR order (2026-10-06)
 - [x] 16.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-accept-all.sql` → Run → Success
+
+## 17. Fix pack 2: drawer rights, first names, role landing page (2026-10-06)
+- [ ] 17.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack-2.sql` → Run → Success
+- [ ] 17.2 Cash & Shifts: a shift still open from an earlier day now shows an orange note → the person who opened it (or the manager) counts the cash and closes it
