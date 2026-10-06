@@ -37,7 +37,7 @@ const PhoneOrders = ({ orders, canEdit, hasNext, onNext, onPay, onCancel, onMove
 
     // The one next step for a card, or null
     const main = (o) => {
-        if (o.held) return canEdit ? { label: t(W.confirmTable), run: () => onNext(o), swipe: true } : null;
+        if (o.held) return canEdit ? { label: t(o.holdReason === 'accept' ? W.accept : W.confirmTable), run: () => onNext(o), swipe: true } : null;
         if (hasNext(o) && NEXT_WORD[o.status]) {
             return { label: t(W[NEXT_WORD[o.status]]), run: () => onNext(o), swipe: o.status !== 'bill_requested', tone: o.status === 'preparing' ? 'ok' : o.status === 'ready' ? 'ghost' : '' };
         }
@@ -147,7 +147,7 @@ const Sheet = ({ o, t, step, canEdit, groups, onClose, act, onPay, onCancel, onM
                     </span>
                     <button type="button" className="po-x" aria-label="Close" onClick={onClose}><FiX /></button>
                 </div>
-                {o.held && <p className="po-note">{t(W.heldNote)}</p>}
+                {o.held && <p className="po-note">{t(o.holdReason === 'accept' ? W.acceptNote : W.heldNote)}</p>}
                 {o.specialInstructions && <p className="po-note"><FiAlertTriangle /> {o.specialInstructions}</p>}
                 <ul className="po-lines">
                     {o.items.map((i, n) => <li key={n}><span>{i.quantity}×</span><span>{i.name}</span><span>{i.price != null ? inr(i.price * i.quantity) : ''}</span></li>)}

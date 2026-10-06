@@ -4,6 +4,38 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Accept every QR order before the kitchen sees it (2026-10-06)
+
+Asked for after the full-screen alert: no QR order reaches the kitchen until a staff member taps Accept.
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| New setting | Customer app → **Staff accept every QR order before the kitchen sees it**, **on by default**. Off = QR orders go to the kitchen as soon as they are placed (the old way) |
+| While waiting | The order rings full screen with “⏳ The kitchen gets it after you tap Accept”. It is hidden from Kitchen and the pickup screen; Orders shows **Accept** (phone: swipe or tap Accept); Tables shows “Accept” on that group |
+| Accept | One tap (alert, Orders or phone) sends it to the kitchen as confirmed |
+| Customer | Sees “Got it! The cafe will accept your order in a moment, then the kitchen starts.” |
+| First order on a table | With “Staff confirm a table's first order” also on, that order still says **Confirm table** and “check someone is sitting there” |
+| Counter, kiosk, aggregator orders | Never held; they go to the kitchen as before |
+| Checks | New database test: held with reason, hidden from the kitchen, alert says “Tap Accept”, Accept releases it, table orders held, counter orders not |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-accept-all.sql` → Run → Success.
+2. Vercel redeploys from `main` by itself. No new APK.
+
+**Keep in mind:** with this on, at least one staff screen (phone or laptop) must be logged in during opening hours, or QR orders will wait. An order nobody accepts for 5 minutes escalates to the owner.
+
+**Test checklist**
+- [ ] Place a QR order from a phone: the alert says “The kitchen gets it after you tap Accept”; Kitchen does not show it yet
+- [ ] Tap Accept: Kitchen shows the ticket; the customer's order page moves on from “The cafe will accept your order”
+- [ ] Orders page (laptop and phone): a waiting order has an **Accept** button
+- [ ] Counter sale: goes straight to Kitchen
+- [ ] Customer app settings → turn the new switch off → a QR order goes straight to Kitchen; turn it back on
+
+---
+
 ## Full-screen order alert: the order on screen, Accept in one tap, bills ring too (2026-10-06)
 
 Built from the approved demo.

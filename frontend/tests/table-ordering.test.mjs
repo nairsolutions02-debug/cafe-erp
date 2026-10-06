@@ -54,6 +54,8 @@ await rpc(sa, 'sa_create_tenant', {
     p_name: `Tables ${run}`, p_slug: slug, p_plan_id: plans.find(p => p.name === 'Custom').id, p_paid_until: '2099-01-01',
     p_owner_name: 'Owner', p_owner_phone: ph(1), p_owner_pin: '1111' });
 const owner = await staffLogin(slug, ph(1), '1111');
+// These tests cover QR orders that reach the kitchen at once; Accept-every-order has its own test
+await must(owner.from('settings').upsert({ key: 'qr_accept_all', value: false }));
 const cat = await must(owner.from('categories').insert({ name: 'Food' }).select().single());
 const dosa = await must(owner.from('menu_items').insert({ name: 'Dosa', price: 100, category_id: cat.id }).select().single());
 const cig = await must(owner.from('menu_items').insert({ name: 'Smokes', price: 20, category_id: cat.id, is_restricted: true }).select().single());
@@ -163,6 +165,47 @@ test('staff confirm first order: held until confirmed, hidden from the kitchen',
     assert.equal((await rpc(b, 'get_order', { p_id: third })).held, false);
     await assert.rejects(rpc(a, 'confirm_table_order', { p_order_id: second }), /permission|not allowed|Not authorized/i);
     await setSetting(owner, 'table_confirm_first', false);
+});
+
+test('accept every QR order: each one waits for Accept, then the kitchen sees it; first orders still say Confirm table', async () => {
+    const [t12] = await must(owner.from('dining_tables').insert([{ table_number: 'A1' }]).select());
+    const code = await codeOf(t12);
+    await setSetting(owner, 'qr_accept_all', true);
+    try {
+        assert.equal((await rpc(owner, 'table_settings', {})).acceptAll, true);
+        const a = await customer(slug, 'Accept A', 31);
+        const take = await rpc(a, 'place_order', { p_items: items });
+        const o = await rpc(a, 'get_order', { p_id: take });
+        assert.equal(o.held, true);
+        assert.equal(o.holdReason, 'accept');
+        assert.ok(!(await rpc(owner, 'kitchen_orders', {})).some(k => k.id === take));
+        const [alarm] = await must(owner.from('notification_events').select('title, body')
+            .eq('kind', 'new_order').contains('payload', { orderId: take }));
+        assert.match(alarm.title, /^New order/);
+        assert.match(alarm.body, /Tap Accept/);
+        const ok = await rpc(owner, 'confirm_table_order', { p_order_id: take });
+        assert.equal(ok.held, false);
+        assert.equal(ok.holdReason, null);
+        assert.equal(ok.status, 'confirmed');
+        assert.ok((await rpc(owner, 'kitchen_orders', {})).some(k => k.id === take));
+        // A table order is held too, and the next one at the same table as well
+        const t1 = await rpc(a, 'place_order', { p_items: items, p_table_code: code });
+        await rpc(owner, 'confirm_table_order', { p_order_id: t1 });
+        const t2 = await rpc(a, 'place_order', { p_items: items, p_table_code: code });
+        assert.equal((await rpc(a, 'get_order', { p_id: t2 })).holdReason, 'accept');
+        // With confirm first on, the first order on a fresh table keeps the Confirm table wording
+        await setSetting(owner, 'table_confirm_first', true);
+        const [t13] = await must(owner.from('dining_tables').insert([{ table_number: 'A2' }]).select());
+        const f = await rpc(a, 'place_order', { p_items: items, p_table_code: await codeOf(t13) });
+        assert.equal((await rpc(a, 'get_order', { p_id: f })).holdReason, 'table');
+        // Counter orders are never held
+        const counter = await rpc(owner, 'create_staff_order', { p: { channel: 'takeaway', items } });
+        assert.equal(counter.held, false);
+        assert.ok((await rpc(owner, 'kitchen_orders', {})).some(k => k.id === (counter.id || counter._id)));
+    } finally {
+        await setSetting(owner, 'table_confirm_first', false);
+        await setSetting(owner, 'qr_accept_all', false);
+    }
 });
 
 test('re-issued QR: the old code stops working', async () => {

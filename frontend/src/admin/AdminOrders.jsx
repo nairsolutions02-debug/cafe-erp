@@ -371,7 +371,8 @@ const AdminOrders = () => {
 
                                 {order.held && (
                                     <div className="pay-request held">
-                                        First order on Table {order.tableNumber}. Check someone is sitting there, then confirm. The kitchen gets it after that.
+                                        {order.holdReason === 'accept' ? 'New order. Tap Accept to send it to the kitchen.'
+                                            : `First order on Table ${order.tableNumber}. Check someone is sitting there, then confirm. The kitchen gets it after that.`}
                                     </div>
                                 )}
                                 {order.paymentRequest && (
@@ -425,7 +426,7 @@ const AdminOrders = () => {
                                 <div className="order-actions">
                                     {order.held && hasPerm('orders.edit') && (
                                         <button className="btn btn-primary btn-sm" onClick={() => confirmHeld(order)}>
-                                            <FiCheck /> Confirm table
+                                            <FiCheck /> {order.holdReason === 'accept' ? 'Accept' : 'Confirm table'}
                                         </button>
                                     )}
                                     {!order.held && getNextStatus(order.status) && (

@@ -171,7 +171,7 @@ const AdminTables = () => {
                                 {groupsAt(table._id).map(g => (
                                     <li key={g.customerId || g.name} className={g.held ? 'held' : g.billRequested ? 'bill' : ''}>
                                         <span>{g.name}{g.orders > 1 ? ` ×${g.orders}` : ''}</span>
-                                        <span>{g.held ? 'Confirm' : g.billRequested ? 'Bill' : inr(g.due)}</span>
+                                        <span>{g.held ? 'Accept' : g.billRequested ? 'Bill' : inr(g.due)}</span>
                                     </li>
                                 ))}
                             </ul>

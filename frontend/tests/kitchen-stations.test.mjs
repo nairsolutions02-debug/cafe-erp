@@ -52,6 +52,8 @@ const slug = `kst-${run}`;
 await rpc(sa, 'sa_create_tenant', { p_name: `Stations ${run}`, p_slug: slug, p_plan_id: plans.find(p => p.name === 'Custom').id,
     p_paid_until: '2099-01-01', p_owner_name: 'Owner', p_owner_phone: ph(61), p_owner_pin: '1111' });
 const owner = await staffLogin(slug, ph(61), '1111');
+// These tests cover QR orders that reach the kitchen at once; Accept-every-order has its own test
+await must(owner.from('settings').upsert({ key: 'qr_accept_all', value: false }));
 
 test('dishes carry the station of their category, sub-categories follow the parent, no station means hot kitchen', async () => {
     const drinks = await must(owner.from('categories').insert({ name: 'Drinks', kitchen_station: 'bar' }).select().single());

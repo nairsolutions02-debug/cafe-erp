@@ -142,7 +142,7 @@ const OrderDetails = () => {
 
             {justPlaced && show('nudgeCelebrate') && <Confetti />}
             {order.held && !['paid', 'cancelled'].includes(order.status) && (
-                <div className="held-note">⏳ <span>Got it! A staff member will confirm your table in a moment, then the kitchen starts.</span></div>
+                <div className="held-note">⏳ <span>{order.holdReason === 'accept' ? 'Got it! The cafe will accept your order in a moment, then the kitchen starts.' : 'Got it! A staff member will confirm your table in a moment, then the kitchen starts.'}</span></div>
             )}
 
             {order.status === 'cancelled' && (

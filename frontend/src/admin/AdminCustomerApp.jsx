@@ -222,6 +222,8 @@ const AdminCustomerApp = () => {
                         <p className="muted small">Print or re-issue table QR codes on the <Link to="/admin/tables">Tables</Link> page.</p>
                     </>
                 )}
+                <Toggle disabled={!canEdit} checked={tables.acceptAll !== false} onChange={v => setTable('acceptAll', 'qr_accept_all', v)}
+                    tip="accept_all" label="Staff accept every QR order before the kitchen sees it" hint="Each QR order rings full screen; it reaches the kitchen only after someone taps Accept. Off: QR orders go to the kitchen as soon as they are placed." />
             </section>
 
             <section className="ca-card">

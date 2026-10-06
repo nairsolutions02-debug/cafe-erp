@@ -17,6 +17,7 @@ const W = {
     accept: T('Accept · send to kitchen', 'स्वीकार · किचन भेजें', 'Accept · kitchen bhejo'),
     acceptOnly: T('Accept', 'स्वीकार', 'Accept'),
     inKitchen: T('The kitchen already has it', 'किचन को मिल चुका है', 'Kitchen ko mil chuka hai'),
+    waitAccept: T('The kitchen gets it after you tap Accept', 'Accept दबाने के बाद किचन को मिलेगा', 'Accept dabane ke baad kitchen ko milega'),
     checkSeat: T('Check someone is sitting at the table, then accept', 'देखें कि टेबल पर कोई बैठा है, फिर स्वीकार करें', 'Dekho table pe koi baitha hai, phir accept karo'),
     pay: T('Take payment', 'पेमेंट लें', 'Payment lo'), ack: T('Acknowledge', 'देख लिया', 'Acknowledge'),
     open: T('Open order', 'ऑर्डर खोलें', 'Order kholo'), snooze: T('Snooze', 'बाद में', 'Snooze'),
@@ -63,7 +64,7 @@ const OrderAlert = ({ queue, items, escMinutes, onDone, onSnooze, onOpen, onEsca
         setBusy(true); setError('');
         try { await fn(); } catch (err) { setError(err.response?.data?.message || err.message || 'Could not do that'); } finally { setBusy(false); }
     };
-    // Accept: a held first order is released to the kitchen; any other new order is marked confirmed
+    // Accept: a held order (every QR order when the cafe asks for it) goes to the kitchen; any other new order is marked confirmed
     const accept = () => run(async () => {
         if (order?.held) await confirmTableOrder(order._id || order.id);
         else if (order?.status === 'pending') await updateOrderStatus(order._id || order.id, 'confirmed');
@@ -75,7 +76,8 @@ const OrderAlert = ({ queue, items, escMinutes, onDone, onSnooze, onOpen, onEsca
     const isBill = kind === 'payment_request';
     const isOrder = kind === 'new_order';
     const held = !!order?.held;
-    const head = isBill ? t(W.bill) : isOrder ? (held ? t(W.firstOrder) : t(W.newOrder)) : t(W.alert);
+    const firstAt = held && order.holdReason !== 'accept';
+    const head = isBill ? t(W.bill) : isOrder ? (firstAt ? t(W.firstOrder) : t(W.newOrder)) : t(W.alert);
     const wait = minutesSince(n.createdAt);
     const due = order ? order.total - (order.amountPaid || 0) : 0;
     const where = order?.tableNumber ? `${t(W.table)} ${order.tableNumber}` : order?.tokenNumber ? `#${order.tokenNumber}` : '';
@@ -117,7 +119,8 @@ const OrderAlert = ({ queue, items, escMinutes, onDone, onSnooze, onOpen, onEsca
                             <span>{isBill ? t(W.due) : t(W.total)}</span>
                             <b>{order ? inr(isBill ? due : order.total) : '…'}</b>
                             {isBill && order?.paymentRequest && <span className="oa-strong">{order.paymentRequest === 'qr' ? t(W.payUpi) : t(W.payCounter)}</span>}
-                            {isOrder && held && <span className="oa-tag">🪑 {t(W.checkSeat)}</span>}
+                            {isOrder && firstAt && <span className="oa-tag">🪑 {t(W.checkSeat)}</span>}
+                            {isOrder && held && !firstAt && <span className="oa-tag">⏳ {t(W.waitAccept)}</span>}
                             {isOrder && order && !held && <span className="oa-quiet">{t(W.inKitchen)}</span>}
                         </div>
                     </>

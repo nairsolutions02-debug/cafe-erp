@@ -17,6 +17,7 @@ export const W = {
     walkIn: T('Walk-in', 'वॉक-इन', 'Walk-in'),
     table: T('Table', 'टेबल', 'Table'),
     confirmTable: T('Confirm table', 'टेबल कन्फ़र्म', 'Table confirm'),
+    accept: T('Accept', 'स्वीकार', 'Accept'),
     confirm: T('Confirm', 'कन्फ़र्म', 'Confirm'),
     start: T('Start', 'शुरू करें', 'Shuru karo'),
     markReady: T('Mark ready', 'तैयार है', 'Ready hai'),
@@ -35,6 +36,7 @@ export const W = {
     heldNote: T('First order on this table. Check someone is sitting there, then confirm. The kitchen gets it after that.',
         'इस टेबल का पहला ऑर्डर। देखें कोई बैठा है, फिर कन्फ़र्म करें। उसके बाद किचन को मिलेगा।',
         'Is table ka pehla order. Dekho koi baitha hai, phir confirm karo. Uske baad kitchen ko milega.'),
+    acceptNote: T('Tap Accept to send this order to the kitchen.', 'यह ऑर्डर किचन भेजने के लिए Accept दबाएँ।', 'Yeh order kitchen bhejne ke liye Accept dabao.'),
     status: {
         pending: T('New', 'नया', 'Naya'), confirmed: T('Confirmed', 'कन्फ़र्म', 'Confirm'), preparing: T('Cooking', 'बन रहा', 'Ban raha'),
         ready: T('Ready', 'तैयार', 'Ready'), served: T('Served', 'दे दिया', 'De diya'), bill_requested: T('Wants bill', 'बिल माँगा', 'Bill maanga'),
