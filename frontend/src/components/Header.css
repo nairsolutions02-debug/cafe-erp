@@ -315,3 +315,37 @@
         width: auto;
     }
 }
+
+/* Laptop page links (the bottom bar only shows on phones) */
+.header-desk-nav {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .header-desk-nav {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-right: 12px;
+    }
+
+    .header-desk-nav a {
+        padding: 8px 14px;
+        border-radius: var(--radius-full);
+        color: rgba(255, 255, 255, 0.85);
+        font-weight: 600;
+        font-size: 0.92rem;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .header-desk-nav a:hover {
+        background: rgba(255, 255, 255, 0.12);
+        color: white;
+    }
+
+    .header-desk-nav a.active {
+        background: rgba(255, 255, 255, 0.22);
+        color: white;
+    }
+}

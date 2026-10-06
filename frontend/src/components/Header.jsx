@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiUser, FiSearch, FiClock, FiArrowLeft } from 'react-icons/fi';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -14,7 +14,7 @@ const HINTS = {
     hi: ['मसाला डोसा खोजें…', 'चाय, कॉफ़ी, नाश्ता…', 'मेन्यू में खोजें…'],
     hg: ['Masala Dosa dhoondho…', 'Chai, coffee, nashta…', 'Menu mein dhoondho…'],
 };
-const W = { history: T('Order history', 'पुराने ऑर्डर', 'Purane order'), profile: T('Profile', 'प्रोफ़ाइल', 'Profile'), back: T('Back', 'पीछे', 'Peeche'), search: T('Search', 'खोजें', 'Dhoondho') };
+const W = { home: T('Home', 'होम', 'Home'), menu: T('Menu', 'मेन्यू', 'Menu'), rewards: T('Rewards', 'रिवॉर्ड', 'Rewards'), history: T('Order history', 'पुराने ऑर्डर', 'Purane order'), profile: T('Profile', 'प्रोफ़ाइल', 'Profile'), back: T('Back', 'पीछे', 'Peeche'), search: T('Search', 'खोजें', 'Dhoondho') };
 
 const Header = ({ title, showCart = true, showBack = false }) => {
     const brand = useBrand();
@@ -154,6 +154,13 @@ const Header = ({ title, showCart = true, showBack = false }) => {
                 )}
 
                 {title && <h1 className="header-title">{title}</h1>}
+
+                {/* Laptops: the phone's bottom bar is hidden, so its pages sit here */}
+                <nav className="header-desk-nav" aria-label={t(W.menu)}>
+                    <NavLink to="/" end>{t(W.home)}</NavLink>
+                    <NavLink to="/menu">{t(W.menu)}</NavLink>
+                    <NavLink to="/rewards">{t(W.rewards)}</NavLink>
+                </nav>
 
                 <div className="header-actions">
                     <TableChip />

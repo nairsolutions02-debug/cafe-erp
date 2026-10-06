@@ -4,6 +4,24 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Customer app on laptops: Home, Menu and Rewards in the header (2026-10-06)
+
+Reported by the owner: on a laptop the Rewards page (and Menu) could not be reached, while the phone showed them in the bottom bar.
+
+| Area | Change |
+| --- | --- |
+| Laptop header | The phone bottom bar is hidden on wide screens, so Home · Menu · Rewards now sit as links in the header (the current page is highlighted). History, Profile, cart and language stay as icons. Phones are unchanged |
+| Footer | “My Orders” opened Profile; it now opens Order history. Rewards added to the footer links |
+
+**Deploy:** Vercel redeploys from `main`. No SQL.
+
+**Test checklist**
+- [ ] Laptop: header shows Home · Menu · Rewards; Rewards opens the rewards page and is highlighted
+- [ ] Laptop footer: My Orders → Order history; Rewards → rewards
+- [ ] Phone: unchanged (bottom bar, no header links)
+
+---
+
 ## Customer app in Hindi and Hinglish (2026-10-06)
 
 Built from the approved demo (“teeno haan, aligned, go green”).

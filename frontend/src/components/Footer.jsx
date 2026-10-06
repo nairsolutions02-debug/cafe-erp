@@ -11,6 +11,7 @@ const W = {
     menu: T('Menu', 'मेन्यू', 'Menu'),
     cart: T('Cart', 'कार्ट', 'Cart'),
     myOrders: T('My Orders', 'मेरे ऑर्डर', 'Mere order'),
+    rewards: T('Rewards', 'रिवॉर्ड', 'Rewards'),
     contact: T('Contact Us', 'संपर्क करें', 'Contact karo'),
     hours: T('Hours', 'खुलने का समय', 'Timing'),
     rights: T('All rights reserved.', 'सर्वाधिकार सुरक्षित।', 'All rights reserved.'),
@@ -39,7 +40,8 @@ const Footer = () => {
                         <li><Link to="/">{t(W.home)}</Link></li>
                         <li><Link to="/menu">{t(W.menu)}</Link></li>
                         <li><Link to="/cart">{t(W.cart)}</Link></li>
-                        <li><Link to="/profile">{t(W.myOrders)}</Link></li>
+                        <li><Link to="/history">{t(W.myOrders)}</Link></li>
+                        <li><Link to="/rewards">{t(W.rewards)}</Link></li>
                     </ul>
                 </div>
 
