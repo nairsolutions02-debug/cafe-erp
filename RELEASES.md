@@ -4,6 +4,37 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Customer app in Hindi and Hinglish (2026-10-06)
+
+Built from the approved demo (“teeno haan, aligned, go green”).
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| Three languages | Every customer screen in English, हिन्दी and Hinglish: welcome and login (phone + OTP), home, menu, dish sheet, cart, coupons, points, order tracking, the pay question, bill status, history, rewards, monthly tier, milestones, Members Club, birthday, dish ratings, profile, the QR table screens, bottom bar and footer |
+| Choosing | Chips on the welcome card (English · हिन्दी · Hinglish), the language button in the header (En / हि / Hg) and a Language row in Profile. A first visit follows the phone language (Hindi phone → Hindi); the phone remembers the choice |
+| Dish names | Stay as the owner typed them. New optional **Name in Hindi** per dish (Menu → Items, with an ⓘ); customers using Hindi see it small under the dish name |
+| Rewards wording | Owner-edited reward texts show as written; the standard ones and the server's reward labels (“20 points”, “₹30 off coupon”) are said in the chosen language |
+| Stays English | Printed and PDF bills (GST), banners and the announcement the owner writes, dish/category names, coupon codes |
+| Small fixes | Laptop header “Order history” button went to a missing page (/orders); now opens History |
+| Checks | New test: every customer screen uses the language hook and every text has English, Hindi (in Devanagari) and Hinglish; the Hindi dish name saves, reaches customers and stays off the bill. 154 tests pass. Browser run in Hindi, Hinglish and English: no English words left on Hindi screens except owner data |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-customer-lang.sql` → Run → Success. (Until then, saving a menu item in Admin shows an error.)
+2. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Phone in Hindi: open the QR → the welcome card is in Hindi with हिन्दी picked
+- [ ] Order in Hindi: cart, “ऑर्डर करें”, the waiting line, then “पेमेंट कैसे करेंगे?” with three buttons
+- [ ] Header language button → Hinglish → every screen switches; reload keeps it
+- [ ] Profile → Language → English
+- [ ] Admin → Menu → Masala Dosa → Name in Hindi “मसाला डोसा” → Save → customer in Hindi sees it under the name; the bill still says Masala Dosa
+- [ ] Rewards in Hindi: “20 पॉइंट”, “₹30 छूट का कूपन”
+
+---
+
 ## Customer app fixes from the customer test (2026-10-06)
 
 From the test run of the customer app on a phone and a laptop (QR scan, login, menu, cart, order, bill, rewards, profile, dark mode).

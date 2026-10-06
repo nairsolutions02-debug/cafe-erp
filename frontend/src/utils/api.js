@@ -149,7 +149,7 @@ export const deleteCategory = async (id) => {
 // ---------------------------------------------------------------------------
 const MENU_SELECT = '*, category:categories(id, name, parent_id), brand:brands(id, name)';
 const MENU = {
-    name: ['name', 'text'], description: ['description', 'text'], price: ['price', 'num'],
+    name: ['name', 'text'], nameHi: ['name_hi', 'text'], description: ['description', 'text'], price: ['price', 'num'],
     category: ['category_id', 'uuid'], isVeg: ['is_veg', 'bool'], isAvailable: ['is_available', 'bool'],
     isBestSeller: ['is_best_seller', 'bool'], isNewItem: ['is_new_item', 'bool'],
     isRecommended: ['is_recommended', 'bool'], isUpsell: ['is_upsell', 'bool'], tags: ['tags', 'list'],

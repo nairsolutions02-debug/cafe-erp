@@ -6,16 +6,40 @@ import { useAuth } from '../context/AuthContext';
 import { getQrTable, saveQrTable } from '../lib/qrTable';
 import { useBrand } from '../context/BrandContext';
 import './TableScan.css';
+import useCxLang, { T } from '../lib/cxLang';
 
 const MESSAGES = {
-    unknown: ['This QR code isn\'t in use any more', 'Please ask the staff for help, or scan the QR on your table again.'],
-    inactive: ['This table isn\'t in use right now', 'Please ask the staff to seat you at another table.'],
-    no_tables: ['Order at the counter', 'This café doesn\'t take orders to tables. Browse the menu and order for pickup.'],
+    unknown: [T('This QR code isn\'t in use any more', 'यह QR कोड अब काम नहीं करता', 'Yeh QR code ab kaam nahi karta'),
+        T('Please ask the staff for help, or scan the QR on your table again.', 'कृपया स्टाफ़ से मदद लें, या अपनी टेबल का QR फिर से स्कैन करें।', 'Staff se help lo, ya apni table ka QR dobara scan karo.')],
+    inactive: [T('This table isn\'t in use right now', 'यह टेबल अभी इस्तेमाल में नहीं है', 'Yeh table abhi use mein nahi hai'),
+        T('Please ask the staff to seat you at another table.', 'कृपया स्टाफ़ से दूसरी टेबल पर बैठाने को कहें।', 'Staff se dusri table pe bithane ko bolo.')],
+    no_tables: [T('Order at the counter', 'काउंटर पर ऑर्डर करें', 'Counter pe order karo'),
+        T('This café doesn\'t take orders to tables. Browse the menu and order for pickup.', 'यह कैफ़े टेबल पर ऑर्डर नहीं लेता। मेन्यू देखें और ऑर्डर करके काउंटर से ले लें।', 'Yeh café table pe order nahi leta. Menu dekho aur order karke counter se le lo.')],
+};
+
+const W = {
+    moveFailed: T('Could not move your order, please ask the staff', 'आपका ऑर्डर नहीं हट सका, कृपया स्टाफ़ से पूछें', 'Order move nahi ho paya, staff se pucho'),
+    welcome: T('Welcome to {name}', '{name} में आपका स्वागत है', '{name} mein aapka swagat hai'),
+    atTable: T("You're at Table {n}", 'आप टेबल {n} पर हैं', 'Aap Table {n} pe ho'),
+    welcomeText: T('Order from your phone. Friends at your table can scan too, and everyone gets their own bill.',
+        'अपने फ़ोन से ऑर्डर करें। आपकी टेबल के दोस्त भी स्कैन कर सकते हैं, और हर किसी का बिल अलग बनेगा।',
+        'Apne phone se order karo. Table pe dost bhi scan kar sakte hain, aur sabka bill alag banega.'),
+    seeMenu: T('See the menu', 'मेन्यू देखें', 'Menu dekho'),
+    moveTitle: T('Move to Table {n}?', 'टेबल {n} पर जाएँ?', 'Table {n} pe shift karein?'),
+    moveText: T('Your open order is at Table {from}. Move it here so the staff bring it to the right table.',
+        'आपका चालू ऑर्डर टेबल {from} पर है। इसे यहाँ ले आएँ ताकि स्टाफ़ सही टेबल पर लाए।',
+        'Aapka chalu order Table {from} pe hai. Isko yahan shift karo taaki staff sahi table pe laaye.'),
+    moveYes: T('Yes, move to Table {n}', 'हाँ, टेबल {n} पर ले आएँ', 'Haan, Table {n} pe shift karo'),
+    moveNo: T("No, I'm still at Table {from}", 'नहीं, मैं अभी भी टेबल {from} पर हूँ', 'Nahi, main abhi bhi Table {from} pe hoon'),
+    tableOff: T("Table {n} isn't in use right now", 'टेबल {n} अभी इस्तेमाल में नहीं है', 'Table {n} abhi use mein nahi hai'),
+    pickLater: T(' You can also pick your table at checkout.', ' आप पेमेंट के समय भी अपनी टेबल चुन सकते हैं।', ' Aap checkout pe bhi apni table choose kar sakte ho.'),
+    browse: T('Browse the menu', 'मेन्यू देखें', 'Menu dekho'),
 };
 
 // Landing page for a table QR (/t/5-K7Q2): remembers the table, then opens the menu
 const TableScan = () => {
     const brand = useBrand();
+    const { t } = useCxLang();
     const { code } = useParams();
     const navigate = useNavigate();
     const { isAuthenticated, isAdmin } = useAuth();
@@ -46,15 +70,15 @@ const TableScan = () => {
 
     useEffect(() => {
         if (state.step !== 'welcome') return undefined;
-        const t = setTimeout(() => navigate('/menu', { replace: true }), 1800);
-        return () => clearTimeout(t);
+        const timer = setTimeout(() => navigate('/menu', { replace: true }), 1800);
+        return () => clearTimeout(timer);
     }, [state.step, navigate]);
 
     const move = async (yes) => {
-        const t = state.table;
+        const tb = state.table;
         if (yes) {
-            try { await moveMyTable(t.code); } catch (e) { alert(e.response?.data?.message || e.message || 'Could not move your order, please ask the staff'); return; }
-            saveQrTable(t);
+            try { await moveMyTable(tb.code); } catch (e) { alert(e.response?.data?.message || e.message || t(W.moveFailed)); return; }
+            saveQrTable(tb);
         }
         navigate('/menu', { replace: true });
     };
@@ -66,27 +90,27 @@ const TableScan = () => {
             {state.step === 'welcome' && (
                 <div className="ts-card ts-pop">
                     <div className="ts-pin"><FiMapPin /></div>
-                    <p className="ts-kicker">Welcome to {brand.name}</p>
-                    <h1>You're at Table {state.table.tableNumber}</h1>
-                    <p>Order from your phone. Friends at your table can scan too, and everyone gets their own bill.</p>
-                    <button className="btn btn-primary btn-full" onClick={() => navigate('/menu', { replace: true })}>See the menu</button>
+                    <p className="ts-kicker">{t(W.welcome, { name: brand.name })}</p>
+                    <h1>{t(W.atTable, { n: state.table.tableNumber })}</h1>
+                    <p>{t(W.welcomeText)}</p>
+                    <button className="btn btn-primary btn-full" onClick={() => navigate('/menu', { replace: true })}>{t(W.seeMenu)}</button>
                 </div>
             )}
             {state.step === 'move' && (
                 <div className="ts-card ts-pop">
                     <div className="ts-pin"><FiMapPin /></div>
-                    <h1>Move to Table {state.table.tableNumber}?</h1>
-                    <p>Your open order is at Table {state.from}. Move it here so the staff bring it to the right table.</p>
-                    <button className="btn btn-primary btn-full" onClick={() => move(true)}>Yes, move to Table {state.table.tableNumber}</button>
-                    <button className="btn btn-ghost btn-full" onClick={() => move(false)}>No, I'm still at Table {state.from}</button>
+                    <h1>{t(W.moveTitle, { n: state.table.tableNumber })}</h1>
+                    <p>{t(W.moveText, { from: state.from })}</p>
+                    <button className="btn btn-primary btn-full" onClick={() => move(true)}>{t(W.moveYes, { n: state.table.tableNumber })}</button>
+                    <button className="btn btn-ghost btn-full" onClick={() => move(false)}>{t(W.moveNo, { from: state.from })}</button>
                 </div>
             )}
             {state.step === 'error' && (
                 <div className="ts-card">
                     <div className="ts-pin warn"><FiAlertCircle /></div>
-                    <h1>{state.reason === 'inactive' && state.tableNumber ? `Table ${state.tableNumber} isn't in use right now` : (MESSAGES[state.reason] || MESSAGES.unknown)[0]}</h1>
-                    <p>{(MESSAGES[state.reason] || MESSAGES.unknown)[1]}{state.mode === 'pick' && state.reason !== 'no_tables' ? ' You can also pick your table at checkout.' : ''}</p>
-                    <button className="btn btn-primary btn-full" onClick={() => navigate('/menu', { replace: true })}>Browse the menu</button>
+                    <h1>{state.reason === 'inactive' && state.tableNumber ? t(W.tableOff, { n: state.tableNumber }) : t((MESSAGES[state.reason] || MESSAGES.unknown)[0])}</h1>
+                    <p>{t((MESSAGES[state.reason] || MESSAGES.unknown)[1])}{state.mode === 'pick' && state.reason !== 'no_tables' ? t(W.pickLater) : ''}</p>
+                    <button className="btn btn-primary btn-full" onClick={() => navigate('/menu', { replace: true })}>{t(W.browse)}</button>
                 </div>
             )}
         </div>

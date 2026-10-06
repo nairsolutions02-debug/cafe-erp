@@ -4,9 +4,53 @@ import './LoginModal.css';
 import { useBrand } from '../context/BrandContext';
 import QuickLoginForm from './QuickLoginForm';
 import { OTP_LOGIN_ENABLED } from '../lib/supabase';
+import useCxLang, { T } from '../lib/cxLang';
+import { LangChips } from './cx/LangPicker';
+
+const W = {
+    badPhone: T('Please enter a valid 10-digit phone number', 'कृपया सही 10 अंकों का फ़ोन नंबर लिखें', 'Please sahi 10-digit phone number likho'),
+    sendFailed: T('Failed to send OTP', 'OTP नहीं भेज पाए', 'OTP nahi bhej paaye'),
+    resendFailed: T('Failed to resend OTP', 'OTP दोबारा नहीं भेज पाए', 'OTP dobara nahi bhej paaye'),
+    badOtp: T('Please enter a valid {n}-digit OTP', 'कृपया सही {n} अंकों का OTP लिखें', 'Please sahi {n}-digit OTP likho'),
+    enterName: T('Please enter your name', 'कृपया अपना नाम लिखें', 'Please apna naam likho'),
+    invalidOtp: T('Invalid OTP', 'OTP गलत है', 'OTP galat hai'),
+    asPlatform: T('Signed in as platform admin', 'प्लेटफ़ॉर्म एडमिन के रूप में लॉग इन', 'Platform admin ke roop mein login'),
+    asStaff: T('Signed in as staff', 'स्टाफ़ के रूप में लॉग इन', 'Staff ke roop mein login'),
+    adminNote: T('This browser is logged in to the admin panel. To order as a customer, log out of admin here or use another browser / incognito window.',
+        'यह ब्राउज़र एडमिन पैनल में लॉग इन है। ग्राहक की तरह ऑर्डर करने के लिए यहाँ एडमिन से लॉग आउट करें या दूसरा ब्राउज़र / इनकॉग्निटो विंडो खोलें।',
+        'Ye browser admin panel mein login hai. Customer ki tarah order karne ke liye yahan admin se logout karo ya doosra browser / incognito window kholo.'),
+    logout: T('Log out', 'लॉग आउट', 'Logout'),
+    backAdmin: T('Back to admin panel', 'एडमिन पैनल पर वापस', 'Admin panel pe wapas'),
+    welcome: T('Welcome! 👋', 'स्वागत है! 👋', 'Welcome! 👋'),
+    phoneSub: T('Enter your phone number to continue', 'आगे बढ़ने के लिए अपना फ़ोन नंबर लिखें', 'Aage badhne ke liye apna phone number likho'),
+    phonePh: T('Enter phone number', 'फ़ोन नंबर लिखें', 'Phone number likho'),
+    sending: T('Sending...', 'भेज रहे हैं...', 'Bhej rahe hain...'),
+    getOtp: T('Get OTP', 'OTP पाएँ', 'OTP bhejo'),
+    verifyTitle: T('Verify OTP 📱', 'OTP डालें 📱', 'OTP daalo 📱'),
+    codeSent: T('Enter the {n}-digit code sent to +91 {phone}', '+91 {phone} पर भेजा गया {n} अंकों का कोड लिखें', '+91 {phone} pe bheja gaya {n}-digit code likho'),
+    change: T('Change', 'बदलें', 'Badlo'),
+    otpPh: T('Enter {n}-digit OTP', '{n} अंकों का OTP लिखें', '{n}-digit OTP likho'),
+    resendIn: T('Resend OTP in {s}s', '{s} सेकंड में OTP दोबारा भेजें', '{s}s mein OTP dobara bhejo'),
+    resend: T('Resend OTP', 'OTP दोबारा भेजें', 'OTP dobara bhejo'),
+    verifying: T('Verifying...', 'जाँच रहे हैं...', 'Check kar rahe hain...'),
+    changeNumber: T('← Change Number', '← नंबर बदलें', '← Number badlo'),
+    almost: T('Almost Done! ✨', 'बस हो गया! ✨', 'Bas ho gaya! ✨'),
+    details: T('Please enter your details', 'कृपया अपनी जानकारी लिखें', 'Please apni details likho'),
+    name: T('Name', 'नाम', 'Naam'),
+    namePh: T('Enter your name', 'अपना नाम लिखें', 'Apna naam likho'),
+    email: T('Email', 'ईमेल', 'Email'),
+    optional: T('(Optional)', '(वैकल्पिक)', '(optional)'),
+    emailPh: T('Enter email address', 'ईमेल पता लिखें', 'Email address likho'),
+    wait: T('Please wait...', 'रुकिए...', 'Ruko...'),
+    continue: T('Continue', 'आगे बढ़ें', 'Aage badho'),
+    consent: T('By continuing, you agree to our Terms of Service and to the cafe saving your name, number and birthday (if given) for orders and rewards. You can ask to delete them anytime.',
+        'आगे बढ़कर आप हमारी सेवा की शर्तें मानते हैं, और कैफ़े ऑर्डर व रिवॉर्ड के लिए आपका नाम, नंबर और जन्मदिन (अगर दिया) सेव रखेगा। आप कभी भी इन्हें हटाने को कह सकते हैं।',
+        'Aage badhke aap hamari Terms of Service maante ho, aur cafe orders aur rewards ke liye aapka naam, number aur birthday (agar diya) save rakhega. Aap kabhi bhi inhe delete karne ko keh sakte ho.'),
+};
 
 const LoginModal = () => {
     const brand = useBrand();
+    const { t } = useCxLang();
     const [step, setStep] = useState('phone'); // phone, otp, profile
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
@@ -32,7 +76,7 @@ const LoginModal = () => {
     const handleSendOTP = async (e) => {
         e.preventDefault();
         if (phone.length !== 10) {
-            setError('Please enter a valid 10-digit phone number');
+            setError(t(W.badPhone));
             return;
         }
 
@@ -46,7 +90,7 @@ const LoginModal = () => {
             setResendTimer(30);
             setStep('otp');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to send OTP');
+            setError(err.response?.data?.message || t(W.sendFailed));
         } finally {
             setLoading(false);
         }
@@ -64,7 +108,7 @@ const LoginModal = () => {
             setResendTimer(30);
             setOtp('');
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to resend OTP');
+            setError(err.response?.data?.message || t(W.resendFailed));
         } finally {
             setLoading(false);
         }
@@ -73,7 +117,7 @@ const LoginModal = () => {
     const handleVerifyOTP = async (e) => {
         e.preventDefault();
         if (otp.length !== otpLength) {
-            setError(`Please enter a valid ${otpLength}-digit OTP`);
+            setError(t(W.badOtp, { n: otpLength }));
             return;
         }
 
@@ -84,7 +128,7 @@ const LoginModal = () => {
     const handleProfileSubmit = async (e) => {
         e.preventDefault();
         if (!name.trim()) {
-            setError('Please enter your name');
+            setError(t(W.enterName));
             return;
         }
         await submitVerification();
@@ -104,7 +148,7 @@ const LoginModal = () => {
             if (err.response?.data?.requiresProfile) {
                 setStep('profile');
             } else {
-                setError(err.response?.data?.message || 'Invalid OTP');
+                setError(err.response?.data?.message || t(W.invalidOtp));
             }
             isSubmittingRef.current = false; // Reset on error to allow retry
         } finally {
@@ -123,21 +167,24 @@ const LoginModal = () => {
                 <div className="login-modal-content">
                     {isAdmin || isPlatform ? (
                         <div>
-                            <p className="modal-title">{isPlatform ? 'Signed in as platform admin' : 'Signed in as staff'}</p>
+                            <p className="modal-title">{t(isPlatform ? W.asPlatform : W.asStaff)}</p>
                             <p className="modal-subtitle">
-                                This browser is logged in to the admin panel. To order as a customer,
-                                log out of admin here or use another browser / incognito window.
+                                {t(W.adminNote)}
                             </p>
                             <button type="button" className="btn btn-primary btn-full" onClick={logout}>
-                                Log out
+                                {t(W.logout)}
                             </button>
-                            <a href="/admin" className="btn btn-ghost btn-full">Back to admin panel</a>
+                            <a href="/admin" className="btn btn-ghost btn-full">{t(W.backAdmin)}</a>
                         </div>
                     ) : !OTP_LOGIN_ENABLED ? <QuickLoginForm /> : (<>
                     {step === 'phone' && (
                         <form onSubmit={handleSendOTP}>
-                            <p className="modal-title">Welcome! 👋</p>
-                            <p className="modal-subtitle">Enter your phone number to continue</p>
+                            <p className="modal-title">{t(W.welcome)}</p>
+                            <p className="modal-subtitle">{t(W.phoneSub)}</p>
+                            <div style={{ margin: '0 0 14px' }}>
+                                <small className="muted" style={{ display: 'block', marginBottom: 6 }}>Language · भाषा</small>
+                                <LangChips />
+                            </div>
 
                             <div className="phone-input-group">
                                 <span className="country-code">+91</span>
@@ -145,7 +192,7 @@ const LoginModal = () => {
                                     type="tel"
                                     value={phone}
                                     onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                                    placeholder="Enter phone number"
+                                    placeholder={t(W.phonePh)}
                                     className="phone-input"
                                     autoFocus
                                 />
@@ -154,18 +201,18 @@ const LoginModal = () => {
                             {error && <p className="error-message">{error}</p>}
 
                             <button type="submit" className="btn btn-primary btn-full" disabled={loading || phone.length !== 10}>
-                                {loading ? 'Sending...' : 'Get OTP'}
+                                {loading ? t(W.sending) : t(W.getOtp)}
                             </button>
                         </form>
                     )}
 
                     {step === 'otp' && (
                         <form onSubmit={handleVerifyOTP}>
-                            <p className="modal-title">Verify OTP 📱</p>
+                            <p className="modal-title">{t(W.verifyTitle)}</p>
                             <p className="modal-subtitle">
-                                Enter the {otpLength}-digit code sent to +91 {phone}
+                                {t(W.codeSent, { n: otpLength, phone })}
                                 <button type="button" className="change-number" onClick={() => { setStep('phone'); setOtp(''); setError(''); }}>
-                                    Change
+                                    {t(W.change)}
                                 </button>
                             </p>
 
@@ -191,7 +238,7 @@ const LoginModal = () => {
                                         }, 150);
                                     }
                                 }}
-                                placeholder={`Enter ${otpLength}-digit OTP`}
+                                placeholder={t(W.otpPh, { n: otpLength })}
                                 className="input otp-input"
                                 autoFocus
                                 maxLength={otpLength}
@@ -199,10 +246,10 @@ const LoginModal = () => {
 
                             <div className="resend-section">
                                 {resendTimer > 0 ? (
-                                    <span className="resend-timer">Resend OTP in {resendTimer}s</span>
+                                    <span className="resend-timer">{t(W.resendIn, { s: resendTimer })}</span>
                                 ) : (
                                     <button type="button" className="resend-btn" onClick={handleResendOTP} disabled={loading}>
-                                        Resend OTP
+                                        {t(W.resend)}
                                     </button>
                                 )}
                             </div>
@@ -212,7 +259,7 @@ const LoginModal = () => {
                             {loading && (
                                 <div className="verifying-message">
                                     <span className="spinner-small"></span>
-                                    Verifying...
+                                    {t(W.verifying)}
                                 </div>
                             )}
                         </form>
@@ -225,31 +272,31 @@ const LoginModal = () => {
                                 className="back-btn"
                                 onClick={() => { setStep('phone'); setOtp(''); setError(''); }}
                             >
-                                ← Change Number
+                                {t(W.changeNumber)}
                             </button>
-                            <p className="modal-title">Almost Done! ✨</p>
-                            <p className="modal-subtitle">Please enter your details</p>
+                            <p className="modal-title">{t(W.almost)}</p>
+                            <p className="modal-subtitle">{t(W.details)}</p>
 
                             <div className="profile-fields">
                                 <div className="input-group">
-                                    <label>Name <span className="required">*</span></label>
+                                    <label>{t(W.name)} <span className="required">*</span></label>
                                     <input
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        placeholder="Enter your name"
+                                        placeholder={t(W.namePh)}
                                         className="input"
                                         autoFocus
                                         required
                                     />
                                 </div>
                                 <div className="input-group">
-                                    <label>Email <span className="optional">(Optional)</span></label>
+                                    <label>{t(W.email)} <span className="optional">{t(W.optional)}</span></label>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="Enter email address"
+                                        placeholder={t(W.emailPh)}
                                         className="input"
                                     />
                                 </div>
@@ -258,7 +305,7 @@ const LoginModal = () => {
                             {error && <p className="error-message">{error}</p>}
 
                             <button type="submit" className="btn btn-primary btn-full" disabled={loading || !name.trim()}>
-                                {loading ? 'Please wait...' : 'Continue'}
+                                {loading ? t(W.wait) : t(W.continue)}
                             </button>
                         </form>
                     )}
@@ -266,7 +313,7 @@ const LoginModal = () => {
                 </div>
 
                 <p className="modal-footer">
-                    By continuing, you agree to our Terms of Service and to the cafe saving your name, number and birthday (if given) for orders and rewards. You can ask to delete them anytime.
+                    {t(W.consent)}
                 </p>
             </div>
         </div>

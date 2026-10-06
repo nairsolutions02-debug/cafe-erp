@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-06)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -88,3 +88,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 
 ## 19. Fix pack 4: accountant and kiosk operator (2026-10-06)
 - [x] 19.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-fix-pack-4.sql` → Run → Success
+
+## 20. Customer app in Hindi and Hinglish (2026-10-06)
+- [ ] 20.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-customer-lang.sql` → Run → Success (until this runs, saving a menu item in Admin shows an error)
+- [ ] 20.2 (optional) Admin → Menu → Items → open your top dishes → fill **Name in Hindi** (e.g. मसाला डोसा) → Save

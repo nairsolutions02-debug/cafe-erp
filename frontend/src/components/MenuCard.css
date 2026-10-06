@@ -190,3 +190,5 @@
         height: 200px;
     }
 }
+/* Hindi dish name under the English one (Hindi language only) */
+.menu-card .dish-name-hi { display: block; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); margin-top: 2px; }

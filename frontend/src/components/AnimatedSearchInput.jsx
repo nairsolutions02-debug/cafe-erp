@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import './AnimatedSearchInput.css';
 import brand from '../brand';
+import useCxLang from '../lib/cxLang';
 
-const placeholderTexts = brand.searchHints;
+// Hindi / Hinglish hints; English keeps the cafe's own hints from the brand file
+const HINTS = {
+    hi: ['मसाला डोसा खोजें…', 'चाय, कॉफ़ी, नाश्ता…', 'मेन्यू में खोजें…'],
+    hg: ['Masala Dosa dhoondho…', 'Chai, coffee, nashta…', 'Menu mein dhoondho…'],
+};
 
 const AnimatedSearchInput = ({ value, onChange, onSubmit, className = '' }) => {
+    const { lang } = useCxLang();
+    const placeholderTexts = HINTS[lang] || brand.searchHints;
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [displayText, setDisplayText] = useState('');
     const [isTyping, setIsTyping] = useState(true);
 
     useEffect(() => {
-        const currentText = placeholderTexts[placeholderIndex];
+        const currentText = placeholderTexts[placeholderIndex % placeholderTexts.length] || '';
         let charIndex = isTyping ? displayText.length : displayText.length;
 
         const timer = setTimeout(() => {

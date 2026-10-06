@@ -15939,6 +15939,14 @@ begin
     return jsonb_build_object('code', v_code, 'kind', p_kind);
 end;
 $$;
+
+
+-- ===== 20261028000001_customer_lang.sql =====
+-- Customer app in Hindi and Hinglish: an optional Hindi name per dish, shown small under the dish name to customers
+-- who use the app in Hindi. Bills keep the main name. No apostrophes in comments: the SQL Editor splitter treats them as quotes.
+
+alter table public.menu_items add column if not exists name_hi text not null default ''
+    check (char_length(name_hi) <= 120);
 </script>
 <script type="text/plain" id="sql-sample">
 -- Optional demo data for a cafe. Paste into the Supabase SQL editor (or psql) once.

@@ -16,9 +16,23 @@ import { usePortal } from '../context/PortalContext';
 import AnnouncementStrip from '../components/cx/AnnouncementStrip';
 import BannerCarousel from '../components/cx/BannerCarousel';
 import RewardBar from '../components/cx/RewardBar';
+import useCxLang, { T } from '../lib/cxLang';
+
+const W = {
+    loading: T('Loading delicious items...', 'स्वादिष्ट खाना लोड हो रहा है...', 'Tasty items load ho rahe hain...'),
+    // Hero line, in four parts so "Taste" and "Tradition" keep their colours
+    heroA: T('Experience the ', 'चखिए ', 'Chakho '),
+    heroB: T('Taste', 'परंपरा', 'parampara'),
+    heroC: T(' of', ' का असली', ' ka asli'),
+    heroD: T(' Tradition', ' स्वाद', ' swaad'),
+    explore: T('Explore Menu', 'मेन्यू देखें', 'Menu dekho'),
+    categories: T('Categories', 'कैटेगरी', 'Categories'),
+    seeAll: T('See All', 'सब देखें', 'Sab dekho'),
+};
 
 const Home = () => {
     const brand = useBrand();
+    const { t } = useCxLang();
     const { user, isAuthenticated } = useAuth();
     const { itemCount } = useCart();
     const navigate = useNavigate();
@@ -48,7 +62,7 @@ const Home = () => {
     };
 
     if (loading) {
-        return <Loader message="Loading delicious items..." />;
+        return <Loader message={t(W.loading)} />;
     }
 
     return (
@@ -65,8 +79,8 @@ const Home = () => {
                     <div className="hero-text">
                         <span className="hero-badge">{brand.heroBadge}</span>
                         <h1 className="hero-title">
-                            Experience the <span className="highlight">Taste</span> of
-                            <span className="animate-text"> Tradition</span>
+                            {t(W.heroA)}<span className="highlight">{t(W.heroB)}</span>{t(W.heroC)}
+                            <span className="animate-text">{t(W.heroD)}</span>
                         </h1>
                         <p className="hero-description">
                             {brand.heroText}
@@ -82,7 +96,7 @@ const Home = () => {
                             </div>
                         )}
                         <Link to="/menu" className="hero-cta">
-                            Explore Menu <FiArrowRight />
+                            {t(W.explore)} <FiArrowRight />
                         </Link>
                     </div>
                     <div className="hero-image-container">
@@ -96,9 +110,9 @@ const Home = () => {
             {categories.length > 0 && (
                 <section className="section">
                     <div className="section-header">
-                        <h3 className="section-title">Categories</h3>
+                        <h3 className="section-title">{t(W.categories)}</h3>
                         <Link to="/categories" className="see-all">
-                            See All <FiArrowRight />
+                            {t(W.seeAll)} <FiArrowRight />
                         </Link>
                     </div>
                     <div className="horizontal-scroll hide-scrollbar">
@@ -120,7 +134,7 @@ const Home = () => {
                         <div className="section-header">
                             <h3 className="section-title">{collection.icon} {collection.name}</h3>
                             <Link to={`/menu?collection=${collection.slug}`} className="see-all">
-                                See All <FiArrowRight />
+                                {t(W.seeAll)} <FiArrowRight />
                             </Link>
                         </div>
                         {collection.type === 'recommended' ? (

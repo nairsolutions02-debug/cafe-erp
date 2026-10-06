@@ -7,9 +7,18 @@ import { getMenuItems, getMyLoyaltyPoints } from '../utils/api';
 import './Header.css';
 import { useBrand } from '../context/BrandContext';
 import TableChip from './cx/TableChip';
+import { LangButton } from './cx/LangPicker';
+import useCxLang, { T } from '../lib/cxLang';
+
+const HINTS = {
+    hi: ['मसाला डोसा खोजें…', 'चाय, कॉफ़ी, नाश्ता…', 'मेन्यू में खोजें…'],
+    hg: ['Masala Dosa dhoondho…', 'Chai, coffee, nashta…', 'Menu mein dhoondho…'],
+};
+const W = { history: T('Order history', 'पुराने ऑर्डर', 'Purane order'), profile: T('Profile', 'प्रोफ़ाइल', 'Profile'), back: T('Back', 'पीछे', 'Peeche'), search: T('Search', 'खोजें', 'Dhoondho') };
 
 const Header = ({ title, showCart = true, showBack = false }) => {
     const brand = useBrand();
+    const { lang, t } = useCxLang();
     const { isAuthenticated } = useAuth();
     const { itemCount } = useCart();
     const navigate = useNavigate();
@@ -19,7 +28,7 @@ const Header = ({ title, showCart = true, showBack = false }) => {
     const [loyaltyPoints, setLoyaltyPoints] = useState(0);
 
     // Animated placeholder
-    const placeholderTexts = brand.searchHints;
+    const placeholderTexts = HINTS[lang] || brand.searchHints;
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [displayPlaceholder, setDisplayPlaceholder] = useState('');
     const [isTyping, setIsTyping] = useState(true);
@@ -42,7 +51,7 @@ const Header = ({ title, showCart = true, showBack = false }) => {
 
     // Typewriter effect for placeholder
     useEffect(() => {
-        const currentText = placeholderTexts[placeholderIndex];
+        const currentText = placeholderTexts[placeholderIndex % placeholderTexts.length] || '';
         const charIndex = displayPlaceholder.length;
 
         const timer = setTimeout(() => {
@@ -97,7 +106,7 @@ const Header = ({ title, showCart = true, showBack = false }) => {
         <header className="header">
             <div className="header-content">
                 {showBack ? (
-                    <button className="header-back" onClick={() => navigate('/')}>
+                    <button className="header-back" aria-label={t(W.back)} onClick={() => navigate('/')}>
                         <FiArrowLeft />
                     </button>
                 ) : (
@@ -108,7 +117,7 @@ const Header = ({ title, showCart = true, showBack = false }) => {
 
                 {!title && (
                     <div className="header-search" onClick={e => e.currentTarget.querySelector('input')?.focus()}>
-                        <FiSearch className="search-icon" aria-label="Search" />
+                        <FiSearch className="search-icon" aria-label={t(W.search)} />
                         <form onSubmit={handleSearch}>
                             <input
                                 type="text"
@@ -148,6 +157,7 @@ const Header = ({ title, showCart = true, showBack = false }) => {
 
                 <div className="header-actions">
                     <TableChip />
+                    <LangButton />
                     {/* Loyalty Points Badge */}
                     {isAuthenticated && (
                         <div className="header-points-badge">
@@ -167,13 +177,13 @@ const Header = ({ title, showCart = true, showBack = false }) => {
 
                     {/* History Button - Desktop */}
                     {isAuthenticated && (
-                        <Link to="/orders" className="header-icon-btn history-btn" title="Order History">
+                        <Link to="/history" className="header-icon-btn history-btn" title={t(W.history)} aria-label={t(W.history)}>
                             <FiClock />
                         </Link>
                     )}
 
                     {/* Profile Button - Desktop Only */}
-                    <Link to="/profile" className="header-icon-btn profile-btn">
+                    <Link to="/profile" className="header-icon-btn profile-btn" title={t(W.profile)} aria-label={t(W.profile)}>
                         <FiUser />
                     </Link>
                 </div>

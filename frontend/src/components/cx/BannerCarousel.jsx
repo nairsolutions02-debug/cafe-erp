@@ -4,6 +4,9 @@ import { FiArrowRight } from 'react-icons/fi';
 import { usePortal } from '../../context/PortalContext';
 import { getImageUrl } from '../../utils/config';
 import { bannerBg } from './palettes';
+import useCxLang, { T } from '../../lib/cxLang';
+
+const W = { offers: T('Offers', 'ऑफ़र', 'Offers'), banner: T('Banner {n}', 'बैनर {n}', 'Banner {n}') };
 
 // Where a banner's button goes
 export const useBannerLink = () => {
@@ -38,6 +41,7 @@ export const BannerSlide = ({ b, onOpen }) => (
 // The owner's banners at the top of the home page: swipe, or they move on by themselves every 5 seconds
 const BannerCarousel = () => {
     const { cfg } = usePortal();
+    const { t } = useCxLang();
     const open = useBannerLink();
     const banners = cfg?.banners || [];
     const [i, setI] = useState(0);
@@ -58,7 +62,7 @@ const BannerCarousel = () => {
 
     if (!banners.length) return null;
     return (
-        <section className="banners" aria-label="Offers"
+        <section className="banners" aria-label={t(W.offers)}
             onPointerDown={() => { paused.current = true; }} onPointerUp={() => { setTimeout(() => { paused.current = false; }, 4000); }}>
             <div className="banner-track hide-scrollbar" ref={track}
                 onScroll={(e) => setI(Math.round(e.currentTarget.scrollLeft / e.currentTarget.clientWidth))}>
@@ -67,7 +71,7 @@ const BannerCarousel = () => {
             {banners.length > 1 && (
                 <div className="banner-dots">
                     {banners.map((b, n) => (
-                        <button key={b.id} aria-label={`Banner ${n + 1}`} className={n === i ? 'on' : ''}
+                        <button key={b.id} aria-label={t(W.banner, { n: n + 1 })} className={n === i ? 'on' : ''}
                             onClick={() => track.current?.scrollTo({ left: n * track.current.clientWidth, behavior: 'smooth' })} />
                     ))}
                 </div>

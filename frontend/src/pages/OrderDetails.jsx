@@ -15,9 +15,54 @@ import { inr } from '../admin/pos/money';
 // What staff typed as the reason, without the internal "(approved by …)" note
 const customerReason = (r) => String(r || '').replace(/\s*\(approved by [^)]*\)\s*$/i, '').trim();
 import './OrderDetails.css';
+import useCxLang, { T } from '../lib/cxLang';
+
+const W = {
+    celebrateNth: T("Order placed! That's order #{n} with us. Thank you!", 'ऑर्डर हो गया! यह हमारे साथ आपका #{n} ऑर्डर है। धन्यवाद!', 'Order ho gaya! Ye hamare saath aapka #{n} order hai. Thank you!'),
+    celebrate: T('Order placed! The kitchen has it.', 'ऑर्डर हो गया! किचन को मिल गया है।', 'Order ho gaya! Kitchen ko mil gaya hai.'),
+    noStaff: T('Could not reach the staff, please ask at the counter', 'स्टाफ़ तक नहीं पहुँच पाए, कृपया काउंटर पर पूछें', 'Staff tak nahi pahunch paaye, please counter pe poocho'),
+    details: T('Order Details', 'ऑर्डर की जानकारी', 'Order details'),
+    notFound: T('Order not found', 'ऑर्डर नहीं मिला', 'Order nahi mila'),
+    yourOrder: T('Your order', 'आपका ऑर्डर', 'Aapka order'),
+    heldAccept: T('Got it! The cafe will accept your order in a moment, then the kitchen starts.', 'ऑर्डर मिल गया! कैफ़े अभी स्वीकार करेगा, फिर किचन में बनना शुरू होगा।', 'Order mil gaya! Cafe abhi accept karega, phir kitchen mein banna shuru hoga.'),
+    heldTable: T('Got it! A staff member will confirm your table in a moment, then the kitchen starts.', 'ऑर्डर मिल गया! स्टाफ़ अभी आपकी टेबल पक्की करेगा, फिर किचन में बनना शुरू होगा।', 'Order mil gaya! Staff abhi aapki table confirm karega, phir kitchen mein banna shuru hoga.'),
+    cancelled: T('This order was cancelled', 'यह ऑर्डर रद्द हो गया', 'Ye order cancel ho gaya'),
+    reason: T('Reason: {reason}', 'कारण: {reason}', 'Reason: {reason}'),
+    refund: T('You paid {amount}. The staff will return it to you.', 'आपने {amount} दिए थे। स्टाफ़ आपको लौटा देगा।', 'Aapne {amount} diye the. Staff aapko wapas kar dega.'),
+    pointsBack: T('Your {n} points are back in your account.', 'आपके {n} पॉइंट वापस आपके खाते में आ गए।', 'Aapke {n} points wapas aapke account mein aa gaye.'),
+    askStaff: T('Questions? Please ask the staff.', 'कोई सवाल? स्टाफ़ से पूछें।', 'Koi sawaal? Staff se poocho.'),
+    orderAgain: T('Order again', 'फिर से ऑर्डर करें', 'Phir se order karo'),
+    readyCollect: T('Ready! Collect at the counter', 'तैयार! काउंटर से ले लीजिए', 'Ready! Counter se le lo'),
+    yourNumber: T('Your number', 'आपका नंबर', 'Aapka number'),
+    showNumber: T('Show this number at the serving counter', 'यह नंबर सर्विंग काउंटर पर दिखाएँ', 'Ye number serving counter pe dikhao'),
+    watchScreen: T('Watch for it on the screen at the counter', 'काउंटर की स्क्रीन पर इसे देखते रहें', 'Counter ki screen pe isko dekhte raho'),
+    items: T('Order Items', 'ऑर्डर में क्या है', 'Order mein kya hai'),
+    yourBill: T('Your Bill', 'आपका बिल', 'Aapka bill'),
+    subtotal: T('Subtotal', 'सबटोटल', 'Subtotal'),
+    discount: T('Discount ({code})', 'छूट ({code})', 'Discount ({code})'),
+    service: T('Service charge (optional, ask staff to remove) + GST', 'सर्विस चार्ज (वैकल्पिक, हटवाने के लिए स्टाफ़ से कहें) + GST', 'Service charge (optional, hatwane ke liye staff ko bolo) + GST'),
+    roundOff: T('Round off', 'राउंड ऑफ़', 'Round off'),
+    total: T('Total', 'कुल', 'Total'),
+    paid: T('Payment Received - Thank You!', 'पेमेंट हो गया - धन्यवाद!', 'Paid - Thank you!'),
+    qrComing: T('Staff are bringing the UPI QR to your table.', 'स्टाफ़ UPI QR आपकी टेबल पर ला रहा है।', 'Staff UPI QR aapki table pe la raha hai.'),
+    goCounter: T('Please proceed to the counter to complete payment', 'पेमेंट के लिए कृपया काउंटर पर जाएँ', 'Payment ke liye please counter pe jao'),
+    payHow: T('How would you like to pay?', 'पेमेंट कैसे करेंगे?', 'Payment kaise karoge?'),
+    bringBill: T('Bring the bill to my table', 'बिल टेबल पर लाइए', 'Bill table pe laao'),
+    payUpi: T('Pay by UPI at my table', 'टेबल पर UPI से दूँगा', 'Table pe UPI se dunga'),
+    payCounter: T("I'll pay at the counter", 'काउंटर पर दूँगा', 'Counter pe dunga'),
+    billComing: T('The bill is on its way to your table…', 'बिल आपकी टेबल पर आ रहा है…', 'Bill aapki table pe aa raha hai…'),
+    otherWay: T('Rather pay another way?', 'किसी और तरीके से पेमेंट करना है?', 'Kisi aur tarike se payment karna hai?'),
+    info: T('Order Info', 'ऑर्डर की जानकारी', 'Order ki jaankari'),
+    number: T('Order Number', 'ऑर्डर नंबर', 'Order number'),
+    table: T('Table Number', 'टेबल नंबर', 'Table number'),
+    time: T('Order Time', 'ऑर्डर का समय', 'Order ka time'),
+    method: T('Payment Method', 'पेमेंट का तरीका', 'Payment ka tarika'),
+};
+const METHODS = { cash: T('Cash', 'नकद', 'Cash'), card: T('Card', 'कार्ड', 'Card'), upi: T('UPI', 'UPI', 'UPI'), online: T('Online', 'ऑनलाइन', 'Online'), split: T('Split', 'बँटा हुआ', 'Split') };
 
 const OrderDetails = () => {
     const { id } = useParams();
+    const { lang, t } = useCxLang();
     const { socket } = useAuth();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -41,14 +86,14 @@ const OrderDetails = () => {
     useEffect(() => {
         if (!justPlaced || !show('nudgeCelebrate')) return;
         const nth = location.state?.nth;
-        nudge({ kind: `placed-${id}`, icon: '🎉', text: nth > 1 ? `Order placed! That's order #${nth} with us. Thank you!` : 'Order placed! The kitchen has it.' });
+        nudge({ kind: `placed-${id}`, icon: '🎉', text: nth > 1 ? t(W.celebrateNth, { n: nth }) : t(W.celebrate) });
     }, [justPlaced, id]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Bill paid and nothing else open at this table: forget the table, so the next visit scans again
     useEffect(() => {
         if (order?.status !== 'paid' || !order.tableNumber) return;
-        const t = getQrTable();
-        if (!t || t.tableNumber !== order.tableNumber) return;
+        const qt = getQrTable();
+        if (!qt || qt.tableNumber !== order.tableNumber) return;
         getCheckoutInfo().then(r => {
             if (!(r.data?.openAtTable || []).some(x => x.tableNumber === order.tableNumber)) clearQrTable();
         }).catch(() => {});
@@ -113,7 +158,7 @@ const OrderDetails = () => {
         try {
             setOrder((await requestPayment(id, mode)).data);
         } catch (error) {
-            alert(error.response?.data?.message || 'Could not reach the staff, please ask at the counter');
+            alert(error.response?.data?.message || t(W.noStaff));
         }
     };
 
@@ -128,9 +173,9 @@ const OrderDetails = () => {
     if (!order) {
         return (
             <div className="order-details-page">
-                <Header title="Order Details" showBack />
+                <Header title={t(W.details)} showBack />
                 <div className="empty-state">
-                    <p>Order not found</p>
+                    <p>{t(W.notFound)}</p>
                 </div>
             </div>
         );
@@ -138,22 +183,22 @@ const OrderDetails = () => {
 
     return (
         <div className="order-details-page">
-            <Header title="Your order" showBack showCart={false} />
+            <Header title={t(W.yourOrder)} showBack showCart={false} />
 
             {justPlaced && show('nudgeCelebrate') && <Confetti />}
             {order.held && !['paid', 'cancelled'].includes(order.status) && (
-                <div className="held-note">⏳ <span>{order.holdReason === 'accept' ? 'Got it! The cafe will accept your order in a moment, then the kitchen starts.' : 'Got it! A staff member will confirm your table in a moment, then the kitchen starts.'}</span></div>
+                <div className="held-note">⏳ <span>{t(order.holdReason === 'accept' ? W.heldAccept : W.heldTable)}</span></div>
             )}
 
             {order.status === 'cancelled' && (
                 <div className="cancelled-card" role="alert">
-                    <strong>This order was cancelled</strong>
-                    {customerReason(order.cancelReason) && <p>Reason: {customerReason(order.cancelReason)}</p>}
-                    {order.amountPaid > 0 && <p>You paid {inr(order.amountPaid)}. The staff will return it to you.</p>}
-                    {order.pointsRedeemed > 0 && <p>Your {order.pointsRedeemed} points are back in your account.</p>}
-                    <p className="muted">Questions? Please ask the staff.</p>
+                    <strong>{t(W.cancelled)}</strong>
+                    {customerReason(order.cancelReason) && <p>{t(W.reason, { reason: customerReason(order.cancelReason) })}</p>}
+                    {order.amountPaid > 0 && <p>{t(W.refund, { amount: inr(order.amountPaid) })}</p>}
+                    {order.pointsRedeemed > 0 && <p>{t(W.pointsBack, { n: order.pointsRedeemed })}</p>}
+                    <p className="muted">{t(W.askStaff)}</p>
                     {(order.items || []).some(i => i.menuItem && !i.isRestricted) && (
-                        <button className="btn btn-primary btn-full" onClick={orderAgain}>Order again</button>
+                        <button className="btn btn-primary btn-full" onClick={orderAgain}>{t(W.orderAgain)}</button>
                     )}
                 </div>
             )}
@@ -164,9 +209,9 @@ const OrderDetails = () => {
                 const ready = (order.items || []).every(i => ['ready', 'served'].includes(i.kitchenStatus));
                 return (
                     <div className={`pickup-card ${ready ? 'ready' : ''}`}>
-                        <span className="pickup-label">{ready ? 'Ready! Collect at the counter' : 'Your number'}</span>
+                        <span className="pickup-label">{t(ready ? W.readyCollect : W.yourNumber)}</span>
                         <span className="pickup-num">{order.tokenNumber}</span>
-                        <span className="pickup-hint">{ready ? 'Show this number at the serving counter' : 'Watch for it on the screen at the counter'}</span>
+                        <span className="pickup-hint">{t(ready ? W.showNumber : W.watchScreen)}</span>
                     </div>
                 );
             })()}
@@ -178,7 +223,7 @@ const OrderDetails = () => {
 
             {/* Order Items */}
             <div className="order-items-section">
-                <h3>Order Items</h3>
+                <h3>{t(W.items)}</h3>
                 {order.items.map((item, index) => (
                     <div key={index} className="order-item">
                         <div className="order-item-info">
@@ -193,51 +238,51 @@ const OrderDetails = () => {
             {/* Bill Section - Shown when bill is generated */}
             {order.status === 'bill_generated' || order.status === 'paid' ? (
                 <div className="bill-section">
-                    <h3><FiFileText /> Your Bill</h3>
+                    <h3><FiFileText /> {t(W.yourBill)}</h3>
                     <div className="bill-details">
                         <div className="bill-row">
-                            <span>Subtotal</span>
+                            <span>{t(W.subtotal)}</span>
                             <span>₹{order.subtotal.toFixed(2)}</span>
                         </div>
                         {order.discount > 0 && (
                             <div className="bill-row discount">
-                                <span>Discount ({order.couponCode})</span>
+                                <span>{t(W.discount, { code: order.couponCode })}</span>
                                 <span>-₹{order.discount.toFixed(2)}</span>
                             </div>
                         )}
-                        {(order.taxDetails?.length ? order.taxDetails : [{ name: 'GST', rate: order.gstRate, amount: order.tax }]).map(t => (
-                            <div className="bill-row" key={`${t.name}${t.rate}`}>
-                                <span>{t.name} ({t.rate}%)</span>
-                                <span>₹{Number(t.amount).toFixed(2)}</span>
+                        {(order.taxDetails?.length ? order.taxDetails : [{ name: 'GST', rate: order.gstRate, amount: order.tax }]).map(tax => (
+                            <div className="bill-row" key={`${tax.name}${tax.rate}`}>
+                                <span>{tax.name} ({tax.rate}%)</span>
+                                <span>₹{Number(tax.amount).toFixed(2)}</span>
                             </div>
                         ))}
                         {order.serviceCharge > 0 && (
                             <div className="bill-row">
-                                <span>Service charge (optional, ask staff to remove) + GST</span>
+                                <span>{t(W.service)}</span>
                                 <span>₹{(order.serviceCharge + order.serviceChargeTax).toFixed(2)}</span>
                             </div>
                         )}
                         {Math.abs(order.roundOff || 0) > 0.001 && (
                             <div className="bill-row">
-                                <span>Round off</span>
+                                <span>{t(W.roundOff)}</span>
                                 <span>₹{order.roundOff.toFixed(2)}</span>
                             </div>
                         )}
                         <div className="bill-row total">
-                            <span>Total</span>
+                            <span>{t(W.total)}</span>
                             <span>₹{order.total.toFixed(2)}</span>
                         </div>
                     </div>
 
                     {order.status === 'paid' ? (
                         <div className="paid-badge">
-                            <FiCheckCircle /> Payment Received - Thank You!
+                            <FiCheckCircle /> {t(W.paid)}
                         </div>
                     ) : order.paymentRequest === 'qr' ? (
-                        <p className="payment-instruction">Staff are bringing the UPI QR to your table.</p>
+                        <p className="payment-instruction">{t(W.qrComing)}</p>
                     ) : (
                         <p className="payment-instruction">
-                            Please proceed to the counter to complete payment
+                            {t(W.goCounter)}
                         </p>
                     )}
                 </div>
@@ -248,25 +293,25 @@ const OrderDetails = () => {
                 {/* One question, three clear answers */}
                 {order.status === 'served' && !order.paymentRequest && (
                     <div className="pay-choice">
-                        <p>How would you like to pay?</p>
-                        <button onClick={handleRequestBill} className="btn btn-primary btn-full">Bring the bill to my table</button>
-                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">Pay by UPI at my table</button>
-                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">I'll pay at the counter</button>
+                        <p>{t(W.payHow)}</p>
+                        <button onClick={handleRequestBill} className="btn btn-primary btn-full">{t(W.bringBill)}</button>
+                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">{t(W.payUpi)}</button>
+                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">{t(W.payCounter)}</button>
                     </div>
                 )}
 
                 {order.status === 'bill_requested' && (
                     <div className="waiting-message">
                         <div className="spinner"></div>
-                        <p>The bill is on its way to your table…</p>
+                        <p>{t(W.billComing)}</p>
                     </div>
                 )}
 
                 {['bill_requested', 'bill_generated'].includes(order.status) && !order.paymentRequest && (
                     <div className="pay-choice">
-                        <p className="small">Rather pay another way?</p>
-                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">Pay by UPI at my table</button>
-                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">I'll pay at the counter</button>
+                        <p className="small">{t(W.otherWay)}</p>
+                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">{t(W.payUpi)}</button>
+                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">{t(W.payCounter)}</button>
                     </div>
                 )}
             </div>
@@ -275,25 +320,25 @@ const OrderDetails = () => {
 
             {/* Order Info */}
             <div className="order-info-section">
-                <h3>Order Info</h3>
+                <h3>{t(W.info)}</h3>
                 <div className="info-row">
-                    <span>Order Number</span>
+                    <span>{t(W.number)}</span>
                     <span>{order.orderNumber}</span>
                 </div>
                 {order.tableNumber && (
                     <div className="info-row">
-                        <span>Table Number</span>
+                        <span>{t(W.table)}</span>
                         <span>{order.tableNumber}</span>
                     </div>
                 )}
                 <div className="info-row">
-                    <span>Order Time</span>
-                    <span>{new Date(order.createdAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span>{t(W.time)}</span>
+                    <span>{new Date(order.createdAt).toLocaleString(lang === 'hi' ? 'hi-IN' : 'en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 {order.paymentMethod !== 'pending' && (
                     <div className="info-row">
-                        <span>Payment Method</span>
-                        <span className="capitalize">{order.paymentMethod}</span>
+                        <span>{t(W.method)}</span>
+                        <span className="capitalize">{METHODS[order.paymentMethod] ? t(METHODS[order.paymentMethod]) : order.paymentMethod}</span>
                     </div>
                 )}
             </div>

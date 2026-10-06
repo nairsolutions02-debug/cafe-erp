@@ -3,9 +3,22 @@ import { Link } from 'react-router-dom';
 import { FiMapPin, FiPhone, FiMail, FiClock, FiInstagram, FiFacebook } from 'react-icons/fi';
 import './Footer.css';
 import { useBrand } from '../context/BrandContext';
+import useCxLang, { T } from '../lib/cxLang';
+
+const W = {
+    quickLinks: T('Quick Links', 'ज़रूरी लिंक', 'Quick links'),
+    home: T('Home', 'होम', 'Home'),
+    menu: T('Menu', 'मेन्यू', 'Menu'),
+    cart: T('Cart', 'कार्ट', 'Cart'),
+    myOrders: T('My Orders', 'मेरे ऑर्डर', 'Mere order'),
+    contact: T('Contact Us', 'संपर्क करें', 'Contact karo'),
+    hours: T('Hours', 'खुलने का समय', 'Timing'),
+    rights: T('All rights reserved.', 'सर्वाधिकार सुरक्षित।', 'All rights reserved.'),
+};
 
 const Footer = () => {
     const brand = useBrand();
+    const { t } = useCxLang();
     return (
         <footer className="footer">
             <div className="footer-content">
@@ -21,17 +34,17 @@ const Footer = () => {
                 </div>
 
                 <div className="footer-section">
-                    <h4 className="footer-title">Quick Links</h4>
+                    <h4 className="footer-title">{t(W.quickLinks)}</h4>
                     <ul className="footer-links">
-                        <li><Link to="/">Home</Link></li>
-                        <li><Link to="/menu">Menu</Link></li>
-                        <li><Link to="/cart">Cart</Link></li>
-                        <li><Link to="/profile">My Orders</Link></li>
+                        <li><Link to="/">{t(W.home)}</Link></li>
+                        <li><Link to="/menu">{t(W.menu)}</Link></li>
+                        <li><Link to="/cart">{t(W.cart)}</Link></li>
+                        <li><Link to="/profile">{t(W.myOrders)}</Link></li>
                     </ul>
                 </div>
 
                 <div className="footer-section">
-                    <h4 className="footer-title">Contact Us</h4>
+                    <h4 className="footer-title">{t(W.contact)}</h4>
                     <ul className="footer-contact">
                         {brand.address && (
                             <li>
@@ -55,7 +68,7 @@ const Footer = () => {
                 </div>
 
                 <div className="footer-section">
-                    <h4 className="footer-title">Hours</h4>
+                    <h4 className="footer-title">{t(W.hours)}</h4>
                     <ul className="footer-hours">
                         <li>
                             <FiClock className="contact-icon" />
@@ -69,7 +82,7 @@ const Footer = () => {
             </div>
 
             <div className="footer-bottom">
-                <p>© {new Date().getFullYear()} {brand.name}. All rights reserved.</p>
+                <p>© {new Date().getFullYear()} {brand.name}. {t(W.rights)}</p>
             </div>
         </footer>
     );

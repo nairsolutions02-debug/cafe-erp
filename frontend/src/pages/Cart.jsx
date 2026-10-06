@@ -26,6 +26,7 @@ import { usePortal } from '../context/PortalContext';
 import InfoTip from '../components/cx/InfoTip';
 import { getImageUrl } from '../utils/config';
 import './Cart.css';
+import useCxLang, { T, sayReward } from '../lib/cxLang';
 
 const ordinal = (n) => {
     const s = ['th', 'st', 'nd', 'rd'];
@@ -33,8 +34,74 @@ const ordinal = (n) => {
     return n + (s[(v - 20) % 10] || s[v] || s[0]);
 };
 
+const W = {
+    cart: T('Cart', 'कार्ट', 'Cart'),
+    emptyTitle: T('Your cart is empty', 'आपका कार्ट खाली है', 'Aapka cart khaali hai'),
+    emptyText: T('Add some delicious items from our menu', 'हमारे मेन्यू से कुछ स्वादिष्ट चुनें', 'Hamare menu se kuch tasty add karo'),
+    browse: T('Browse Menu', 'मेन्यू देखें', 'Menu dekho'),
+    addMore: T('Add more items', 'और आइटम जोड़ें', 'Aur items add karo'),
+    add: T('Add', 'जोड़ें', 'Add karo'),
+    addCaps: T('ADD', 'जोड़ें', 'ADD'),
+    noItems: T('No items found', 'कोई आइटम नहीं मिला', 'Koi item nahi mila'),
+    yourItems: T('Your Items', 'आपके आइटम', 'Aapke items'),
+    table: T('Table {n}', 'टेबल {n}', 'Table {n}'),
+    aboutTable: T('About your table', 'आपकी टेबल के बारे में', 'Aapki table ke baare mein'),
+    aboutTableText: T(
+        'Set from the QR you scanned. Sharing the table? Friends can scan the same QR and order on their own phones, each with their own bill. Sitting somewhere else? Scan the QR on that table.',
+        'आपने जो QR स्कैन किया, उसी से यह टेबल चुनी गई है। टेबल शेयर कर रहे हैं? दोस्त वही QR स्कैन करके अपने फ़ोन से ऑर्डर कर सकते हैं, हर किसी का अलग बिल। किसी और टेबल पर बैठे हैं? उस टेबल का QR स्कैन करें।',
+        'Yeh table aapke scan kiye QR se set hai. Table share kar rahe ho? Dost wahi QR scan karke apne phone se order kar sakte hain, sabka alag bill. Kisi aur table pe baithe ho? Us table ka QR scan karo.'),
+    comesHere: T('Your order comes to this table', 'आपका ऑर्डर इसी टेबल पर आएगा', 'Aapka order isi table pe aayega'),
+    takeawayInstead: T('Takeaway instead', 'पार्सल चाहिए?', 'Parcel chahiye?'),
+    takeaway: T('Takeaway / pickup', 'पार्सल / पिकअप', 'Parcel / pickup'),
+    scanToServe: T('Sitting at a table? Scan the QR on your table to have it served there.', 'टेबल पर बैठे हैं? अपनी टेबल का QR स्कैन करें, ऑर्डर वहीं आएगा।', 'Table pe baithe ho? Apni table ka QR scan karo, order wahin aayega.'),
+    yourTable: T('Your table', 'आपकी टेबल', 'Aapki table'),
+    noTable: T('Takeaway / no table', 'पार्सल / कोई टेबल नहीं', 'Parcel / koi table nahi'),
+    applyCoupon: T('Apply Coupon', 'कूपन लगाएँ', 'Coupon lagao'),
+    apply: T('Apply', 'लगाएँ', 'Lagao'),
+    remove: T('Remove', 'हटाएँ', 'Hatao'),
+    couponPh: T('Enter coupon code', 'कूपन कोड डालें', 'Coupon code daalo'),
+    invalidCoupon: T('Invalid coupon', 'यह कूपन सही नहीं है', 'Yeh coupon sahi nahi hai'),
+    loyalty: T('Loyalty Rewards', 'अपने पॉइंट इस्तेमाल करें', 'Apne points use karo'),
+    howPoints: T('How points work', 'पॉइंट कैसे काम करते हैं', 'Points kaise kaam karte hain'),
+    howPointsText: T(
+        'You earn points on every paid order. Pick a reward below to spend points on this order; the discount shows in the bill.',
+        'हर पेड ऑर्डर पर आपको पॉइंट मिलते हैं। इस ऑर्डर पर पॉइंट खर्च करने के लिए नीचे कोई रिवॉर्ड चुनें; छूट बिल में दिखेगी।',
+        'Har paid order pe aapko points milte hain. Is order pe points use karne ke liye neeche koi reward chuno; discount bill mein dikhega.'),
+    ptsAvailable: T('{n} pts available', '{n} पॉइंट हैं', '{n} points hain'),
+    nPoints: T('{n} points', '{n} पॉइंट', '{n} points'),
+    noRewards: T('No rewards available at the moment.', 'अभी कोई रिवॉर्ड नहीं है।', 'Abhi koi reward nahi hai.'),
+    seeAll: T('See all {n} rewards', 'सारे {n} रिवॉर्ड देखें', 'Saare {n} rewards dekho'),
+    special: T('Special Instructions', 'कोई खास बात?', 'Koi special request?'),
+    specialPh: T('Any special requests? (Optional)', 'कोई खास बात? (वैकल्पिक)', 'Koi special request? (optional)'),
+    dontForget: T("Don't forget to add", 'यह भी जोड़ें?', 'Yeh bhi add karein?'),
+    forgotWater: T('Forgot Water?', 'पानी भूल गए?', 'Paani bhool gaye?'),
+    forgotSomething: T('Forgot Something?', 'कुछ भूल गए?', 'Kuch bhool gaye?'),
+    upsellAdd: T('Add {name} - ₹{price}', '{name} जोड़ें - ₹{price}', '{name} add karo - ₹{price}'),
+    milestone: T('This will be your {nth} order with us 🎉', 'यह हमारे साथ आपका {nth} ऑर्डर होगा 🎉', 'Yeh hamare saath aapka {nth} order hoga 🎉'),
+    roundNumber: T('A round number! Thanks for being a regular.', 'राउंड नंबर! हमेशा आने के लिए शुक्रिया।', 'Round number! Regular aane ke liye thanks.'),
+    comeBack: T('Thanks for coming back. Every order earns points.', 'फिर से आने के लिए शुक्रिया। हर ऑर्डर पर पॉइंट मिलते हैं।', 'Wapas aane ke liye thanks. Har order pe points milte hain.'),
+    nudgePoints: T('You have enough points to save ₹{amt} on this order', 'आपके पॉइंट से इस ऑर्डर पर ₹{amt} बच सकते हैं', 'Aapke points se is order pe ₹{amt} bach sakte hain'),
+    use: T('Use', 'इस्तेमाल करें', 'Use karo'),
+    usingPoints: T('Using {n} points', '{n} पॉइंट इस्तेमाल हो रहे हैं', '{n} points use ho rahe hain'),
+    enoughPoints: T('You have enough points to pay!', 'आपके पास काफ़ी पॉइंट हैं!', 'Aapke paas kaafi points hain!'),
+    pointsSave: T('{name}: save ₹{amt} for {p} of your {total} points', '{name}: अपने {total} में से {p} पॉइंट देकर ₹{amt} बचाएँ', '{name}: apne {total} mein se {p} points dekar ₹{amt} bachao'),
+    billSummary: T('Bill Summary', 'बिल', 'Bill summary'),
+    subtotal: T('Subtotal', 'कुल (टैक्स से पहले)', 'Subtotal'),
+    couponDiscount: T('Coupon Discount', 'कूपन छूट', 'Coupon discount'),
+    pointsRow: T('Points ({n} pts)', 'पॉइंट से छूट ({n} पॉइंट)', 'Points ({n} points)'),
+    member: T('{name} member {pct}%', '{name} मेंबर {pct}%', '{name} member {pct}%'),
+    clubDiscount: T('Club discount', 'क्लब छूट', 'Club discount'),
+    mrpTax: T('Tax included in MRP items', 'MRP वाले आइटम में टैक्स शामिल है', 'MRP items mein tax shaamil hai'),
+    total: T('Total', 'कुल', 'Total'),
+    placing: T('Placing Order...', 'ऑर्डर हो रहा है…', 'Order ho raha hai…'),
+    placeOrder: T('Place Order • ₹{amt}', 'ऑर्डर करें · ₹{amt}', 'Order karo · ₹{amt}'),
+    placeFailed: T('Failed to place order', 'ऑर्डर नहीं हो पाया', 'Order nahi ho paya'),
+    ok: T('OK', 'ठीक है', 'OK'),
+};
+
 const Cart = () => {
     const navigate = useNavigate();
+    const { lang, t } = useCxLang();
     const { items: cart, updateQuantity, removeItem, clearCart, subtotal: getCartTotal, addItem } = useCart();
     const { isAuthenticated } = useAuth();
     const { cfg, show, nudge } = usePortal();
@@ -213,7 +280,7 @@ const Cart = () => {
             setDiscount(res.data.discount);
             setError('');
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid coupon');
+            setError(err.response?.data?.message || t(W.invalidCoupon));
             setCouponApplied(null);
             setDiscount(0);
         }
@@ -232,7 +299,7 @@ const Cart = () => {
         }
 
         if (cart.length === 0) {
-            setError('Your cart is empty');
+            setError(t(W.emptyTitle));
             return;
         }
 
@@ -259,7 +326,7 @@ const Cart = () => {
             clientId.current = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
             navigate(`/order/${res.data._id}`, { state: { justPlaced: true, nth: checkoutInfo ? checkoutInfo.ordersSoFar + 1 : null } });
         } catch (err) {
-            const msg = err.response?.data?.message || err.message || 'Failed to place order';
+            const msg = err.response?.data?.message || err.message || t(W.placeFailed);
             // The QR code was replaced or the table switched off: forget it so they can scan again
             if (/QR is no longer in use|not in use right now/.test(msg)) clearQrTable();
             setError(msg);
@@ -286,8 +353,8 @@ const Cart = () => {
         if (usableOffer && !usePoints && show('nudgePoints')) {
             nudge({
                 kind: 'points', icon: '🪙',
-                text: `You have enough points to save ₹${Math.min(usableOffer.discountValue, subtotal).toFixed(0)} on this order`,
-                action: { label: 'Use', onClick: () => { setSelectedOffer(usableOffer); setUsePoints(true); } },
+                text: t(W.nudgePoints, { amt: Math.min(usableOffer.discountValue, subtotal).toFixed(0) }),
+                action: { label: t(W.use), onClick: () => { setSelectedOffer(usableOffer); setUsePoints(true); } },
             });
         }
     }, [usableOffer?._id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -295,13 +362,13 @@ const Cart = () => {
     if (cart.length === 0) {
         return (
             <div className="cart-page">
-                <Header title="Cart" showBack showCart={false} />
+                <Header title={t(W.cart)} showBack showCart={false} />
                 <div className="empty-cart">
                     <div className="empty-cart-icon"><FiShoppingCart /></div>
-                    <h2>Your cart is empty</h2>
-                    <p>Add some delicious items from our menu</p>
+                    <h2>{t(W.emptyTitle)}</h2>
+                    <p>{t(W.emptyText)}</p>
                     <button onClick={() => navigate('/menu')} className="btn btn-primary">
-                        Browse Menu
+                        {t(W.browse)}
                     </button>
                 </div>
             </div>
@@ -310,13 +377,13 @@ const Cart = () => {
 
     return (
         <div className="cart-page">
-            <Header title="Cart" showBack showCart={false} />
+            <Header title={t(W.cart)} showBack showCart={false} />
 
             <div className="cart-content">
                 {/* Search Bar */}
                 <div className="cart-search-section">
                     <div className="cart-search-header">
-                        <h3>Add more items</h3>
+                        <h3>{t(W.addMore)}</h3>
                     </div>
                     <AnimatedSearchInput
                         value={searchTerm}
@@ -351,13 +418,13 @@ const Cart = () => {
                                                     setSearchResults([]);
                                                 }}
                                             >
-                                                <FiPlus /> Add
+                                                <FiPlus /> {t(W.add)}
                                             </button>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                isSearching && <div className="no-results">No items found</div>
+                                isSearching && <div className="no-results">{t(W.noItems)}</div>
                             )}
                         </div>
                     )}
@@ -365,7 +432,7 @@ const Cart = () => {
 
                 {/* Cart Items */}
                 <div className="cart-section">
-                    <h3 className="section-title">Your Items</h3>
+                    <h3 className="section-title">{t(W.yourItems)}</h3>
                     <div className="cart-items">
                         {cart.map(item => (
                             <div key={item._id} className="cart-item">
@@ -404,15 +471,15 @@ const Cart = () => {
                             <span className="tb-pin">{qrTable ? <FiMapPin /> : <FiShoppingBag />}</span>
                             {qrTable ? (
                                 <span className="tb-copy">
-                                    <strong>Table {qrTable.tableNumber}
-                                        <InfoTip label="About your table">Set from the QR you scanned. Sharing the table? Friends can scan the same QR and order on their own phones, each with their own bill. Sitting somewhere else? Scan the QR on that table.</InfoTip>
+                                    <strong>{t(W.table, { n: qrTable.tableNumber })}
+                                        <InfoTip label={t(W.aboutTable)}>{t(W.aboutTableText)}</InfoTip>
                                     </strong>
-                                    <small>Your order comes to this table · <button className="link-btn-sm" onClick={clearQrTable}>Takeaway instead</button></small>
+                                    <small>{t(W.comesHere)} · <button className="link-btn-sm" onClick={clearQrTable}>{t(W.takeawayInstead)}</button></small>
                                 </span>
                             ) : (
                                 <span className="tb-copy">
-                                    <strong>Takeaway / pickup</strong>
-                                    <small>Sitting at a table? Scan the QR on your table to have it served there.</small>
+                                    <strong>{t(W.takeaway)}</strong>
+                                    <small>{t(W.scanToServe)}</small>
                                 </span>
                             )}
                         </div>
@@ -420,11 +487,11 @@ const Cart = () => {
                 )}
                 {tableMode === 'pick' && (
                     <div className="cart-section">
-                        <h3 className="section-title">Your table</h3>
+                        <h3 className="section-title">{t(W.yourTable)}</h3>
                         <select value={selectedTable} onChange={(e) => setSelectedTable(e.target.value)} className="table-select">
-                            <option value="">Takeaway / no table</option>
+                            <option value="">{t(W.noTable)}</option>
                             {tables.map(table => (
-                                <option key={table._id} value={table._id}>Table {table.tableNumber}</option>
+                                <option key={table._id} value={table._id}>{t(W.table, { n: table.tableNumber })}</option>
                             ))}
                         </select>
                     </div>
@@ -432,14 +499,14 @@ const Cart = () => {
 
                 {/* Coupon Section */}
                 <div className="cart-section">
-                    <h3 className="section-title">Apply Coupon</h3>
+                    <h3 className="section-title">{t(W.applyCoupon)}</h3>
                     {couponApplied ? (
                         <div className="coupon-applied">
                             <div className="coupon-info">
                                 <span className="coupon-code-tag">{couponApplied.code}</span>
                                 <span className="coupon-discount">-₹{discount.toFixed(2)}</span>
                             </div>
-                            <button onClick={removeCoupon} className="remove-coupon-btn">Remove</button>
+                            <button onClick={removeCoupon} className="remove-coupon-btn">{t(W.remove)}</button>
                         </div>
                     ) : (
                         <>
@@ -448,8 +515,8 @@ const Cart = () => {
                                 {myCoupons.slice(0, 3).map(c => (
                                     <button key={c.code} type="button" className="my-gift" onClick={() => handleApplyCoupon(c.code)}>
                                         <span>{/birthday/i.test(c.title) ? '🎂' : '🎁'}</span>
-                                        <span className="my-gift-text"><b>{c.reward}</b><small>{c.title}</small></span>
-                                        <span className="my-gift-apply">Apply</span>
+                                        <span className="my-gift-text"><b>{sayReward(c.reward, lang)}</b><small>{c.title}</small></span>
+                                        <span className="my-gift-apply">{t(W.apply)}</span>
                                     </button>
                                 ))}
                             </div>
@@ -459,11 +526,11 @@ const Cart = () => {
                                 type="text"
                                 value={couponCode}
                                 onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                placeholder="Enter coupon code"
+                                placeholder={t(W.couponPh)}
                                 className="coupon-input"
                             />
                             <button onClick={handleApplyCoupon} className="apply-btn">
-                                Apply
+                                {t(W.apply)}
                             </button>
                         </div>
                         </>
@@ -474,10 +541,10 @@ const Cart = () => {
                 {isAuthenticated && loyaltyPoints && (
                     <div className="cart-section loyalty-section">
                         <div className="loyalty-header">
-                            <h3 className="section-title"><FiAward /> Loyalty Rewards
-                                <InfoTip label="How points work">You earn points on every paid order. Pick a reward below to spend points on this order; the discount shows in the bill.</InfoTip>
+                            <h3 className="section-title"><FiAward /> {t(W.loyalty)}
+                                <InfoTip label={t(W.howPoints)}>{t(W.howPointsText)}</InfoTip>
                             </h3>
-                            <span className="points-balance">{loyaltyPoints.currentPoints} pts available</span>
+                            <span className="points-balance">{t(W.ptsAvailable, { n: loyaltyPoints.currentPoints })}</span>
                         </div>
 
                         <div className="loyalty-offers-list">
@@ -500,7 +567,7 @@ const Cart = () => {
                                     >
                                         <div className="offer-info">
                                             <span className="offer-name">{offer.name}</span>
-                                            <span className="offer-cost"><FiAward /> {offer.pointsRequired} points</span>
+                                            <span className="offer-cost"><FiAward /> {t(W.nPoints, { n: offer.pointsRequired })}</span>
                                         </div>
                                         <div className="offer-action">
                                             {loyaltyPoints.currentPoints < offer.pointsRequired ? (
@@ -512,10 +579,10 @@ const Cart = () => {
                                     </div>
                                 ))
                             ) : (
-                                <p className="no-offers-text">No rewards available at the moment.</p>
+                                <p className="no-offers-text">{t(W.noRewards)}</p>
                             )}
                             {!allOffers && shortOfferList(loyaltyOffers, { keepId: selectedOffer?._id }).hidden > 0 && (
-                                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAllOffers(true)}>See all {loyaltyOffers.length} rewards</button>
+                                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAllOffers(true)}>{t(W.seeAll, { n: loyaltyOffers.length })}</button>
                             )}
                         </div>
                     </div>
@@ -523,11 +590,11 @@ const Cart = () => {
 
                 {/* Special Instructions */}
                 <div className="cart-section">
-                    <h3 className="section-title">Special Instructions</h3>
+                    <h3 className="section-title">{t(W.special)}</h3>
                     <textarea
                         value={specialInstructions}
                         onChange={(e) => setSpecialInstructions(e.target.value)}
-                        placeholder="Any special requests? (Optional)"
+                        placeholder={t(W.specialPh)}
                         className="instructions-input"
                         rows={2}
                     />
@@ -536,7 +603,7 @@ const Cart = () => {
                 {/* Recommendations */}
                 {recommendations.length > 0 && (
                     <div className="cart-section">
-                        <h3 className="section-title">💡 Don't forget to add</h3>
+                        <h3 className="section-title">💡 {t(W.dontForget)}</h3>
                         <div className="recommendations-scroll">
                             {recommendations.map(item => (
                                 <div key={item._id} className="recommend-card">
@@ -547,7 +614,7 @@ const Cart = () => {
                                             className="recommend-add-btn"
                                             onClick={() => addItem(item)}
                                         >
-                                            ADD
+                                            {t(W.addCaps)}
                                         </button>
                                     </div>
                                 </div>
@@ -565,8 +632,8 @@ const Cart = () => {
                                     <FiDroplet />
                                 </div>
                                 <div className="water-text">
-                                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>Forgot {upsellItem.name.includes('Water') ? 'Water?' : 'Something?'}</h4>
-                                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Add {upsellItem.name} - ₹{upsellItem.price}</span>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-primary)' }}>{t(upsellItem.name.includes('Water') ? W.forgotWater : W.forgotSomething)}</h4>
+                                    <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{t(W.upsellAdd, { name: upsellItem.name, price: upsellItem.price })}</span>
                                 </div>
                             </div>
                             <button
@@ -574,7 +641,7 @@ const Cart = () => {
                                 className="btn btn-sm btn-outline-primary"
                                 style={{ padding: '6px 12px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '4px' }}
                             >
-                                <FiPlus /> Add
+                                <FiPlus /> {t(W.add)}
                             </button>
                         </div>
                     </div>
@@ -585,8 +652,8 @@ const Cart = () => {
                     <div className="cx-card milestone-card">
                         <span className="milestone-badge">#{nth}</span>
                         <span className="cx-card-copy">
-                            <strong>This will be your {ordinal(nth)} order with us 🎉</strong>
-                            <small>{nth % 5 === 0 ? 'A round number! Thanks for being a regular.' : 'Thanks for coming back. Every order earns points.'}</small>
+                            <strong>{t(W.milestone, { nth: lang === 'hi' ? `${nth}वाँ` : ordinal(nth) })}</strong>
+                            <small>{t(nth % 5 === 0 ? W.roundNumber : W.comeBack)}</small>
                         </span>
                     </div>
                 )}
@@ -601,16 +668,16 @@ const Cart = () => {
                         }}>
                         <span className="pc-coin" aria-hidden="true">🪙</span>
                         <span className="pc-copy">
-                            <strong>{usePoints && selectedOffer?._id === usableOffer._id ? `Using ${usableOffer.pointsRequired} points` : 'You have enough points to pay!'}</strong>
-                            <small>{usableOffer.name}: save ₹{Math.min(usableOffer.discountValue, subtotal).toFixed(0)} for {usableOffer.pointsRequired} of your {loyaltyPoints.currentPoints} points</small>
+                            <strong>{usePoints && selectedOffer?._id === usableOffer._id ? t(W.usingPoints, { n: usableOffer.pointsRequired }) : t(W.enoughPoints)}</strong>
+                            <small>{t(W.pointsSave, { name: usableOffer.name, amt: Math.min(usableOffer.discountValue, subtotal).toFixed(0), p: usableOffer.pointsRequired, total: loyaltyPoints.currentPoints })}</small>
                         </span>
-                        <span className="pc-btn">{usePoints && selectedOffer?._id === usableOffer._id ? 'Remove' : 'Use'}</span>
+                        <span className="pc-btn">{usePoints && selectedOffer?._id === usableOffer._id ? t(W.remove) : t(W.use)}</span>
                     </button>
                 )}
 
                 {/* Bill Summary */}
                 <div className="cart-section bill-section">
-                    <h3 className="section-title">Bill Summary</h3>
+                    <h3 className="section-title">{t(W.billSummary)}</h3>
 
                     {/* Itemized Product List */}
                     <div className="bill-items-list">
@@ -628,32 +695,32 @@ const Cart = () => {
                     <div className="bill-divider"></div>
 
                     <div className="bill-row">
-                        <span>Subtotal</span>
+                        <span>{t(W.subtotal)}</span>
                         <span>₹{subtotal.toFixed(2)}</span>
                     </div>
                     {(quote ? quote.couponDiscount : discount) > 0 && (
                         <div className="bill-row discount-row">
-                            <span>Coupon Discount</span>
+                            <span>{t(W.couponDiscount)}</span>
                             <span>-₹{(quote ? quote.couponDiscount : discount).toFixed(2)}</span>
                         </div>
                     )}
                     {usePoints && (quote ? quote.offerDiscount : pointsDiscount) > 0 && (
                         <div className="bill-row points-row">
-                            <span><FiAward /> Points ({pointsUsed} pts)</span>
+                            <span><FiAward /> {t(W.pointsRow, { n: pointsUsed })}</span>
                             <span>-₹{(quote ? quote.offerDiscount : pointsDiscount).toFixed(2)}</span>
                         </div>
                     )}
                     {quote?.clubDiscount > 0 && (
                         <div className="bill-row discount-row">
                             <span>{[quote.club?.tierAmount > 0 && `${quote.club.tier} ${quote.club.tierPct}%`,
-                                quote.club?.memberAmount > 0 && `${quote.club.member} member ${quote.club.memberPct}%`].filter(Boolean).join(' + ') || 'Club discount'}</span>
+                                quote.club?.memberAmount > 0 && t(W.member, { name: quote.club.member, pct: quote.club.memberPct })].filter(Boolean).join(' + ') || t(W.clubDiscount)}</span>
                             <span>-₹{Number(quote.clubDiscount).toFixed(2)}</span>
                         </div>
                     )}
-                    {quote ? quote.taxDetails.map(t => (
-                        <div className="bill-row" key={`${t.name}-${t.rate}`}>
-                            <span>{t.name} ({t.rate}%)</span>
-                            <span>₹{Number(t.amount).toFixed(2)}</span>
+                    {quote ? quote.taxDetails.map(tx => (
+                        <div className="bill-row" key={`${tx.name}-${tx.rate}`}>
+                            <span>{tx.name} ({tx.rate}%)</span>
+                            <span>₹{Number(tx.amount).toFixed(2)}</span>
                         </div>
                     )) : (
                         <div className="bill-row">
@@ -663,12 +730,12 @@ const Cart = () => {
                     )}
                     {quote && subtotal - shownDiscount + tax - total > 0.009 && (
                         <div className="bill-row muted-row">
-                            <span>Tax included in MRP items</span>
+                            <span>{t(W.mrpTax)}</span>
                             <span></span>
                         </div>
                     )}
                     <div className="bill-row total-row">
-                        <span>Total</span>
+                        <span>{t(W.total)}</span>
                         <span>₹{total.toFixed(2)}</span>
                     </div>
                 </div>
@@ -681,7 +748,7 @@ const Cart = () => {
                     className="place-order-btn"
                     disabled={loading || cart.length === 0}
                 >
-                    {loading ? 'Placing Order...' : `Place Order • ₹${total.toFixed(2)}`}
+                    {loading ? t(W.placing) : t(W.placeOrder, { amt: total.toFixed(2) })}
                 </button>
             </div>
 
@@ -692,7 +759,7 @@ const Cart = () => {
                         <div className="error-icon"><FiAlertTriangle /></div>
                         <p className="error-text">{error}</p>
                         <button className="error-close-btn" onClick={() => setError('')}>
-                            OK
+                            {t(W.ok)}
                         </button>
                     </div>
                 </div>

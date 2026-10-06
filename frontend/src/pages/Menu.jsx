@@ -13,7 +13,23 @@ import BannerCarousel from '../components/cx/BannerCarousel';
 import ItemSheet from '../components/cx/ItemSheet';
 import './Menu.css';
 
+import useCxLang, { T } from '../lib/cxLang';
+
 const ITEMS_PER_PAGE = 10;
+
+const W = {
+    menu: T('Menu', 'मेन्यू', 'Menu'),
+    hints: T(
+        ['Search for Masala Dosa...', 'Try our famous Idli...', 'Looking for Vada?', 'Search Uttapam...', 'Find your favorite dish...'],
+        ['मसाला डोसा खोजें...', 'हमारी मशहूर इडली चखें...', 'वड़ा चाहिए?', 'उत्तपम खोजें...', 'अपनी पसंद की डिश खोजें...'],
+        ['Masala Dosa dhoondho...', 'Hamari famous Idli try karo...', 'Vada chahiye?', 'Uttapam dhoondho...', 'Apni favourite dish dhoondho...'],
+    ),
+    searchLabel: T('Search the menu…', 'मेन्यू में खोजें…', 'Menu mein dhoondho…'),
+    all: T('All', 'सब', 'Sab'),
+    noItems: T('No items found', 'कोई आइटम नहीं मिला', 'Koi item nahi mila'),
+    tryOther: T('Try selecting a different category', 'कोई दूसरी कैटेगरी चुनकर देखें', 'Koi aur category choose karke dekho'),
+    seenAll: T("You've seen all items!", 'आपने सारे आइटम देख लिए!', 'Saare items dekh liye!'),
+};
 
 const Menu = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -27,6 +43,7 @@ const Menu = () => {
     const [hasMore, setHasMore] = useState(true);
     const [page, setPage] = useState(1);
     const { show } = usePortal();
+    const { t } = useCxLang();
     const [sheetItem, setSheetItem] = useState(null);
 
     // A banner linking to an item opens its sheet (/menu?item=<id>)
@@ -189,19 +206,13 @@ const Menu = () => {
     };
 
     // Animated placeholder for search
-    const placeholderTexts = [
-        "Search for Masala Dosa...",
-        "Try our famous Idli...",
-        "Looking for Vada?",
-        "Search Uttapam...",
-        "Find your favorite dish...",
-    ];
+    const placeholderTexts = t(W.hints);
     const [placeholderIndex, setPlaceholderIndex] = React.useState(0);
     const [displayPlaceholder, setDisplayPlaceholder] = React.useState('');
     const [isTyping, setIsTyping] = React.useState(true);
 
     React.useEffect(() => {
-        const currentText = placeholderTexts[placeholderIndex];
+        const currentText = placeholderTexts[placeholderIndex % placeholderTexts.length] || '';
         const charIndex = displayPlaceholder.length;
 
         const timer = setTimeout(() => {
@@ -233,7 +244,7 @@ const Menu = () => {
 
     return (
         <div className="menu-page">
-            <Header title="Menu" showBack />
+            <Header title={t(W.menu)} showBack />
 
             <AnnouncementStrip />
             {!selectedCategory && !searchParams.get('search') && <BannerCarousel />}
@@ -245,6 +256,7 @@ const Menu = () => {
                     <input
                         type="text"
                         placeholder={displayPlaceholder}
+                        aria-label={t(W.searchLabel)}
                         value={menuSearch}
                         onChange={handleSearchChange}
                         className="menu-search-input"
@@ -267,7 +279,7 @@ const Menu = () => {
                     }}>
                         <FiGrid size={24} style={{ color: !selectedCategory ? 'var(--primary)' : 'var(--text-secondary)' }} />
                     </div>
-                    <span className="category-name">All</span>
+                    <span className="category-name">{t(W.all)}</span>
                 </div>
                 <div className="horizontal-scroll hide-scrollbar" style={{ marginLeft: 0, flex: 1 }}>
                     {categories.map(cat => (
@@ -290,8 +302,8 @@ const Menu = () => {
                 ) : menuItems.length === 0 ? (
                     <div className="empty-state">
                         <div className="empty-state-icon"><FiAlertCircle /></div>
-                        <p className="empty-state-title">No items found</p>
-                        <p className="empty-state-text">Try selecting a different category</p>
+                        <p className="empty-state-title">{t(W.noItems)}</p>
+                        <p className="empty-state-text">{t(W.tryOther)}</p>
                     </div>
                 ) : (
                     <>
@@ -316,7 +328,7 @@ const Menu = () => {
                         {/* End of list indicator */}
                         {!hasMore && menuItems.length > ITEMS_PER_PAGE && (
                             <div className="end-of-list">
-                                <span><FiCheck /> You've seen all items!</span>
+                                <span><FiCheck /> {t(W.seenAll)}</span>
                             </div>
                         )}
                     </>

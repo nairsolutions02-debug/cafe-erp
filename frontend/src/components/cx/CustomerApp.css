@@ -232,3 +232,86 @@
 }
 .nudge.important { background: #7f1d1d; }
 .nudge.important .nudge-timer { background: #fca5a5; }
+
+/* Language: chips on the welcome card and Profile, a small button in the header */
+.cx-lang-chips {
+    display: flex;
+    gap: 6px;
+}
+
+.cx-lang-chips button {
+    flex: 1;
+    padding: 8px 4px;
+    border: 1.5px solid var(--border, #eadfd2);
+    border-radius: 10px;
+    background: var(--bg-card, #fff);
+    color: var(--text-primary, #2b1d12);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cx-lang-chips button.on {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+.cx-lang {
+    position: relative;
+}
+
+.cx-lang-btn {
+    border: 0;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    font: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (max-width: 480px) {
+    .cx-lang-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 0.72rem;
+    }
+}
+
+.cx-lang-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    min-width: 130px;
+    padding: 6px;
+    border-radius: 12px;
+    background: var(--bg-card, #fff);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18);
+}
+
+.cx-lang-menu button {
+    padding: 9px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    color: var(--text-primary, #2b1d12);
+    font: inherit;
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.cx-lang-menu button.on {
+    background: color-mix(in srgb, var(--primary) 12%, transparent);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Hindi dish name in the item sheet (Hindi language only) */
+.item-sheet .dish-name-hi { display: block; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); margin-top: -6px; }
