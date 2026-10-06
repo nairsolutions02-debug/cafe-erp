@@ -4,6 +4,40 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Full-screen order alert: the order on screen, Accept in one tap, bills ring too (2026-10-06)
+
+Built from the approved demo.
+
+**What's new**
+
+| Area | Change |
+| --- | --- |
+| The alert | A new QR / table order fills the screen with the table, customer, every dish with its note, the total and how they want to pay. No need to open Orders to see what came in |
+| Accept | One tap. A held first order (when “Staff confirm a table's first order” is on) goes to the kitchen; any other order is marked accepted. The alert closes on every screen |
+| Bill requests | A customer tapping Request bill now rings a blue full-screen alert with the amount due (it did not ring before). UPI / counter payment requests show the same way. **Take payment** opens Orders with the payment window already open |
+| Stacking | Several orders at once show as chips at the top; tap a chip to see that order. The browser tab title flashes “(2) …” |
+| Escalation | Not answered after the escalation minutes (default 5): the screen flashes faster, the sound gets louder and quicker, and a note says the owner has been alerted |
+| Snooze | 5 or 10 minutes; it comes back if nobody has acted on it by then |
+| Per screen | Bell → “Full-screen order alerts on this screen” can be switched off on a screen that should stay calm (it still gets the bell and a short sound). Never shows on the Kiosk |
+
+**Deploy**
+
+1. Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-order-alert.sql` → Run → Success.
+2. Vercel redeploys from `main` by itself. No new APK.
+
+**Test checklist**
+- [ ] Staff phone or laptop open on Admin. From another phone, place a QR order: the full-screen alert shows the table, dishes and total, with sound
+- [ ] Tap Accept: the alert closes; Orders shows it accepted; with “confirm first order” on, it now appears in Kitchen
+- [ ] Place two orders quickly: two chips at the top; each can be accepted
+- [ ] Customer taps Request bill: a blue alert with “To pay ₹…”; Take payment opens the payment window for that order
+- [ ] Customer taps Request bill again: no second alert
+- [ ] Leave an alert for 5 minutes: it flashes faster and louder; the owner gets the escalation
+- [ ] Snooze 5 min: it closes and comes back after 5 minutes if still open
+- [ ] Bell → untick “Full-screen order alerts on this screen”: next order rings briefly, no full screen
+- [ ] Kiosk screen: never shows the alert
+
+---
+
 ## Help layer: ⓘ buttons on 42 settings and a guided tour per role (2026-10-06)
 
 Built from the approved demo (“i” buttons and a guided tour).

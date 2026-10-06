@@ -157,7 +157,7 @@ export const TIPS = {
     // Settings → Alerts
     alert_style: { guide: 'alerts', who: OWNER,
         t: T('Alert style', 'अलर्ट का तरीका', 'Alert ka tarika'),
-        d: T('Alarm: whole screen with sound until someone taps Acknowledge. Loud: rings once. Normal: shows on the bell only. Off: nothing.', 'Alarm: पूरी स्क्रीन, आवाज़ के साथ, Acknowledge तक। Loud: एक बार बजता है। Normal: सिर्फ़ घंटी पर। Off: कुछ नहीं।', 'Alarm: poori screen, awaaz ke saath, Acknowledge tak. Loud: ek baar bajta hai. Normal: sirf ghanti pe. Off: kuch nahi.'),
+        d: T('Alarm: whole screen with the order and sound until someone acts on it (Accept, Take payment). Loud: rings once. Normal: shows on the bell only. Off: nothing.', 'Alarm: पूरी स्क्रीन, आवाज़ के साथ, Acknowledge तक। Loud: एक बार बजता है। Normal: सिर्फ़ घंटी पर। Off: कुछ नहीं।', 'Alarm: poori screen, awaaz ke saath, Acknowledge tak. Loud: ek baar bajta hai. Normal: sirf ghanti pe. Off: kuch nahi.'),
         ex: T('Counter laptop: New order = Alarm. Owner phone: New order = Normal.', 'काउंटर लैपटॉप: New order = Alarm। मालिक का फ़ोन: New order = Normal।', 'Counter laptop: New order = Alarm. Owner phone: New order = Normal.') },
     quiet_hours: { guide: 'alerts', who: OWNER,
         t: T('Quiet hours', 'शांत समय', 'Quiet hours'),

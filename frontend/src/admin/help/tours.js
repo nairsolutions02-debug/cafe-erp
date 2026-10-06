@@ -9,9 +9,9 @@ const HELP = { at: 'help', t: T('Help is always here', 'मदद हमेश�
 const THEME = { at: 'theme', t: T('Light or dark', 'लाइट या डार्क', 'Light ya dark'),
     d: T('One tap switches this screen. Each phone and laptop keeps its own choice.', 'एक टैप से यह स्क्रीन बदलती है। हर फ़ोन और लैपटॉप अपनी पसंद रखता है।', 'Ek tap se yeh screen badalti hai. Har phone aur laptop apni pasand rakhta hai.') };
 const SOUND = { at: 'bell', t: T('Alerts and sound', 'अलर्ट और आवाज़', 'Alert aur awaaz'),
-    d: T('New orders and important alerts arrive here; big ones fill the screen until someone taps Acknowledge. Tap the screen once after opening the app so the sound can play.',
-        'नए ऑर्डर और ज़रूरी अलर्ट यहाँ आते हैं; बड़े अलर्ट Acknowledge दबाने तक पूरी स्क्रीन पर रहते हैं। ऐप खोलने के बाद स्क्रीन एक बार छुएँ ताकि आवाज़ बज सके।',
-        'Naye order aur zaroori alert yahan aate hain; bade alert Acknowledge dabane tak poori screen pe rehte hain. App kholne ke baad screen ek baar chhuo taaki awaaz baj sake.') };
+    d: T('New orders and bill requests fill the screen with the dishes and amount until someone taps Accept or Take payment. Tap the screen once after opening the app so the sound can play.',
+        'नए ऑर्डर और बिल की माँग डिश और रकम के साथ पूरी स्क्रीन पर रहते हैं, जब तक कोई Accept या Take payment न दबाए। ऐप खोलने के बाद स्क्रीन एक बार छुएँ ताकि आवाज़ बज सके।',
+        'Naye order aur bill ki maang dish aur amount ke saath poori screen pe rehte hain, jab tak koi Accept ya Take payment na dabaye. App kholne ke baad screen ek baar chhuo taaki awaaz baj sake.') };
 
 export const TOURS = {
     owner: [

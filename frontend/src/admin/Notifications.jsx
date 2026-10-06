@@ -1,9 +1,10 @@
-import { createPortal } from 'react-dom';
 import { playTones, soundReady, unlockSound, onSoundReady } from '../lib/sound';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import OrderAlert from './alerts/OrderAlert';
+import { fullScreenAlertsHere, setFullScreenAlertsHere } from './alerts/alertsHere';
 import { FiBell, FiVolumeX } from 'react-icons/fi';
-import { getMyNotifications, ackNotification, runDailyReminders, getMyNotificationPrefs, runRewardChecks } from '../utils/api';
+import { getMyNotifications, ackNotification, runDailyReminders, getMyNotificationPrefs, runRewardChecks, getSettings } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import './pos/POS.css';
 
@@ -18,22 +19,27 @@ const ago = (iso) => {
 // A looping alarm tone made in the browser (no sound file needed)
 function useAlarmTone() {
     const timer = useRef(null);
+    const fast = useRef(false);
     const stop = useCallback(() => {
         clearInterval(timer.current);
         timer.current = null;
     }, []);
-    const start = useCallback(() => {
-        if (timer.current) return;
+    // fastMode: an alert left unanswered rings faster and louder
+    const start = useCallback((fastMode = false) => {
+        if (timer.current && fast.current === fastMode) return;
+        clearInterval(timer.current);
+        fast.current = fastMode;
         const ring = () => {
-            playTones([[0, 990], [0.2, 660], [0.4, 990]]);
-            if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.([300, 100, 300]);
+            playTones([[0, 990], [0.2, 660], [0.4, 990]], 0.16, fast.current ? 0.55 : 0.3);
+            if (navigator.userActivation?.hasBeenActive) navigator.vibrate?.(fast.current ? [400, 100, 400, 100, 400] : [300, 100, 300]);
         };
         ring();
-        timer.current = setInterval(ring, 1500);
+        timer.current = setInterval(ring, fastMode ? 800 : 1500);
     }, []);
     useEffect(() => stop, [stop]);
     return useMemo(() => ({ start, stop }), [start, stop]);
 }
+
 
 // Until someone taps the page the browser keeps alarms silent: say so, one tap fixes it
 function SoundChip() {
@@ -53,11 +59,19 @@ const Notifications = () => {
     const navigate = useNavigate();
     const [items, setItems] = useState([]);
     const [open, setOpen] = useState(false);
-    const [alarm, setAlarm] = useState(null);
+    // Alarm-level alerts waiting for someone: they stack, oldest first
+    const [queue, setQueue] = useState([]);
     const [prefs, setPrefs] = useState(null);
+    const [escMinutes, setEscMinutes] = useState(5);
+    const [here, setHere] = useState(fullScreenAlertsHere);
+    const { pathname } = useLocation();
+    const onKiosk = pathname.startsWith('/admin/kiosk');
     const snoozed = useRef({});
     const tone = useAlarmTone();
 
+    useEffect(() => {
+        getSettings().then(r => setEscMinutes(Number(r.data.escalation_minutes) || 5)).catch(() => {});
+    }, []);
     useEffect(() => {
         const loadPrefs = () => getMyNotificationPrefs().then(r => setPrefs(r.data)).catch(() => {});
         loadPrefs();
@@ -97,7 +111,7 @@ const Notifications = () => {
             if (!n) return;
             const style = styleFor(n);
             if (style === 'alarm' && !n.acknowledgedAt) {
-                setAlarm(n);
+                setQueue(q => (q.some(x => x.id === n.id) ? q : [...q, n]));
                 tone.start();
             } else if (style === 'loud') {
                 tone.start();
@@ -108,18 +122,49 @@ const Notifications = () => {
         return () => socket.off('notification', onNew);
     }, [socket, load, tone, styleFor]);
 
-    // Snoozed alarms ring again if nobody has acknowledged them
-    const snooze = (minutes) => {
-        tone.stop();
-        const n = alarm;
-        setAlarm(null);
+    // Snoozed alarms come back if nobody has acknowledged them
+    const snooze = (n, minutes) => {
+        setQueue(q => q.filter(x => x.id !== n.id));
         snoozed.current[n.id] = setTimeout(async () => {
             const list = await load();
             const again = list.find(x => x.id === n.id);
-            if (again && !again.acknowledgedAt) { setAlarm(again); tone.start(); }
+            if (again && !again.acknowledgedAt) { setQueue(q => (q.some(x => x.id === again.id) ? q : [...q, again])); tone.start(); }
         }, minutes * 60000);
     };
     useEffect(() => () => Object.values(snoozed.current).forEach(clearTimeout), []);
+
+    // While alerts wait, check every 15 s: one handled on another screen leaves this one too
+    useEffect(() => {
+        if (!queue.length) { tone.stop(); return undefined; }
+        const id = setInterval(async () => {
+            const list = await load();
+            setQueue(q => q.filter(x => { const now = list.find(y => y.id === x.id); return now && !now.acknowledgedAt; }));
+        }, 15000);
+        return () => clearInterval(id);
+    }, [queue.length, load, tone]);
+
+    // The browser tab title flashes while alerts wait, so a laptop on another tab notices
+    useEffect(() => {
+        if (!queue.length) return undefined;
+        const base = document.title;
+        let k = 0;
+        const id = setInterval(() => { k += 1; document.title = k % 2 ? `(${queue.length}) ${queue[0].title}` : base; }, 1000);
+        return () => { clearInterval(id); document.title = base; };
+    }, [queue]);
+
+    const done = useCallback(async (n) => {
+        setQueue(q => q.filter(x => x.id !== n.id));
+        await ackNotification(n.id).catch(() => {});
+        // an escalation also closes the alert it was about
+        if (n.payload?.from) await ackNotification(n.payload.from).catch(() => {});
+        load();
+    }, [load]);
+    const onEscalated = useCallback((esc) => { tone.start(esc); }, [tone]);
+    // Not full screen on this device (or the Kiosk): ring briefly, keep it on the bell
+    useEffect(() => {
+        if (queue.length && (!here || onKiosk)) { const id = setTimeout(() => tone.stop(), 3000); return () => clearTimeout(id); }
+        return undefined;
+    }, [queue.length, here, onKiosk, tone]);
 
     const unread = items.filter(n => styleFor(n) !== 'off' && !n.acknowledgedAt && Date.now() - new Date(n.createdAt).getTime() < 864e5).length;
 
@@ -129,15 +174,6 @@ const Notifications = () => {
         load();
         if (n.link) navigate(n.link);
     };
-    const acknowledge = async () => {
-        tone.stop();
-        const n = alarm;
-        setAlarm(null);
-        await ackNotification(n.id).catch(() => {});
-        load();
-        if (n.link) navigate(n.link);
-    };
-
     return (
         <div className="bell">
             <SoundChip />
@@ -147,6 +183,10 @@ const Notifications = () => {
             {open && (
                 <div className="bell-list">
                     {items.length === 0 && <p className="bell-item">No alerts yet.</p>}
+                    <label className="bell-here">
+                        <input type="checkbox" checked={here} onChange={e => { setFullScreenAlertsHere(e.target.checked); setHere(e.target.checked); }} />
+                        Full-screen order alerts on this screen
+                    </label>
                     {items.map(n => (
                         <button key={n.id} className={`bell-item${n.acknowledgedAt ? '' : ' unread'}`} onClick={() => openItem(n)}>
                             <strong>{n.title}</strong>
@@ -157,17 +197,9 @@ const Notifications = () => {
                 </div>
             )}
             {/* Drawn on <body> so it covers the whole screen, side menu included, even in full screen */}
-            {alarm && createPortal(
-                <div className="alarm-overlay" role="alertdialog" aria-label={alarm.title}>
-                    <FiBell size={64} />
-                    <h2>{alarm.title}</h2>
-                    {alarm.body && <p>{alarm.body}</p>}
-                    <button onClick={acknowledge}>Acknowledge</button>
-                    <div className="alarm-snooze">
-                        {[5, 10, 15].map(m => <button key={m} onClick={() => snooze(m)}>Snooze {m} min</button>)}
-                    </div>
-                </div>,
-                document.body,
+            {queue.length > 0 && here && !onKiosk && (
+                <OrderAlert queue={queue} items={items} escMinutes={escMinutes} onDone={done} onSnooze={snooze}
+                    onOpen={(n, link) => link && navigate(link)} onEscalated={onEscalated} />
             )}
         </div>
     );

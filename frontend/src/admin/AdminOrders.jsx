@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter, FiMove, FiUsers } from 'react-icons/fi';
 import { getActiveOrders, updateOrderStatus, settleOrder, cancelOrder, removeServiceCharge, confirmTableOrder, moveOrderTable, getTables } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -155,9 +156,18 @@ const AdminOrders = () => {
     const [selectedOrdersForBill, setSelectedOrdersForBill] = useState([]);
     const [showBill, setShowBill] = useState(false);
     const isPhone = useIsPhone();
+    const [params, setParams] = useSearchParams();
     useEffect(() => {
         fetchOrders();
     }, []);
+    // ?pay=<order id> (from the full-screen alert's Take payment) opens that order's payment once
+    const payFor = params.get('pay');
+    useEffect(() => {
+        if (!payFor || loading) return;
+        const o = orders.find(x => String(x._id) === payFor);
+        setParams({}, { replace: true });
+        if (o && hasPerm('orders.edit')) setSettling(o);
+    }, [payFor, loading, orders, setParams, hasPerm]);
 
     useEffect(() => {
         if (socket) {

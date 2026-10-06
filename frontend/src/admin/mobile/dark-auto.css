@@ -523,6 +523,34 @@
         background: hsl(36 45% 17%);
     }
 
+    /* admin/alerts/OrderAlert.css */
+    .theme-dark .oa-queue button {
+        border: 1px solid var(--d-line);
+    }
+
+    .theme-dark .oa-queue button[aria-current="true"] {
+        background: var(--d-surface);
+        color: hsl(0 63% 72%);
+    }
+
+    .theme-dark .oa.bill .oa-queue button[aria-current="true"] {
+        color: hsl(224 64% 72%);
+    }
+
+    .theme-dark .oa-error {
+        background: var(--d-surface);
+        color: hsl(0 70% 72%);
+    }
+
+    .theme-dark .oa-actions .go {
+        background: var(--d-surface);
+        color: hsl(144 61% 72%);
+    }
+
+    .theme-dark .oa-actions .snz {
+        border: 1px solid var(--d-line);
+    }
+
     /* admin/brand/Brand.css */
     .theme-dark .bl-field input,
     .theme-dark .bl-field textarea {
