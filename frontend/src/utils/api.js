@@ -246,6 +246,7 @@ export const createOrder = async (data) => {
         p_loyalty_offer_id: data.pointsUsed && data.loyaltyOfferId ? data.loyaltyOfferId : null,
         p_table_code: data.tableCode || null,
         p_client_id: data.clientId || null,
+        p_points_cash: !!data.pointsCash && !data.loyaltyOfferId,
     });
     return getOrder(id);
 };
@@ -537,6 +538,7 @@ const LOYALTY_SETTINGS = {
     pointsPerRupee: ['points_per_rupee', 'num'], minOrderForPoints: ['min_order_for_points', 'num'],
     pointsToRupeeRatio: ['points_to_rupee_ratio', 'num'], minPointsToRedeem: ['min_points_to_redeem', 'int'],
     maxRedemptionPercent: ['max_redemption_percent', 'num'], isActive: ['is_active', 'bool'],
+    pointsAsCash: ['points_as_cash', 'bool'], dealsOn: ['deals_on', 'bool'],
 };
 const LOYALTY_OFFER = {
     name: ['name', 'text'], description: ['description', 'text'], pointsRequired: ['points_required', 'int'],
@@ -591,8 +593,10 @@ export const searchOrders = async (params = {}) => ok(await rpc('search_orders',
 // ---------------------------------------------------------------------------
 // Phase 0: exact bill preview, global search, staff and roles, catalogue, audit
 // ---------------------------------------------------------------------------
-export const quoteOrder = async (items, couponCode = '', loyaltyOfferId = null) =>
-    ok(await rpc('quote_order', { p_items: items, p_coupon_code: couponCode || '', p_loyalty_offer_id: loyaltyOfferId }));
+export const quoteOrder = async (items, couponCode = '', loyaltyOfferId = null, pointsCash = false) =>
+    ok(await rpc('quote_order', { p_items: items, p_coupon_code: couponCode || '', p_loyalty_offer_id: loyaltyOfferId, p_points_cash: !!pointsCash && !loyaltyOfferId }));
+// Cafe settings the customer app follows: ways to pay, pickup card colours, points rules
+export const getCustomerScreen = async () => ok(await rpc('customer_screen'));
 
 export const globalSearch = async (query) => ok(await rpc('global_search', { p_query: query }));
 

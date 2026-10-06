@@ -42,6 +42,10 @@ export const W = {
         ready: T('Ready', 'तैयार', 'Ready'), served: T('Served', 'दे दिया', 'De diya'), bill_requested: T('Wants bill', 'बिल माँगा', 'Bill maanga'),
         bill_generated: T('Bill given', 'बिल दिया', 'Bill diya'),
     },
+    find: T('Find an order', 'ऑर्डर खोजें', 'Order dhoondo'),
+    findPh: T('Find: token, name, order no., phone', 'खोजें: टोकन, नाम, ऑर्डर नं., फ़ोन', 'Dhoondo: token, naam, order no., phone'),
+    clearFind: T('Clear search', 'खोज हटाएँ', 'Search hatao'),
+    noMatch: T('No order matches this search.', 'इस खोज से कोई ऑर्डर नहीं मिला।', 'Is search se koi order nahi mila.'),
     items: T('items', 'आइटम', 'items'),
     pay: T('Pay', 'पेमेंट', 'Pay'),
     // Kitchen

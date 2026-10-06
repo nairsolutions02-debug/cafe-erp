@@ -80,6 +80,10 @@ const AdminBrand = () => {
             f.corners = CORNERS.some(([k]) => k === r.data[THEME_KEYS.corners]) ? r.data[THEME_KEYS.corners] : DEFAULT_THEME.corners;
             f.font = FONTS.includes(r.data[THEME_KEYS.font]) ? r.data[THEME_KEYS.font] : DEFAULT_THEME.font;
             f.cxMode = CX_MODES.some(([k]) => k === r.data[THEME_KEYS.cxMode]) ? r.data[THEME_KEYS.cxMode] : DEFAULT_THEME.cxMode;
+            // The big pickup number card on customers' phones: empty = the standard look
+            const pc = r.data.pickup_colors && typeof r.data.pickup_colors === 'object' ? r.data.pickup_colors : {};
+            f.pickupReady = isHex(str(pc.ready)) ? str(pc.ready).toUpperCase() : '';
+            f.pickupWait = isHex(str(pc.wait)) ? str(pc.wait).toUpperCase() : '';
             setForm(f); setSaved(f);
         }).catch(err => setMsg({ type: 'error', text: errorText(err) }));
     }, []);
@@ -112,6 +116,7 @@ const AdminBrand = () => {
             await saveSettingsBatch({
                 ...Object.fromEntries(Object.entries(BRAND_KEYS).map(([field, key]) => [key, clean[field]])),
                 ...Object.fromEntries(Object.entries(THEME_KEYS).map(([field, key]) => [key, clean[field]])),
+                pickup_colors: { ready: clean.pickupReady || '', wait: clean.pickupWait || '' },
             });
             setForm(clean); setSaved(clean);
             brandChanged();
@@ -183,6 +188,29 @@ const AdminBrand = () => {
                                 {canEdit && <button type="button" className="btn btn-primary btn-sm" onClick={() => setTheme({ main: deeper(theme.main) })}>Use a deeper shade ({deeper(theme.main)})</button>}
                             </div>
                         )}
+                    </section>
+                    <section className="bl-sec">
+                        <h2>Pickup card<InfoTip k="pickup_colors" /></h2>
+                        <p className="muted small">The big number customers see on their phone while their order is made and when it is ready. White text sits on it, so pick a deep colour.</p>
+                        <div className="bl-row2">
+                            {[['pickupReady', 'When it is ready', '#16A34A'], ['pickupWait', 'While it is being made', '#D97706']].map(([k, label, std]) => {
+                                const c = form[k] || std;
+                                return (
+                                    <div key={k} className="bl-pick-card">
+                                        <label className="bl-picker" htmlFor={`bl-${k}`}>
+                                            <input id={`bl-${k}`} type="color" value={c} disabled={!canEdit} onChange={e => setTheme({ [k]: e.target.value.toUpperCase() })} />
+                                            <span>{label}<code>{form[k] || 'standard'}</code></span>
+                                        </label>
+                                        <div className="bl-pick-prev" style={{ background: form[k] ? `linear-gradient(135deg, ${c}, color-mix(in srgb, ${c} 70%, #000))` : undefined }}
+                                            data-std={form[k] ? undefined : (k === 'pickupReady' ? 'ready' : 'wait')}>
+                                            <small>{k === 'pickupReady' ? 'READY! COLLECT AT THE COUNTER' : 'YOUR NUMBER'}</small><b>Q1</b>
+                                        </div>
+                                        {form[k] && contrast(c, '#ffffff') < 3 && <p className="bl-check bad small">White text is hard to read on this colour; pick a deeper one.</p>}
+                                        {form[k] && canEdit && <button type="button" className="btn btn-ghost btn-sm" onClick={() => setTheme({ [k]: '' })}>Use the standard look</button>}
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </section>
                     <section className="bl-sec">
                         <h2>Look</h2>

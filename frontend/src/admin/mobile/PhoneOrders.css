@@ -60,3 +60,24 @@
 .po-grid button { min-height: 48px; border: 1.5px solid #E6D9C6; background: white; border-radius: 13px; font: inherit; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; color: var(--text-primary); }
 .po-cancel { border: 0; background: none; color: #B42318; font: inherit; font-weight: 600; font-size: 0.88rem; padding: 10px; cursor: pointer; }
 @media (prefers-reduced-motion: reduce) { .po-sheet { animation: none; } .po-in { transition: none; } }
+
+/* Hand-over (2026-10-06): find box, larger token, ready cards glow, order number tail stands out */
+.po-find { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 6px 0 12px; border: 1.5px solid #E6D9C6; border-radius: 14px; background: white; color: var(--text-muted); }
+.po-find:focus-within { border-color: var(--primary); }
+.po-find input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; font-size: 1rem; color: var(--text-primary); padding: 10px 0; }
+.po-find input::-webkit-search-cancel-button { display: none; }
+.po-find-x { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: #F4EDE2; color: var(--text-secondary); display: grid; place-items: center; cursor: pointer; }
+.po-in { grid-template-columns: 64px minmax(0, 1fr); }
+.po-tok { width: 64px; height: 64px; }
+.po-tok b { font-size: 1.45rem; max-width: 60px; }
+.po-card.s-ready .po-in { box-shadow: 0 0 0 2px #16A34A, 0 0 0 5px color-mix(in srgb, #16A34A 25%, transparent); }
+.po-card.s-ready { margin: 3px 0; }
+.po-oid { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.95rem; font-weight: 800; color: var(--text-primary); letter-spacing: 0.02em; }
+
+@media screen {
+    .theme-dark .po-find { background: var(--d-surface-2); border-color: var(--d-line); color: var(--d-muted); }
+    .theme-dark .po-find input { color: var(--d-ink); }
+    .theme-dark .po-find-x { background: var(--d-surface); color: var(--d-ink-2); }
+    .theme-dark .po-card.s-ready .po-in { box-shadow: 0 0 0 2px var(--d-ok), 0 0 0 5px color-mix(in srgb, var(--d-ok) 25%, transparent); }
+    .theme-dark .po-oid { color: var(--d-ink); }
+}

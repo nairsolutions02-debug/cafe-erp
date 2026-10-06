@@ -204,40 +204,57 @@ const AdminLoyalty = () => {
                     </div>
 
                     <div className="settings-card">
-                        <h2>🎁 Redemption Rules</h2>
+                        <h2>🎁 How customers spend points</h2>
+                        <label className="toggle-setting">
+                            <input type="checkbox" checked={settings.dealsOn !== false}
+                                onChange={e => setSettings({ ...settings, dealsOn: e.target.checked })} />
+                            <span><b>Deals</b> — the rewards you create in the Deals/Offers tab (e.g. 900 points → ₹50 off)</span>
+                        </label>
+                        <label className="toggle-setting">
+                            <input type="checkbox" checked={!!settings.pointsAsCash}
+                                onChange={e => setSettings({ ...settings, pointsAsCash: e.target.checked })} />
+                            <span><b>Points as cash</b> — customers turn points into money off at checkout, by the rules below<InfoTip k="points_cash" /></span>
+                        </label>
                         <div className="settings-grid">
                             <div className="setting-item">
-                                <label>Points to ₹ Ratio<InfoTip k="points_ratio" /></label>
+                                <label>Points for ₹1<InfoTip k="points_ratio" /></label>
                                 <input
                                     type="number"
                                     value={settings.pointsToRupeeRatio}
                                     onChange={e => setSettings({ ...settings, pointsToRupeeRatio: Number(e.target.value) })}
                                     min="1"
                                 />
-                                <small>e.g., 10 = 10 points = ₹1 discount</small>
+                                <small>e.g. 10 = 10 points are worth ₹1. Also shows customers what their points are worth.</small>
                             </div>
-                            <div className="setting-item">
-                                <label>Minimum Points to Redeem<InfoTip k="points_min_redeem" /></label>
-                                <input
-                                    type="number"
-                                    value={settings.minPointsToRedeem}
-                                    onChange={e => setSettings({ ...settings, minPointsToRedeem: Number(e.target.value) })}
-                                    min="0"
-                                />
-                                <small>Minimum points needed to redeem</small>
-                            </div>
-                            <div className="setting-item">
-                                <label>Max Redemption %<InfoTip k="points_max_pct" /></label>
-                                <input
-                                    type="number"
-                                    value={settings.maxRedemptionPercent}
-                                    onChange={e => setSettings({ ...settings, maxRedemptionPercent: Number(e.target.value) })}
-                                    min="0"
-                                    max="100"
-                                />
-                                <small>Max % of order payable with points</small>
-                            </div>
+                            {settings.pointsAsCash && (
+                                <>
+                                    <div className="setting-item">
+                                        <label>Minimum points to use<InfoTip k="points_min_redeem" /></label>
+                                        <input
+                                            type="number"
+                                            value={settings.minPointsToRedeem}
+                                            onChange={e => setSettings({ ...settings, minPointsToRedeem: Number(e.target.value) })}
+                                            min="0"
+                                        />
+                                        <small>Below this, points can't be used as cash yet</small>
+                                    </div>
+                                    <div className="setting-item">
+                                        <label>Max % of the bill<InfoTip k="points_max_pct" /></label>
+                                        <input
+                                            type="number"
+                                            value={settings.maxRedemptionPercent}
+                                            onChange={e => setSettings({ ...settings, maxRedemptionPercent: Number(e.target.value) })}
+                                            min="1"
+                                            max="100"
+                                        />
+                                        <small>Most of one bill that points can pay</small>
+                                    </div>
+                                </>
+                            )}
                         </div>
+                        {settings.dealsOn === false && !settings.pointsAsCash && (
+                            <p className="error-message small">Customers can earn points but not spend them. Switch on Deals or Points as cash.</p>
+                        )}
                     </div>
 
                     <div className="settings-card">

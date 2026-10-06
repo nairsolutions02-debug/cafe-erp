@@ -67,3 +67,26 @@
     .ca-banner-thumb { grid-column: 1 / -1; }
     .ca-card { padding: 14px; }
 }
+
+/* How customers pay */
+.ca-pay {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border, #eadfd2);
+}
+
+.ca-pay:last-child {
+    border-bottom: 0;
+}
+
+.ca-pay-texts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 6px;
+}
+
+@media (max-width: 700px) {
+    .ca-pay-texts {
+        grid-template-columns: 1fr;
+    }
+}

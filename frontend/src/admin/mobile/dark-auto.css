@@ -643,6 +643,12 @@
         border: 2px solid var(--d-line);
     }
 
+    .theme-dark .bl-pick-prev[data-std="wait"] {
+        background: hsl(35 45% 17%);
+        color: hsl(24 38% 72%);
+        border: 1px solid var(--d-line);
+    }
+
     /* admin/club/Club.css */
     .theme-dark .cb-tag {
         background: hsl(43 45% 17%);
@@ -956,6 +962,15 @@
 
     .theme-dark .po-cancel {
         color: hsl(4 76% 72%);
+    }
+
+    .theme-dark .po-find {
+        border: 1.5px solid var(--d-line);
+        background: var(--d-surface);
+    }
+
+    .theme-dark .po-find-x {
+        background: hsl(37 45% 17%);
     }
 
     /* admin/mobile/mobile.css */

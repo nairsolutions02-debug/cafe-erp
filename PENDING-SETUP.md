@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-06)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -92,3 +92,6 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 ## 20. Customer app in Hindi and Hinglish (2026-10-06)
 - [x] 20.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-customer-lang.sql` → Run → Success (until this runs, saving a menu item in Admin shows an error)
 - [x] 20.2 (skipped by the owner, 2026-10-06) (optional) Admin → Menu → Items → open your top dishes → fill **Name in Hindi** (e.g. मसाला डोसा) → Save
+
+## 21. Hand-over, pay options and points as cash (2026-10-06)
+- [ ] 21.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-handover-pay.sql` → Run → Success (until this runs, placing an order and the order page show an error on the live site)

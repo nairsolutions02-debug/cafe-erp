@@ -5,7 +5,7 @@ import Header from '../components/Header';
 import OrderStatus from '../components/OrderStatus';
 import DishFeedback from '../components/DishFeedback';
 import { useAuth } from '../context/AuthContext';
-import { getOrder, requestBill, requestPayment, getCheckoutInfo } from '../utils/api';
+import { getOrder, requestBill, requestPayment, getCheckoutInfo, getCustomerScreen } from '../utils/api';
 import { usePortal } from '../context/PortalContext';
 import { clearQrTable, getQrTable } from '../lib/qrTable';
 import Confetti from '../components/cx/Confetti';
@@ -65,6 +65,11 @@ const OrderDetails = () => {
     const { lang, t } = useCxLang();
     const { socket } = useAuth();
     const [order, setOrder] = useState(null);
+    // The cafe's ways to pay (on/off, own words) and pickup card colours
+    const [screen, setScreen] = useState(null);
+    useEffect(() => { getCustomerScreen().then(r => setScreen(r.data)).catch(() => {}); }, []);
+    const payOn = (k) => screen?.pay?.[k]?.on !== false;
+    const payText = (k, std) => (screen?.pay?.[k]?.text?.[lang] || '').trim() || t(std);
     const [loading, setLoading] = useState(true);
     const location = useLocation();
     const { show, nudge } = usePortal();
@@ -207,10 +212,13 @@ const OrderDetails = () => {
             {order.tokenNumber && !order.tableNumber && order.status !== 'cancelled'
                 && (order.items || []).some(i => i.kitchenStatus !== 'served') && (() => {
                 const ready = (order.items || []).every(i => ['ready', 'served'].includes(i.kitchenStatus));
+                const pc = screen?.pickupColors || {};
                 return (
-                    <div className={`pickup-card ${ready ? 'ready' : ''}`}>
+                    <div className={`pickup-card ${ready ? 'ready' : ''} ${(ready ? pc.ready : pc.wait) ? 'tinted' : ''}`}
+                        style={(ready ? pc.ready : pc.wait) ? { background: `linear-gradient(135deg, ${ready ? pc.ready : pc.wait}, color-mix(in srgb, ${ready ? pc.ready : pc.wait} 70%, #000))`, borderColor: 'transparent' } : undefined}>
                         <span className="pickup-label">{t(ready ? W.readyCollect : W.yourNumber)}</span>
                         <span className="pickup-num">{order.tokenNumber}</span>
+                        <span className="pickup-oid">{String(order.orderNumber).replace(/[^-]+$/, '')}<b>{String(order.orderNumber).match(/[^-]+$/)?.[0]}</b></span>
                         <span className="pickup-hint">{t(ready ? W.showNumber : W.watchScreen)}</span>
                     </div>
                 );
@@ -294,9 +302,9 @@ const OrderDetails = () => {
                 {order.status === 'served' && !order.paymentRequest && (
                     <div className="pay-choice">
                         <p>{t(W.payHow)}</p>
-                        <button onClick={handleRequestBill} className="btn btn-primary btn-full">{t(W.bringBill)}</button>
-                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">{t(W.payUpi)}</button>
-                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">{t(W.payCounter)}</button>
+                        {[['bill', W.bringBill, handleRequestBill], ['upi', W.payUpi, () => handlePay('qr')], ['counter', W.payCounter, () => handlePay('counter')]]
+                            .filter(([k]) => payOn(k))
+                            .map(([k, std, go], i) => <button key={k} onClick={go} className={`btn ${i === 0 ? 'btn-primary' : 'btn-secondary'} btn-full`}>{payText(k, std)}</button>)}
                     </div>
                 )}
 
@@ -307,11 +315,11 @@ const OrderDetails = () => {
                     </div>
                 )}
 
-                {['bill_requested', 'bill_generated'].includes(order.status) && !order.paymentRequest && (
+                {['bill_requested', 'bill_generated'].includes(order.status) && !order.paymentRequest && (payOn('upi') || payOn('counter')) && (
                     <div className="pay-choice">
                         <p className="small">{t(W.otherWay)}</p>
-                        <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">{t(W.payUpi)}</button>
-                        <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">{t(W.payCounter)}</button>
+                        {payOn('upi') && <button onClick={() => handlePay('qr')} className="btn btn-secondary btn-full">{payText('upi', W.payUpi)}</button>}
+                        {payOn('counter') && <button onClick={() => handlePay('counter')} className="btn btn-secondary btn-full">{payText('counter', W.payCounter)}</button>}
                     </div>
                 )}
             </div>

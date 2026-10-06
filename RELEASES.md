@@ -4,6 +4,30 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Hand-over, pay options and points as cash (2026-10-06)
+
+Built from the approved demo ("aligned, go green").
+
+| Area | Change |
+| --- | --- |
+| Customer pickup card | The "Ready" and "Being prepared" cards use colours the owner picks (Admin → Brand → Pickup card, with a preview and a contrast warning). The order number shows under the token, last part large (e.g. ORD-261006-**D8B239**) |
+| Staff Orders (laptop + phone) | Big token band with name, status colour and order-number tail; a Find box (token, name, table, order number); chips All / Ready to hand over / Cooking / New / Unpaid with counts; ready orders on top. No change to the flow |
+| How customers pay | Admin → Customer app → How customers pay: switch Bring the bill / UPI at the table / Pay at the counter on or off (one always stays on) and write your own text in English, Hindi and Hinglish. The server also refuses a switched-off way |
+| Points | Customers → Points → Settings → "How customers spend points": Deals on/off, and **Points as cash** (off by default). When on, the cart shows "Use points as cash" using Points for ₹1, the minimum points and the max % of the bill |
+
+**Deploy**
+1. Supabase → SQL Editor → paste `supabase/upgrades/2026-10-handover-pay.sql` → Run → Success (needed before the new site works: checkout and the order page call the new functions)
+2. Vercel redeploys from `main`
+
+**Test checklist**
+- [ ] Admin → Brand → Pickup card: pick colours → Save → a customer order page shows them while waiting and when ready, with the order number under the token
+- [ ] Orders (laptop and phone): Find by token or the last part of the order number; chips count right; ready orders on top
+- [ ] Admin → Customer app → How customers pay: switch UPI off → the customer order page no longer shows it; change the counter text → it shows in each language
+- [ ] Points settings: turn Points as cash on → cart shows "Use points as cash" → order saves the discount and takes the points; turn Deals off → offers list hides
+- [ ] Points as cash off (default) → the cart is as before
+
+---
+
 ## Customer app on laptops: Home, Menu and Rewards in the header (2026-10-06)
 
 Reported by the owner: on a laptop the Rewards page (and Menu) could not be reached, while the phone showed them in the bottom bar.

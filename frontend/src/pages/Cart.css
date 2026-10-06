@@ -799,3 +799,53 @@
 .my-gift-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .my-gift-text small { color: var(--text-muted); font-size: .76rem; }
 .my-gift-apply { font-weight: 700; color: #A61E58; }
+
+/* Points as cash: one card above the rewards list */
+.loyalty-cash {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    margin: 4px 0 12px;
+    padding: 12px;
+    border: 1.5px dashed var(--border, #eadfd2);
+    border-radius: 12px;
+    background: var(--bg-card, #fff);
+    color: var(--text-primary);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.loyalty-cash.on {
+    border-style: solid;
+    border-color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+.loyalty-cash:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.loyalty-cash .lc-icon {
+    font-size: 1.4rem;
+}
+
+.loyalty-cash .lc-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.loyalty-cash .lc-text small {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+.loyalty-cash .lc-btn {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--primary);
+}

@@ -106,3 +106,39 @@
 .bl-preview.bl-cx-dark .bl-dev:first-child .bl-foot { color: #BBA88F; border-color: #3A3027; }
 .bl-preview.bl-cx-dark .bl-dev:first-child .bl-foot b { color: #F5EBDD; }
 .bl-preview.bl-cx-dark .bl-dev:first-child .bl-item small { color: color-mix(in srgb, var(--primary) 62%, white); }
+
+/* Pickup card colours */
+.bl-pick-card {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.bl-pick-prev {
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    color: #fff;
+}
+
+.bl-pick-prev[data-std="ready"] {
+    background: linear-gradient(135deg, #22C55E, #15803D);
+}
+
+.bl-pick-prev[data-std="wait"] {
+    background: #FFF8EE;
+    color: #4E3423;
+    border: 1px solid #EADFD2;
+}
+
+.bl-pick-prev small {
+    display: block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.bl-pick-prev b {
+    font-size: 1.8rem;
+    font-weight: 800;
+}

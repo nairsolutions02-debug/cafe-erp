@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { FiCreditCard, FiPrinter, FiFileText, FiMove, FiUsers, FiX, FiAlertTriangle } from 'react-icons/fi';
+import { FiCreditCard, FiPrinter, FiFileText, FiMove, FiUsers, FiX, FiAlertTriangle, FiSearch } from 'react-icons/fi';
 import { inr } from '../pos/money';
 import useMenuLang, { tableToken } from './useMenuLang';
 import { W } from './staffText';
@@ -10,6 +10,21 @@ const due = (o) => Math.max(0, Math.round((o.total - (o.amountPaid || 0)) * 100)
 const mins = (o) => Math.max(0, Math.floor((Date.now() - new Date(o.createdAt).getTime()) / 60000));
 const ageCls = (m) => (m >= 15 ? 'late' : m >= 8 ? 'warn' : '');
 const tokenOf = (o) => (o.tableNumber ? tableToken(o.tableNumber) : o.tokenNumber || o.orderNumber.slice(-4));
+const digits = (v) => String(v || '').replace(/\D/g, '');
+// Find box: token, customer name, any part of the order number, or phone digits
+const matches = (o, q) => {
+    const s = q.trim().toLowerCase();
+    if (!s) return true;
+    if ([tokenOf(o), o.tokenNumber, o.user?.name, o.orderNumber].some(v => v && String(v).toLowerCase().includes(s))) return true;
+    const d = digits(s);
+    return /^[\d\s+-]+$/.test(s) && d.length >= 3 && digits(o.user?.phone).includes(d);
+};
+// ORD-261006-F0E034 → ORD-261006-<b>F0E034</b>
+const OrderNo = ({ n }) => {
+    const s = String(n || '');
+    const i = s.lastIndexOf('-');
+    return <>{s.slice(0, i + 1)}<b className="po-oid">{s.slice(i + 1)}</b></>;
+};
 const NEXT_WORD = { pending: 'confirm', confirmed: 'start', preparing: 'markReady', ready: 'served', bill_requested: 'makeBill' };
 
 const FILTERS = [
@@ -26,13 +41,14 @@ const PhoneOrders = ({ orders, canEdit, canMoney, hasNext, onNext, onPay, onCanc
     const { t } = useMenuLang();
     const [filter, setFilter] = useState(null);
     const [sheet, setSheet] = useState(null);
+    const [find, setFind] = useState('');
     const [, tick] = useState(0);
     useEffect(() => { const t = setInterval(() => tick(n => n + 1), 30000); return () => clearInterval(t); }, []);
 
     const counts = Object.fromEntries(FILTERS.map(([k, , fn]) => [k, orders.filter(fn).length]));
     const view = filter || (counts.action > 0 ? 'action' : 'all');
     const fn = FILTERS.find(([k]) => k === view)[2];
-    const list = orders.filter(fn).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    const list = orders.filter(o => fn(o) && matches(o, find)).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     const open = sheet && orders.find(o => o._id === sheet);
 
     // The one next step for a card, or null
@@ -49,6 +65,12 @@ const PhoneOrders = ({ orders, canEdit, canMoney, hasNext, onNext, onPay, onCanc
 
     return (
         <div className="po">
+            <label className="po-find">
+                <FiSearch aria-hidden="true" />
+                <input type="search" value={find} onChange={e => setFind(e.target.value)} placeholder={t(W.findPh)} aria-label={t(W.find)}
+                    enterKeyHint="search" autoComplete="off" />
+                {find && <button type="button" className="po-find-x" aria-label={t(W.clearFind)} onClick={() => setFind('')}><FiX /></button>}
+            </label>
             <div className="po-chips" role="group" aria-label="Filter orders">
                 {FILTERS.map(([k, label]) => (
                     <button key={k} type="button" aria-pressed={view === k} className={k === 'action' && counts.action ? 'hot' : ''} onClick={() => setFilter(k)}>
@@ -58,7 +80,7 @@ const PhoneOrders = ({ orders, canEdit, canMoney, hasNext, onNext, onPay, onCanc
             </div>
 
             {list.length === 0 ? (
-                <div className="po-empty"><span aria-hidden="true">☕</span>{t(view === 'all' ? W.noOrders : W.allClear)}</div>
+                <div className="po-empty"><span aria-hidden="true">☕</span>{t(find.trim() ? W.noMatch : view === 'all' ? W.noOrders : W.allClear)}</div>
             ) : (
                 <>
                     {canEdit && <p className="po-hint">{t(W.hint)}</p>}
@@ -145,7 +167,7 @@ const Sheet = ({ o, t, step, canEdit, groups, onClose, act, onPay, onCancel, onM
                     <span className="po-tok"><b>{tokenOf(o)}</b><small>{CHANNEL[o.channel] || 'QR'}</small></span>
                     <span className="po-sh-who">
                         <b>{o.user?.name || (o.tableNumber ? `${t(W.table)} ${o.tableNumber}` : t(W.walkIn))}</b>
-                        <small>{o.orderNumber} · {mins(o)} {t(W.minAgo)}{o.user?.phone ? ` · ${o.user.phone}` : ''}{o.staffName ? ` · ${o.staffName}` : ''}</small>
+                        <small><OrderNo n={o.orderNumber} /> · {mins(o)} {t(W.minAgo)}{o.user?.phone ? ` · ${o.user.phone}` : ''}{o.staffName ? ` · ${o.staffName}` : ''}</small>
                     </span>
                     <button type="button" className="po-x" aria-label="Close" onClick={onClose}><FiX /></button>
                 </div>

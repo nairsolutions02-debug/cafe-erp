@@ -138,6 +138,13 @@ const bannerStatus = (b) => {
 };
 
 // Admin → Menu → Customer app: tables and QR behaviour, banners, announcement, what customers see, reminders
+// Ways a customer can pay once the food is served; the words are the standard ones the customer app uses
+const PAY_WAYS = [
+    ['bill', 'Bring the bill to the table', { en: 'Bring the bill to my table', hi: 'बिल टेबल पर लाइए', hg: 'Bill table pe laao' }],
+    ['upi', 'UPI QR at the table', { en: 'Pay by UPI at my table', hi: 'टेबल पर UPI से दूँगा', hg: 'Table pe UPI se dunga' }],
+    ['counter', 'Pay at the counter', { en: "I'll pay at the counter", hi: 'काउंटर पर दूँगा', hg: 'Counter pe dunga' }],
+];
+
 const AdminCustomerApp = () => {
     const { hasPerm } = useAuth();
     const { refresh } = usePortal();
@@ -151,6 +158,7 @@ const AdminCustomerApp = () => {
     const [categories, setCategories] = useState([]);
     const [editing, setEditing] = useState(null);
     const [msg, setMsg] = useState('');
+    const [pay, setPay] = useState(null);
 
     useEffect(() => {
         (async () => {
@@ -160,6 +168,8 @@ const AdminCustomerApp = () => {
             setTables(cfg.data.tables || {});
             setBanners(Array.isArray(s.data.portal_banners) ? s.data.portal_banners : []);
             setAnnounce({ on: false, text: '', ...(s.data.portal_announcement || {}) });
+            const po = s.data.pay_options && typeof s.data.pay_options === 'object' ? s.data.pay_options : {};
+            setPay(Object.fromEntries(PAY_WAYS.map(([k]) => [k, { on: po[k]?.on !== false, text: { en: '', hi: '', hg: '', ...(po[k]?.text || {}) } }])));
             getAllMenuItems().then(r => setItems(r.data.filter(i => i.soldInShop !== false && !i.isRestricted))).catch(() => {});
             getAllCategories().then(r => setCategories(r.data)).catch(() => {});
         })().catch(err => setMsg(errorText(err)));
@@ -225,6 +235,27 @@ const AdminCustomerApp = () => {
                 <Toggle disabled={!canEdit} checked={tables.acceptAll !== false} onChange={v => setTable('acceptAll', 'qr_accept_all', v)}
                     tip="accept_all" label="Staff accept every QR order before the kitchen sees it" hint="Each QR order rings full screen; it reaches the kitchen only after someone taps Accept. Off: QR orders go to the kitchen as soon as they are placed." />
             </section>
+
+            {pay && (
+                <section className="ca-card">
+                    <h2>How customers pay<InfoTip k="pay_options" /></h2>
+                    <p className="muted small">Shown when the food is served. Switch each way on or off and write its button words in English, हिन्दी and Hinglish (empty = the standard words). At least one stays on.</p>
+                    {PAY_WAYS.map(([k, label, std]) => (
+                        <div key={k} className="ca-pay">
+                            <Toggle disabled={!canEdit || (pay[k].on && PAY_WAYS.filter(([x]) => pay[x].on).length === 1)} checked={pay[k].on}
+                                onChange={v => { const next = { ...pay, [k]: { ...pay[k], on: v } }; saveSetting('pay_options', next, () => setPay(next)); }}
+                                label={label} hint={k === 'upi' ? 'Staff bring the cafe UPI QR to the table.' : k === 'bill' ? 'Staff bring the bill to the table.' : 'The customer walks to the counter.'} />
+                            <div className="ca-pay-texts">
+                                {[['en', 'English'], ['hi', 'हिन्दी'], ['hg', 'Hinglish']].map(([l, ln]) => (
+                                    <input key={l} className="input" disabled={!canEdit || !pay[k].on} aria-label={`${label} · ${ln}`} placeholder={std[l]} maxLength={60}
+                                        value={pay[k].text[l]} onChange={e => setPay({ ...pay, [k]: { ...pay[k], text: { ...pay[k].text, [l]: e.target.value } } })}
+                                        onBlur={() => saveSetting('pay_options', pay)} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </section>
+            )}
 
             <section className="ca-card">
                 <div className="ca-card-head">

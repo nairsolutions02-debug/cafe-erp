@@ -35,6 +35,9 @@ const ordinal = (n) => {
 };
 
 const W = {
+    cashTitle: T('Use points as cash', 'पॉइंट को पैसे की तरह इस्तेमाल करें', 'Points ko cash ki tarah use karo'),
+    cashLine: T('{p} points → ₹{amt} off (up to {max}% of the bill)', '{p} पॉइंट → ₹{amt} की छूट (बिल का ज़्यादा से ज़्यादा {max}%)', '{p} points → ₹{amt} off (bill ka max {max}%)'),
+    cashNeed: T('Collect {n} points to start using them', '{n} पॉइंट होने पर इस्तेमाल कर सकेंगे', '{n} points hone pe use kar paoge'),
     cart: T('Cart', 'कार्ट', 'Cart'),
     emptyTitle: T('Your cart is empty', 'आपका कार्ट खाली है', 'Aapka cart khaali hai'),
     emptyText: T('Add some delicious items from our menu', 'हमारे मेन्यू से कुछ स्वादिष्ट चुनें', 'Hamare menu se kuch tasty add karo'),
@@ -135,6 +138,8 @@ const Cart = () => {
     const [allOffers, setAllOffers] = useState(false);
     const [selectedOffer, setSelectedOffer] = useState(null);
     const [usePoints, setUsePoints] = useState(false);
+    // Points as cash (when the cafe allows it): one way per order, a deal or points as cash
+    const [useCash, setUseCash] = useState(false);
     const [pointsDiscount, setPointsDiscount] = useState(0);
     const [pointsUsed, setPointsUsed] = useState(0);
 
@@ -149,7 +154,8 @@ const Cart = () => {
                 const res = await quoteOrder(
                     cart.map(i => ({ menuItem: i._id, quantity: i.quantity })),
                     couponApplied ? couponCode : '',
-                    usePoints && selectedOffer ? selectedOffer._id : null);
+                    usePoints && selectedOffer ? selectedOffer._id : null,
+                    useCash && !(usePoints && selectedOffer));
                 if (!cancelled) setQuote(res.data);
             } catch {
                 if (!cancelled) setQuote(null);
@@ -157,7 +163,7 @@ const Cart = () => {
         }, 250);
         return () => { cancelled = true; clearTimeout(timer); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cartKey, isAuthenticated, couponApplied, usePoints, selectedOffer]);
+    }, [cartKey, isAuthenticated, couponApplied, usePoints, selectedOffer, useCash]);
 
     useEffect(() => {
         fetchRecommendations();
@@ -315,6 +321,7 @@ const Cart = () => {
                 couponCode: couponApplied ? couponCode : '',
                 pointsUsed: usePoints ? pointsUsed : 0,
                 loyaltyOfferId: usePoints && selectedOffer ? selectedOffer._id : null,
+                pointsCash: useCash && !(usePoints && selectedOffer),
                 tableId: tableMode === 'pick' ? (selectedTable || null) : null,
                 tableCode: tableMode === 'qr' && qrTable ? qrTable.code : null,
                 clientId: clientId.current,
@@ -338,7 +345,7 @@ const Cart = () => {
     const subtotal = getCartTotal;
 
     // Points that can actually be used on this bill (never shown when they can't)
-    const usableOffer = loyaltyPoints && loyaltyOffers
+    const usableOffer = loyaltyPoints && loyaltyPoints.dealsOn !== false && !useCash && loyaltyOffers
         .filter(o => o.pointsRequired <= loyaltyPoints.currentPoints && (o.minOrderValue || 0) <= subtotal && o.discountValue > 0)
         .sort((a, b) => b.discountValue - a.discountValue)[0];
     const nth = checkoutInfo ? checkoutInfo.ordersSoFar + 1 : null;
@@ -547,7 +554,26 @@ const Cart = () => {
                             <span className="points-balance">{t(W.ptsAvailable, { n: loyaltyPoints.currentPoints })}</span>
                         </div>
 
-                        <div className="loyalty-offers-list">
+                        {loyaltyPoints.pointsAsCash && (() => {
+                            const ratio = Number(loyaltyPoints.pointsToRupeeRatio) || 10;
+                            const enough = loyaltyPoints.currentPoints >= (loyaltyPoints.minPointsToRedeem || 0);
+                            const est = Math.floor(Math.min(loyaltyPoints.currentPoints / ratio, subtotal * (Number(loyaltyPoints.maxRedemptionPercent) || 100) / 100));
+                            const amt = useCash && quote ? quote.offerDiscount : est;
+                            const pts = useCash && quote ? quote.pointsUsed : Math.ceil(est * ratio);
+                            return (
+                                <button type="button" className={`loyalty-cash ${useCash ? 'on' : ''}`} disabled={!enough || est <= 0}
+                                    onClick={() => { if (useCash) { setUseCash(false); } else { setUseCash(true); setSelectedOffer(null); setUsePoints(false); } }}>
+                                    <span className="lc-icon" aria-hidden="true">🪙</span>
+                                    <span className="lc-text">
+                                        <b>{t(W.cashTitle)}</b>
+                                        <small>{enough ? t(W.cashLine, { p: pts, amt: Number(amt).toFixed(0), max: loyaltyPoints.maxRedemptionPercent }) : t(W.cashNeed, { n: loyaltyPoints.minPointsToRedeem })}</small>
+                                    </span>
+                                    <span className="lc-btn">{useCash ? t(W.remove) : t(W.use)}</span>
+                                </button>
+                            );
+                        })()}
+
+                        {loyaltyPoints.dealsOn !== false && <div className="loyalty-offers-list">
                             {loyaltyOffers.length > 0 ? (
                                 shortOfferList(loyaltyOffers, { keepId: selectedOffer?._id, showAll: allOffers }).list.map(offer => (
                                     <div
@@ -561,6 +587,7 @@ const Cart = () => {
                                                 } else {
                                                     setSelectedOffer(offer);
                                                     setUsePoints(true);
+                                                    setUseCash(false);
                                                 }
                                             }
                                         }}
@@ -584,7 +611,7 @@ const Cart = () => {
                             {!allOffers && shortOfferList(loyaltyOffers, { keepId: selectedOffer?._id }).hidden > 0 && (
                                 <button type="button" className="btn btn-ghost btn-sm" onClick={() => setAllOffers(true)}>{t(W.seeAll, { n: loyaltyOffers.length })}</button>
                             )}
-                        </div>
+                        </div>}
                     </div>
                 )}
 
@@ -704,9 +731,9 @@ const Cart = () => {
                             <span>-₹{(quote ? quote.couponDiscount : discount).toFixed(2)}</span>
                         </div>
                     )}
-                    {usePoints && (quote ? quote.offerDiscount : pointsDiscount) > 0 && (
+                    {(usePoints || useCash) && (quote ? quote.offerDiscount : pointsDiscount) > 0 && (
                         <div className="bill-row points-row">
-                            <span><FiAward /> {t(W.pointsRow, { n: pointsUsed })}</span>
+                            <span><FiAward /> {t(W.pointsRow, { n: useCash && quote ? quote.pointsUsed : pointsUsed })}</span>
                             <span>-₹{(quote ? quote.offerDiscount : pointsDiscount).toFixed(2)}</span>
                         </div>
                     )}

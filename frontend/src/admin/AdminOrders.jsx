@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter, FiMove, FiUsers } from 'react-icons/fi';
+import { FiCheck, FiX, FiFileText, FiAlertTriangle, FiCreditCard, FiPrinter, FiMove, FiUsers, FiSearch } from 'react-icons/fi';
 import { getActiveOrders, updateOrderStatus, settleOrder, removeServiceCharge, confirmTableOrder, moveOrderTable, getTables } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import OrderBill from '../components/OrderBill';
@@ -11,11 +11,52 @@ import Modal from './inventory/Modal';
 import CancelModal from './CancelModal';
 import { printKot, printBill } from '../lib/print';
 import { inr } from './pos/money';
+import { tableToken } from './mobile/useMenuLang';
 import './AdminOrders.css';
 import './pos/POS.css';
 
 const errText = (err) => err?.response?.data?.message || err?.message || 'Something went wrong';
 const CHANNEL = { qr: 'QR', dine_in: 'Dine-in', takeaway: 'Takeaway', kiosk: 'Kiosk', aggregator: 'Aggregator' };
+
+// Hand-over cards: a big token people can read from a metre away, the state as a coloured band,
+// ready orders first. Token: Q1 / C12 if the order has one, else T5 for a table, else the last 4 of the order number.
+const tokenOf = (o) => o.tokenNumber || (o.tableNumber ? tableToken(o.tableNumber) : String(o.orderNumber || '').slice(-4));
+// ready → hand over; new → needs accepting; cook → in the kitchen; done → served / at the bill stage
+// (a held order has not reached the kitchen yet, so it counts as new whatever its status says)
+const stateOf = (o) => (o.held || o.status === 'pending' ? 'new'
+    : o.status === 'ready' ? 'ready'
+        : o.status === 'confirmed' || o.status === 'preparing' ? 'cook' : 'done');
+const RANK = { ready: 0, new: 1, cook: 2, done: 3 };
+const PILL = {
+    pending: 'NEW · CONFIRM', confirmed: 'CONFIRMED', preparing: 'COOKING', ready: 'READY · HAND OVER',
+    served: 'SERVED', bill_requested: 'WANTS BILL', bill_generated: 'BILL GIVEN',
+};
+const pillOf = (o) => (o.held ? (o.holdReason === 'accept' ? 'NEW · ACCEPT' : 'CONFIRM TABLE') : PILL[o.status] || o.status.replace('_', ' ').toUpperCase());
+const dueOf = (o) => Math.max(0, Math.round((o.total - (o.amountPaid || 0)) * 100) / 100);
+const minsOf = (o) => Math.max(0, Math.floor((Date.now() - new Date(o.createdAt).getTime()) / 60000));
+const ageText = (m) => (m < 60 ? `${m} min` : m < 1440 ? `${Math.floor(m / 60)} h ${m % 60} min` : `${Math.floor(m / 1440)} d`);
+const digits = (v) => String(v || '').replace(/\D/g, '');
+// Find box: token, customer name, any part of the order number, or phone digits
+const matches = (o, q) => {
+    const s = q.trim().toLowerCase();
+    if (!s) return true;
+    if ([tokenOf(o), o.user?.name, o.orderNumber].some(v => v && String(v).toLowerCase().includes(s))) return true;
+    const d = digits(s);
+    return /^[\d\s+-]+$/.test(s) && d.length >= 3 && digits(o.user?.phone).includes(d);
+};
+const FILTERS = [
+    ['all', 'All', () => true],
+    ['ready', 'Ready to hand over', (o) => !o.held && o.status === 'ready'],
+    ['cook', 'Cooking', (o) => !o.held && (o.status === 'confirmed' || o.status === 'preparing')],
+    ['new', 'New', (o) => o.held || o.status === 'pending'],
+    ['unpaid', 'Unpaid', (o) => (o.amountPaid || 0) < o.total],
+];
+// ORD-261006-F0E034 → ORD-261006-<b>F0E034</b>
+const OrderNo = ({ n }) => {
+    const s = String(n || '');
+    const i = s.lastIndexOf('-');
+    return <>{s.slice(0, i + 1)}<b>{s.slice(i + 1)}</b></>;
+};
 
 // Take payment: one method or split; cash shows change. Cash goes to the counter drawer.
 const SettleModal = ({ order, onClose, onDone }) => {
@@ -124,6 +165,11 @@ const AdminOrders = () => {
     const [showBill, setShowBill] = useState(false);
     const isPhone = useIsPhone();
     const [params, setParams] = useSearchParams();
+    const [find, setFind] = useState('');
+    const [filter, setFilter] = useState('all');
+    const [, tick] = useState(0);
+    // Keeps the "N min" on each card fresh
+    useEffect(() => { const t = setInterval(() => tick(n => n + 1), 30000); return () => clearInterval(t); }, []);
     useEffect(() => {
         fetchOrders();
     }, []);
@@ -316,6 +362,12 @@ const AdminOrders = () => {
         );
     }
 
+    const counts = Object.fromEntries(FILTERS.map(([k, , fn]) => [k, orders.filter(fn).length]));
+    const passFilter = FILTERS.find(([k]) => k === filter)[2];
+    const shown = orders
+        .filter(o => passFilter(o) && matches(o, find))
+        .sort((a, b) => RANK[stateOf(a)] - RANK[stateOf(b)] || new Date(a.createdAt) - new Date(b.createdAt));
+
     return (
         <div className="admin-orders">
             <h1>Orders Management</h1>
@@ -326,128 +378,154 @@ const AdminOrders = () => {
                         <p>No active orders</p>
                     </div>
                 ) : (
-                    <div className="orders-grid">
-                        {orders.map(order => (
-                            <div key={order._id} className={`order-card status-${order.status}`}>
-                                <div className="order-header">
-                                    <span className="order-num">#{order.orderNumber}</span>
-                                    <span className={`status-badge ${order.status}`}>
-                                        {order.status.replace('_', ' ')}
-                                    </span>
-                                </div>
-
-                                {order.held && (
-                                    <div className="pay-request held">
-                                        {order.holdReason === 'accept' ? 'New order. Tap Accept to send it to the kitchen.'
-                                            : `First order on Table ${order.tableNumber}. Check someone is sitting there, then confirm. The kitchen gets it after that.`}
-                                    </div>
-                                )}
-                                {order.paymentRequest && (
-                                    <div className={`pay-request ${order.paymentRequest}`}>
-                                        {order.paymentRequest === 'qr' ? `Wants to pay ${inr(order.total - (order.amountPaid || 0))} by UPI — take the QR to the table`
-                                            : 'Coming to the counter to pay'}
-                                    </div>
-                                )}
-                                <div className="order-customer">
-                                    <strong>{order.user?.name || 'Customer'}</strong>
-                                    <span>{order.user?.phone}</span>
-                                    {order.tableNumber && <span>Table: {order.tableNumber}{groupsAtTable(order) > 1 && <> · <FiUsers /> {groupsAtTable(order)} groups</>}</span>}
-                                    {!order.tableNumber && order.tokenNumber && <span>Token: {order.tokenNumber}</span>}
-                                    <span className="channel-tag">{CHANNEL[order.channel] || 'QR'}{order.staffName ? ` · ${order.staffName}` : ''}</span>
-                                </div>
-
-                                <div className="order-items">
-                                    {order.items.map((item, i) => (
-                                        <div key={i} className="order-item">
-                                            <span>{item.name}</span>
-                                            <span>x{item.quantity}</span>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {order.specialInstructions && (
-                                    <div className="order-special-instructions">
-                                        <strong><FiAlertTriangle /> Note:</strong> {order.specialInstructions}
-                                    </div>
-                                )}
-
-                                <div className="order-total">
-                                    <div className="total-row">
-                                        <span>Total</span>
-                                        <span>₹{order.total.toFixed(2)}</span>
-                                    </div>
-                                    <div className="payment-row">
-                                        <div className="payment-status">
-                                            <div
-                                                className="payment-fill"
-                                                style={{ width: `${Math.min((order.amountPaid || 0) / order.total * 100, 100)}%` }}
-                                            ></div>
-                                        </div>
-                                        <div className="payment-labels">
-                                            <span className="paid">Paid: ₹{order.amountPaid || 0}</span>
-                                            <span className="pending">Bal: ₹{Math.max(order.total - (order.amountPaid || 0), 0).toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="order-actions">
-                                    {order.held && canMoney && (
-                                        <button className="btn btn-primary btn-sm" onClick={() => confirmHeld(order)}>
-                                            <FiCheck /> {order.holdReason === 'accept' ? 'Accept' : 'Confirm table'}
-                                        </button>
-                                    )}
-                                    {!order.held && getNextStatus(order.status) && (['confirmed', 'preparing', 'ready'].includes(order.status) ? hasPerm('orders.edit') : canMoney) && (
-                                        <button
-                                            className="btn btn-primary btn-sm"
-                                            onClick={() => handleStatusChange(order._id, getNextStatus(order.status))}
-                                        >
-                                            <FiCheck /> {getStatusLabel(order.status)}
-                                        </button>
-                                    )}
-
-                                    {canMoney && (
-                                        <button className="btn btn-success btn-sm" onClick={() => setSettling(order)}>
-                                            <FiCreditCard /> Take payment
-                                        </button>
-                                    )}
-
-                                    {canMoney && (
-                                        <button className="btn btn-danger btn-sm" onClick={() => setCancelling(order)}>
-                                            <FiX /> Cancel
-                                        </button>
-                                    )}
-
-                                    <button className="btn btn-ghost btn-sm" onClick={() => printKot(order)} title="Print kitchen ticket">
-                                        <FiPrinter /> KOT
+                    <>
+                        <div className="ao-tools">
+                            <label className="ao-find">
+                                <FiSearch aria-hidden="true" />
+                                <input type="search" value={find} onChange={e => setFind(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Escape') setFind(''); }}
+                                    placeholder="Find: token, name, order no., phone" aria-label="Find an order" />
+                            </label>
+                            <div className="ao-chips" role="group" aria-label="Show orders">
+                                {FILTERS.map(([k, label]) => (
+                                    <button key={k} type="button" aria-pressed={filter === k} className={`ao-chip f-${k}`} onClick={() => setFilter(k)}>
+                                        {label}<i>{counts[k]}</i>
                                     </button>
-                                    <button className="btn btn-ghost btn-sm" onClick={() => printBill(order)} title="Print bill on the thermal printer">
-                                        <FiPrinter /> Print
-                                    </button>
-
-                                    <button
-                                        className="btn btn-secondary btn-sm"
-                                        onClick={() => handleShowBill(order)}
-                                    >
-                                        <FiFileText /> Bill
-                                    </button>
-                                    {groupsAtTable(order) > 1 && (
-                                        <button className="btn btn-ghost btn-sm" onClick={() => handleShowBill(order, true)} title="One bill for every group at this table">
-                                            <FiFileText /> Whole table
-                                        </button>
-                                    )}
-                                    {canMoney && order.channel !== 'kiosk' && (
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setMoving(order)} title="Move to another table">
-                                            <FiMove /> Move
-                                        </button>
-                                    )}
-                                </div>
-
-                                <div className="order-time">
-                                    {new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                                </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+
+                        {shown.length === 0 ? (
+                            <div className="no-orders ao-none">
+                                <p>No orders match.</p>
+                                {(find || filter !== 'all') && (
+                                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setFind(''); setFilter('all'); }}>Show all orders</button>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="orders-grid">
+                                {shown.map(order => {
+                                    const st = stateOf(order);
+                                    const due = dueOf(order);
+                                    const groups = groupsAtTable(order);
+                                    const name = order.user?.name ? order.user.name.trim().split(/\s+/)[0]
+                                        : order.tableNumber ? `Table ${order.tableNumber}` : 'Walk-in';
+                                    const phone4 = digits(order.user?.phone).slice(-4);
+                                    const time = new Date(order.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                                    return (
+                                        <article key={order._id} className={`ao-card st-${st} status-${order.status}`}>
+                                            <header className="ao-band">
+                                                <span className="ao-tok">{tokenOf(order)}</span>
+                                                <span className="ao-who">
+                                                    <b title={order.user?.name || undefined}>{name}</b>
+                                                    <span className="ao-meta">
+                                                        {CHANNEL[order.channel] || 'QR'}
+                                                        {order.tableNumber && <> · Table {order.tableNumber}</>}
+                                                        {groups > 1 && <> · <FiUsers aria-hidden="true" /> {groups} groups</>}
+                                                        {order.staffName && <> · {order.staffName}</>}
+                                                        {' · '}<span title={`Placed at ${time}`}>{ageText(minsOf(order))}</span>
+                                                    </span>
+                                                    <span className="ao-pill">{pillOf(order)}</span>
+                                                </span>
+                                            </header>
+
+                                            <div className="ao-body">
+                                                <div className="ao-id">
+                                                    <OrderNo n={order.orderNumber} />
+                                                    {phone4 && <span className="ao-ph" title={order.user?.phone}> · …{phone4}</span>}
+                                                </div>
+
+                                                <ul className="ao-items">
+                                                    {order.items.map((item, i) => (
+                                                        <li key={i}><b>{item.quantity}</b><span>{item.name}</span></li>
+                                                    ))}
+                                                </ul>
+
+                                                <div className="ao-money">
+                                                    <span className="ao-total">{inr(order.total)}</span>
+                                                    {due === 0
+                                                        ? <span className="ao-paid">PAID</span>
+                                                        : <span className="ao-due">DUE {inr(due)}{order.amountPaid > 0 && <small> · paid {inr(order.amountPaid)}</small>}</span>}
+                                                </div>
+                                            </div>
+
+                                            <div className="ao-foot">
+                                                {order.held && (
+                                                    <div className="pay-request held">
+                                                        {order.holdReason === 'accept' ? 'New order. Tap Accept to send it to the kitchen.'
+                                                            : `First order on Table ${order.tableNumber}. Check someone is sitting there, then confirm. The kitchen gets it after that.`}
+                                                    </div>
+                                                )}
+                                                {order.paymentRequest && (
+                                                    <div className={`pay-request ${order.paymentRequest}`}>
+                                                        {order.paymentRequest === 'qr' ? `Wants to pay ${inr(order.total - (order.amountPaid || 0))} by UPI — take the QR to the table`
+                                                            : 'Coming to the counter to pay'}
+                                                    </div>
+                                                )}
+                                                {order.specialInstructions && (
+                                                    <div className="order-special-instructions">
+                                                        <strong><FiAlertTriangle /> Note:</strong> {order.specialInstructions}
+                                                    </div>
+                                                )}
+
+                                                <div className="order-actions">
+                                                    {order.held && canMoney && (
+                                                        <button className="btn btn-primary btn-sm" onClick={() => confirmHeld(order)}>
+                                                            <FiCheck /> {order.holdReason === 'accept' ? 'Accept' : 'Confirm table'}
+                                                        </button>
+                                                    )}
+                                                    {!order.held && getNextStatus(order.status) && (['confirmed', 'preparing', 'ready'].includes(order.status) ? hasPerm('orders.edit') : canMoney) && (
+                                                        <button
+                                                            className="btn btn-primary btn-sm"
+                                                            onClick={() => handleStatusChange(order._id, getNextStatus(order.status))}
+                                                        >
+                                                            <FiCheck /> {getStatusLabel(order.status)}
+                                                        </button>
+                                                    )}
+
+                                                    {canMoney && (
+                                                        <button className="btn btn-success btn-sm" onClick={() => setSettling(order)}>
+                                                            <FiCreditCard /> Take payment
+                                                        </button>
+                                                    )}
+
+                                                    {canMoney && (
+                                                        <button className="btn btn-danger btn-sm" onClick={() => setCancelling(order)}>
+                                                            <FiX /> Cancel
+                                                        </button>
+                                                    )}
+
+                                                    <button className="btn btn-ghost btn-sm" onClick={() => printKot(order)} title="Print kitchen ticket">
+                                                        <FiPrinter /> KOT
+                                                    </button>
+                                                    <button className="btn btn-ghost btn-sm" onClick={() => printBill(order)} title="Print bill on the thermal printer">
+                                                        <FiPrinter /> Print
+                                                    </button>
+
+                                                    <button
+                                                        className="btn btn-secondary btn-sm"
+                                                        onClick={() => handleShowBill(order)}
+                                                    >
+                                                        <FiFileText /> Bill
+                                                    </button>
+                                                    {groupsAtTable(order) > 1 && (
+                                                        <button className="btn btn-ghost btn-sm" onClick={() => handleShowBill(order, true)} title="One bill for every group at this table">
+                                                            <FiFileText /> Whole table
+                                                        </button>
+                                                    )}
+                                                    {canMoney && order.channel !== 'kiosk' && (
+                                                        <button className="btn btn-ghost btn-sm" onClick={() => setMoving(order)} title="Move to another table">
+                                                            <FiMove /> Move
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </article>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
 

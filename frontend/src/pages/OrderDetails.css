@@ -201,3 +201,38 @@
 .pickup-card.ready .pickup-label, .pickup-card.ready .pickup-num, .pickup-card.ready .pickup-hint { color: #fff; }
 @keyframes pickup-ready { 50% { transform: scale(1.03); box-shadow: 0 0 0 6px rgba(34, 197, 94, .3); } }
 @media (prefers-reduced-motion: reduce) { .pickup-card.ready { animation: none; } }
+
+/* Order number under the big token: the last part large, as staff read it out */
+.pickup-card .pickup-oid {
+    display: inline-block;
+    margin: 4px auto 2px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.06);
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.pickup-card .pickup-oid b {
+    font-size: 1.05rem;
+    color: var(--text-primary);
+}
+
+.pickup-card.ready .pickup-oid,
+.pickup-card.tinted .pickup-oid {
+    background: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.pickup-card.ready .pickup-oid b,
+.pickup-card.tinted .pickup-oid b {
+    color: #fff;
+}
+
+/* Owner colour for the waiting card: white text on it */
+.pickup-card.tinted .pickup-label,
+.pickup-card.tinted .pickup-num,
+.pickup-card.tinted .pickup-hint {
+    color: #fff;
+}
