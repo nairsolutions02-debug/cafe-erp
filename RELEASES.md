@@ -4,6 +4,35 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Money fixes from the 3-day dry run (2026-10-06)
+
+A 3-day dry run (55 orders: counter, kiosk and QR; cash, UPI, card and split; refunds, khata, expenses, vendor bills, points, combos) checked every number against the app. 366 of 408 matched before; after these fixes all 432 checks and all 76 numbers on the owner screens match.
+
+| Area | Change |
+| --- | --- |
+| Refund of an earlier day | The closed day never changes. The refund shows on the day it happens as "Returns of earlier days" (minus), and as a GST credit note in that month |
+| Shift UPI / card | UPI and card refunds and khata paid by UPI / card count in the right drawer shift; no more false "closed short" alerts |
+| Close alert | Says which money is off (cash, UPI or card) and uses the tolerance for each |
+| Dashboard | Today and this month equal Finance; "Collected" shows paid bills separately |
+| GST | GST is rounded once per bill and shared to the lines, so GST pack, P&L and bills tie to the paise; CGST + SGST always equals the tax |
+| Expenses | A drawer pay-out without a category counts in P&L as "Other / uncategorised" (past ones too) |
+| Dates | Vendor bill date and due date and other money dates use the cafe time (IST), not UTC |
+| Points | On khata (credit) sales points arrive when the money is paid. A cancelled paid order takes back the points it earned (never below 0; any shortfall is noted on the order) |
+
+**Deploy**
+1. Supabase → SQL Editor → paste `supabase/upgrades/2026-11-money-fixes.sql` → Run → Success
+2. Vercel redeploys from `main`
+
+**Test checklist**
+- [ ] Yesterday's order → cancel today → yesterday's Finance and P&L unchanged; today shows "Returns of earlier days −₹…"
+- [ ] UPI order → cancel → the shift UPI expected goes down; closing the shift gives no false alert
+- [ ] Khata paid by UPI at the kiosk → shows in the kiosk shift UPI
+- [ ] Dashboard "Today's Sales" = Finance today
+- [ ] Reports → GST: CGST + SGST = total tax on every row
+- [ ] Khata sale to a club customer → points arrive only after the khata is paid
+
+---
+
 ## Customer app fixes from the phone test + browser polish (2026-10-06)
 
 Asked by the owner after the phone test ("yeh sab sahi kar do").

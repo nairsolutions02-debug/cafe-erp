@@ -282,22 +282,37 @@ function priceJS(items, { coupon, manual = 0, offer: useOffer, pointsCash, cust,
     const eligDisc = offerDisc + man;
     const cd = allocate(lines, couponDisc, sum(lines.filter(l => !l.restricted), l => l.t), l => !l.restricted);
     const ed = allocate(lines, eligDisc, eligible, l => !l.restricted);
-    const buckets = {};
+    // GST: one rounding per tax group (same components) for the whole bill, shared out to the lines in order;
+    // the group tax is split into its components the same way (CGST first), so everything adds up to the paise.
+    const groups = {};
     lines.forEach((l, i) => {
         l.disc = r2(cd[i] + ed[i]);
         l.gross = r2(l.t - l.disc);
-        l.net = l.incl ? r2(l.gross / (1 + l.rate / 100)) : l.gross;
-        l.tax = l.incl ? r2(l.gross - l.net) : r2(l.net * l.rate / 100);
-        for (const c of l.comps) {
-            const k = `${c.name}@${c.rate}`;
-            buckets[k] = buckets[k] || { name: c.name, rate: c.rate, amt: 0, excl: 0 };
-            const a = l.incl ? (l.rate > 0 ? (l.gross - l.net) * c.rate / l.rate : 0) : l.net * c.rate / 100;
-            buckets[k].amt += a;
-            if (!l.incl) buckets[k].excl += a;
-        }
+        l.xtax = l.incl ? l.gross - l.gross / (1 + l.rate / 100) : l.gross * l.rate / 100;
+        const k = JSON.stringify(l.comps);
+        (groups[k] = groups[k] || { comps: l.comps, rate: l.rate, lines: [] }).lines.push(l);
     });
-    const tax = sum(Object.values(buckets), b => r2(b.amt));
-    const exclTax = sum(Object.values(buckets), b => r2(b.excl));
+    const buckets = {};
+    for (const g of Object.values(groups)) {
+        const exact = g.lines.reduce((s, l) => s + l.xtax, 0);
+        const tot = r2(exact);
+        let cum = 0;
+        for (const l of g.lines) {
+            const prev = cum; cum += l.xtax;
+            l.tax = exact === 0 ? 0 : r2(r2(tot * cum / exact) - r2(tot * prev / exact));
+            l.net = l.incl ? r2(l.gross - l.tax) : l.gross;
+        }
+        let rc = 0;
+        for (const c of g.comps) {
+            const before = rc; rc += c.rate;
+            const amt = g.rate > 0 ? r2(r2(tot * rc / g.rate) - r2(tot * before / g.rate)) : 0;
+            const k = `${c.name}@${c.rate}`;
+            buckets[k] = buckets[k] || { name: c.name, rate: c.rate, amt: 0 };
+            buckets[k].amt = r2(buckets[k].amt + amt);
+        }
+    }
+    const tax = sum(lines, l => l.tax);
+    const exclTax = sum(lines.filter(l => !l.incl), l => l.tax);
     const base = r2(sum(lines, l => (l.incl ? l.gross : l.net)) + exclTax);
     let sc = 0, scTax = 0, ro = 0;
     if (SET.scPct > 0 && ['qr', 'dine_in'].includes(channel)) {
@@ -398,6 +413,13 @@ async function settle(key, pay, { by, tender, via } = {}) {
         if (rec.calc.total >= 100) c.monthOrders = (c.monthOrders || 0) + 1;
         const mult = c.monthOrders >= 15 ? 2 : c.monthOrders >= 8 ? 1.5 : c.monthOrders >= 4 ? 1.25 : 1;
         if (mult > 1 && pts > 0) { rec.clubExtra = floor(pts * (mult - 1)); c.points += rec.clubExtra; }
+        const k = sum(parts.filter(p => p.method === 'khata'), p => p.amount);
+        if (k > 0) { // points on the khata part wait until the khata is paid
+            const earned = pts + (rec.clubExtra || 0);
+            const held = earned - floor(earned * Math.max(total - k, 0) / total);
+            c.points -= held;
+            rec.held = { khata: k, paid: 0, held, total: held, created: Object.keys(ORD).indexOf(key) };
+        }
     }
     rec.server.status = res.status;
     rec.change = Number(res.change || 0);
@@ -413,11 +435,17 @@ async function cancel(key, by, reason) {
     const counterOrKiosk = by === 'kiosk' ? 'kiosk' : 'counter';
     for (const p of rec.payments) {
         const acc = p.method === 'cash' ? drawerAcc(p.drawer) : p.method;
-        const appShift = p.method === 'cash' ? p.drawer : null; // the app only knows shifts on cash drawers
-        post(acc, -p.amount, 'refund', p.method, appShift, { ownerShift: p.method === 'cash' ? p.drawer : counterOrKiosk, order: key, customer: rec.cust });
+        const shift = p.method === 'cash' ? p.drawer : (p.drawer || counterOrKiosk); // the drawer that took the money
+        post(acc, -p.amount, 'refund', p.method, shift, { order: key, customer: rec.cust });
     }
-    if (rec.status === 'paid' && rec.cust) CUST[rec.cust].points += 0; // points stay (app rule: earned points are not taken back)
-    if (rec.cust && rec.calc.pointsUsed) CUST[rec.cust].points += rec.calc.pointsUsed; // redeemed points come back
+    if (rec.cust) { // redeemed points come back; credited points of a paid order are taken back (not below 0)
+        const c = CUST[rec.cust];
+        const credited = rec.status === 'paid' ? (rec.pointsExpected + (rec.clubExtra || 0) - (rec.held ? rec.held.held : 0)) : 0;
+        const bal = c.points + (rec.calc.pointsUsed || 0) - credited;
+        rec.pointsShortfall = Math.max(-bal, 0);
+        c.points = Math.max(bal, 0);
+        if (rec.held) rec.held.held = 0;
+    }
     applyStock(rec.calc.lines, -1);
     rec.status = 'cancelled'; rec.cancelledOn = D.n;
 }
@@ -427,7 +455,7 @@ async function cashMove(drawer, kind, amount, note, category) {
                                       p_category_id: category ? expCat(category) : null });
     if (kind === 'payout') {
         post(drawerAcc(drawer), -amount, category ? 'expense' : 'payout', 'cash', drawer);
-        if (category) EXPENSES.push({ day: D.n, category, amount, account: drawerAcc(drawer) });
+        EXPENSES.push({ day: D.n, category: category || 'Other / uncategorised', amount, account: drawerAcc(drawer) });
     } else if (kind === 'drop') {
         post(drawerAcc(drawer), -amount, 'drop', 'cash', drawer);
         post('cash_office', amount, 'drop', 'cash', null);
@@ -477,7 +505,15 @@ async function settleKhata(custKey, amount, method, drawer) {
     await rpc(who, 'settle_khata', { p_customer: CUST[custKey].id, p_amount: amount, p_method: method, p_drawer: drawerAcc(drawer) });
     post('khata', -amount, 'khata_settle', method, null, { customer: custKey });
     const acc = method === 'cash' ? drawerAcc(drawer) : method;
-    post(acc, amount, 'khata_settle', method, method === 'cash' ? drawer : null, { ownerShift: drawer, customer: custKey });
+    post(acc, amount, 'khata_settle', method, drawer, { customer: custKey });
+    let left = amount;
+    for (const o of Object.values(ORD).filter(x => x.cust === custKey && x.held && x.status !== 'cancelled' && x.held.khata > x.held.paid)) {
+        if (left <= 0) break;
+        const take = Math.min(left, r2(o.held.khata - o.held.paid)); left = r2(left - take);
+        o.held.paid = r2(o.held.paid + take);
+        const after = o.held.total - floor(o.held.total * o.held.paid / o.held.khata);
+        CUST[custKey].points += o.held.held - after; o.held.held = after;
+    }
 }
 async function expense(category, amount, accountCode, note) {
     await rpc(owner, 'record_expense', { p: { categoryId: expCat(category), amount, accountCode, note } });
@@ -489,7 +525,11 @@ async function liveSnapshot() {
         day: await rpc(owner, 'day_summary', {}),
         dash: await rpc(owner, 'dashboard_stats'),
         ledgerCount: (await rpc(owner, 'list_ledger', { p: { from: D.date, to: D.date, limit: 2000 } })).length,
+        points: {},
     };
+    for (const [k, c] of Object.entries(CUST)) {
+        D.live.points[k] = { exp: c.points, app: (await must(service.from('customers').select('loyalty_points').eq('id', c.id).single())).loyalty_points };
+    }
 }
 
 // Move every dated row of this tenant back by one day (the app always stamps now(); this makes yesterday out of today).
@@ -703,32 +743,51 @@ for (const o of Object.values(ORD)) {
     cmp(`Day ${o.day}`, 'Order', `${o.key} status`, o.status === 'open' ? 'pending' : o.status, srv.status === 'bill_requested' ? 'pending' : srv.status);
 }
 
-const salesOf = (orders) => {
-    const lv = orders.filter(live);
-    const byCh = {};
-    for (const o of lv) { byCh[o.channel] = byCh[o.channel] || { orders: 0, total: 0 }; byCh[o.channel].orders++; byCh[o.channel].total = r2(byCh[o.channel].total + o.calc.total); }
-    const disc = { coupon: sum(lv, o => o.calc.couponDisc), manual: sum(lv, o => o.calc.manual), points: sum(lv, o => o.calc.offerDisc) };
-    const rate = {};
-    for (const o of lv) for (const l of o.calc.lines) {
-        rate[l.rate] = rate[l.rate] || { taxable: 0, tax: 0 };
-        rate[l.rate].taxable = r2(rate[l.rate].taxable + l.net); rate[l.rate].tax = r2(rate[l.rate].tax + l.tax);
+// The sales book from my own records: a bill counts on the day it was made; a bill cancelled on a later day
+// counts again, negative, on the day it was cancelled (a return / credit note); a same-day cancel never counts.
+const eventsFor = (from, to) => {
+    const ev = [];
+    for (const o of Object.values(ORD)) {
+        const canc = o.status === 'cancelled' ? o.cancelledOn : null;
+        if (o.day >= from && o.day <= to && (canc == null || canc > o.day)) ev.push({ o, sign: 1 });
+        if (canc != null && canc > o.day && canc >= from && canc <= to) ev.push({ o, sign: -1 });
     }
-    for (const o of lv) if (o.calc.sc) { rate[5] = rate[5] || { taxable: 0, tax: 0 }; rate[5].taxable = r2(rate[5].taxable + o.calc.sc); rate[5].tax = r2(rate[5].tax + o.calc.scTax); }
+    return ev;
+};
+const salesOf = (from, to) => {
+    const ev = eventsFor(from, to);
+    const plus = ev.filter(e => e.sign > 0).map(e => e.o);
+    const ret = ev.filter(e => e.sign < 0).map(e => e.o);
+    const S = (f) => r2(ev.reduce((t, e) => t + e.sign * f(e.o), 0));
+    const byCh = {};
+    for (const { o, sign } of ev) {
+        byCh[o.channel] = byCh[o.channel] || { orders: 0, total: 0 };
+        if (sign > 0) byCh[o.channel].orders++;
+        byCh[o.channel].total = r2(byCh[o.channel].total + sign * o.calc.total);
+    }
+    const rate = {};
+    for (const { o, sign } of ev) {
+        for (const l of o.calc.lines) {
+            rate[l.rate] = rate[l.rate] || { taxable: 0, tax: 0 };
+            rate[l.rate].taxable = r2(rate[l.rate].taxable + sign * l.net); rate[l.rate].tax = r2(rate[l.rate].tax + sign * l.tax);
+        }
+        if (o.calc.sc) { rate[5] = rate[5] || { taxable: 0, tax: 0 }; rate[5].taxable = r2(rate[5].taxable + sign * o.calc.sc); rate[5].tax = r2(rate[5].tax + sign * o.calc.scTax); }
+    }
+    const sameDay = Object.values(ORD).filter(o => o.status === 'cancelled' && o.cancelledOn === o.day && o.day >= from && o.day <= to);
     return {
-        orders: lv.length, gross: sum(lv, o => o.calc.total), tax: sum(lv, o => o.calc.tax + o.calc.scTax), discounts: sum(lv, o => o.calc.discount),
-        serviceCharge: sum(lv, o => o.calc.sc), roundOff: sum(lv, o => o.calc.ro),
-        unpaid: sum(lv.filter(o => o.status !== 'paid'), o => o.calc.total),
-        cancelled: orders.filter(o => !live(o)).length, cancelledValue: sum(orders.filter(o => !live(o)), o => o.calc.total),
-        netSales: sum(lv, o => o.calc.total - o.calc.tax - o.calc.scTax - o.calc.ro),
-        netSalesLines: sum(lv, o => sum(o.calc.lines, l => l.net) + o.calc.sc),
-        cogs: sum(lv, o => sum(o.calc.lines, l => l.unitCost * l.qty)),
-        paidRevenue: sum(lv.filter(o => o.status === 'paid'), o => o.calc.total), paidOrders: lv.filter(o => o.status === 'paid').length,
-        byCh, disc, rate,
+        orders: plus.length, gross: S(o => o.calc.total), tax: S(o => o.calc.tax + o.calc.scTax), discounts: S(o => o.calc.discount),
+        disc: { coupon: S(o => o.calc.couponDisc), manual: S(o => o.calc.manual), points: S(o => o.calc.offerDisc) },
+        serviceCharge: S(o => o.calc.sc), roundOff: S(o => o.calc.ro),
+        unpaid: sum(plus.filter(o => o.status !== 'paid' && o.status !== 'cancelled'), o => o.calc.total),
+        cancelled: sameDay.length, cancelledValue: sum(sameDay, o => o.calc.total),
+        returns: ret.length, returnsValue: sum(ret, o => o.calc.total),
+        netSalesLines: S(o => sum(o.calc.lines, l => l.net) + o.calc.sc),
+        cogs: S(o => sum(o.calc.lines, l => l.unitCost * l.qty)),
+        // paid bills of the day, as they stood that day (a bill refunded on a later day was paid on its day)
+        collected: sum(plus.filter(o => o.status === 'paid' || (o.status === 'cancelled' && o.payments.length)), o => o.calc.total),
+        byCh, rate,
     };
 };
-// "owner view" of a day: a sale refunded on a later day stays in the day it was sold
-const ownerSalesOf = (n) => salesOf(dayOrders(n).map(o => (o.status === 'cancelled' && o.cancelledOn > o.day && o.payments.length ? { ...o, status: 'paid' } : o)));
-
 const moneyOf = (filter) => {
     const acc = {};
     for (const e of LEDGER.filter(filter)) {
@@ -744,10 +803,8 @@ for (const d of DAYS) {
     const S = `Day ${d.n} (${d.date})`;
     const ds = await rpc(owner, 'day_summary', { p_date: d.date });
     d.appDay = ds;
-    const ex = salesOf(dayOrders(d.n));
-    const exOwner = ownerSalesOf(d.n);
-    const crossDay = dayOrders(d.n).some(o => o.status === 'cancelled' && o.cancelledOn > o.day && o.payments.length);
-    const note = crossDay ? 'B1: expected keeps the sale refunded on a later day' : '';
+    const exOwner = salesOf(d.n, d.n);
+    const note = '';
     cmp(S, 'Sales', 'Orders (not cancelled)', exOwner.orders, num(ds.sales.orders), note);
     cmp(S, 'Sales', 'Sales total incl. GST', exOwner.gross, num(ds.sales.gross), note);
     cmp(S, 'Sales', 'GST collected (items + service charge)', exOwner.tax, num(ds.sales.tax), note);
@@ -756,7 +813,8 @@ for (const d of DAYS) {
     cmp(S, 'Sales', 'Not paid yet', exOwner.unpaid, num(ds.sales.unpaid));
     cmp(S, 'Sales', 'Cancelled orders', exOwner.cancelled, num(ds.sales.cancelled), note);
     cmp(S, 'Sales', 'Cancelled value', exOwner.cancelledValue, num(ds.sales.cancelledValue), note);
-    cmp(S, 'Sales', 'Average bill', exOwner.orders ? r2(exOwner.gross / exOwner.orders) : 0, num(ds.sales.avgBill), note);
+    cmp(S, 'Sales', 'Returns of earlier days (count / value)', `${exOwner.returns} / ${exOwner.returnsValue}`, `${num(ds.sales.returns)} / ${r2(num(ds.sales.returnsValue))}`);
+    cmp(S, 'Sales', 'Average bill (bills made this day)', exOwner.orders ? r2(sum(eventsFor(d.n, d.n).filter(e => e.sign > 0), e => e.o.calc.total) / exOwner.orders) : 0, num(ds.sales.avgBill));
     const manualList = dayOrders(d.n).filter(o => o.calc.manual > 0).map(o => o.calc.manual).sort((a, b) => a - b);
     cmp(S, 'Sales', 'Manual discounts listed', manualList, (ds.discounts || []).map(x => num(x.amount)).sort((a, b) => a - b));
     for (const ch of ['takeaway', 'dine_in', 'qr', 'kiosk']) {
@@ -818,14 +876,16 @@ for (const d of DAYS) {
     cmp(S, 'P&L', 'Net profit', r2(exOwner.netSalesLines - exOwner.cogs - expTotal - staffPerDay), num(p.netProfit), note);
     // ledger rows of the day
     const led = await rpc(owner, 'list_ledger', { p: { from: d.date, to: d.date, limit: 2000 } });
+    for (const [k, v] of Object.entries(d.live.points)) cmp(S, 'Loyalty (end of day)', `${CUST[k].name} points`, v.exp, v.app, k === 'sanjay' && d.n === 2 ? 'khata bill points held until paid' : '');
     cmp(S, 'Ledger', 'Ledger rows', LEDGER.filter(e => e.day === d.n).length, led.length);
     cmp(S, 'Ledger', 'Ledger net movement', sum(LEDGER.filter(e => e.day === d.n), e => e.amount), sum(led, e => num(e.amount)));
     cmp(S, 'Ledger', 'Ledger rows still dated this day after moving days (live count)', d.live.ledgerCount, led.length, 'shift check');
     // shifting check: day summary for the moved day = live summary on that day
     cmp(S, 'Day-move check', 'day_summary now = day_summary taken live that day (gross)', num(d.live.day.sales.gross), num(ds.sales.gross),
-        d.n === 1 ? 'differs only by the day-2 refund of d1-10 (B1)' : '');
+        'a closed day never changes');
     // dashboard on the live day
-    cmp(S, 'Dashboard (live that day)', "Today's revenue (paid orders)", exOwner.paidRevenue - (d.n === 1 ? 0 : 0), num(d.live.dash.today.revenue), 'dashboard counts paid orders only');
+    cmp(S, 'Dashboard (live that day)', "Today's sales", exOwner.gross, num(d.live.dash.today.revenue));
+    cmp(S, 'Dashboard (live that day)', "Today's collected (paid bills)", exOwner.collected, num(d.live.dash.today.collected));
     cmp(S, 'Dashboard (live that day)', "Today's revenue = Finance day sales", num(d.live.day.sales.gross), num(d.live.dash.today.revenue), 'app vs app');
     cmp(S, 'Dashboard (live that day)', "Today's orders = Finance day orders", num(d.live.day.sales.orders), num(d.live.dash.today.orders), 'app vs app');
 }
@@ -834,7 +894,7 @@ for (const d of DAYS) {
 {
     const S = '3 days';
     const all = Object.values(ORD);
-    const ex = salesOf(all);
+    const ex = salesOf(1, 3);
     const from = DAYS[0].date, to = DAYS[2].date;
     const p = (await rpc(owner, 'pnl', { p_from: from, p_to: to })).current;
     const g = await rpc(owner, 'gst_pack', { p_from: from, p_to: to });
@@ -850,7 +910,9 @@ for (const d of DAYS) {
     cmp(S, 'P&L', 'Expenses total', expTotal, num(p.expensesTotal));
     cmp(S, 'P&L', 'Staff cost (3 × 1000)', r2(staffPerDay * 3), num(p.staffCost));
     cmp(S, 'P&L', 'Net profit', r2(ex.netSalesLines - ex.cogs - expTotal - staffPerDay * 3), num(p.netProfit));
-    cmp(S, 'P&L', 'Cash paid out of drawers without a category (not in P&L)', 50, 0, 'kiosk “Tea for staff” payout');
+    cmp(S, 'P&L', 'Cash paid out of a drawer without a category (Other / uncategorised)', 50,
+        num((p.expenses || []).find(e => e.category === 'Other / uncategorised')?.amount), 'kiosk “Tea for staff” payout');
+    cmp(S, 'P&L', 'Returns of earlier days in the period (count / value)', `${ex.returns} / ${ex.returnsValue}`, `${num(p.returns?.count)} / ${r2(num(p.returns?.value))}`);
     for (const ch of ['takeaway', 'dine_in', 'qr', 'kiosk']) {
         const e = ex.byCh[ch] || { orders: 0, total: 0 };
         const a = (p.channels || []).find(x => x.channel === ch) || { orders: 0, gross: 0 };
@@ -897,6 +959,8 @@ for (const d of DAYS) {
     // payables
     const pay = await rpc(owner, 'payables');
     const nd = (pay.bills || []).find(b => b.id === bill.id) || {};
+    const ndRow = await must(service.from('purchases').select('bill_date, due_date').eq('id', bill.id).single());
+    cmp(S, 'Payables', 'ND-77 due date = bill date + 7 days (cafe date)', addDays(ndRow.bill_date, 7), ndRow.due_date);
     cmp(S, 'Payables', 'Nandini bill ND-77 total / due', `${purchaseBook[1].total} / ${purchaseBook[1].due}`, `${num(nd.total)} / ${num(nd.due)}`);
     // stock
     const so = await rpc(owner, 'stock_overview', {});
@@ -912,11 +976,12 @@ for (const d of DAYS) {
     }
     // dashboard now (day 3 is today)
     const dash = await rpc(owner, 'dashboard_stats');
-    const d3 = salesOf(dayOrders(3));
-    cmp('Day 3', 'Dashboard (now)', "Today's revenue", d3.paidRevenue, num(dash.today.revenue), 'paid orders only');
-    cmp('Day 3', 'Dashboard (now)', "Today's orders", d3.paidOrders, num(dash.today.orders), 'paid orders only');
+    const d3 = salesOf(3, 3);
+    cmp('Day 3', 'Dashboard (now)', "Today's sales", d3.gross, num(dash.today.revenue));
+    cmp('Day 3', 'Dashboard (now)', "Today's orders", d3.orders, num(dash.today.orders));
+    cmp('Day 3', 'Dashboard (now)', "Today's collected (paid bills)", d3.collected, num(dash.today.collected));
     cmp('Day 3', 'Dashboard (now)', "Today's revenue = Finance > Today sales", num(DAYS[2].appDay.sales.gross), num(dash.today.revenue), 'app vs app');
-    cmp('Day 3', 'Dashboard (now)', 'This month revenue (paid, 3 days)', ex.paidRevenue, num(dash.month.revenue));
+    cmp('Day 3', 'Dashboard (now)', "This month's sales (3 days) = P&L gross sales", ex.gross, num(dash.month.revenue));
     const notes = await rpc(owner, 'my_notifications', { p_limit: 100 });
     const mism = notes.filter(n => n.kind === 'shift_mismatch').map(n => n.title).sort();
     cmp(S, 'Alerts', 'Shift mismatch alerts (only real cash variances above ₹50 tolerance: none expected)', [], mism,
@@ -935,7 +1000,7 @@ for (const s of scopes) {
 }
 const result = {
     slug, tenantId, ownerPhone: ph(1), ownerPin: '1111', dates: DAYS.map(d => d.date), problems: PROBLEMS,
-    days: DAYS.map(d => ({ n: d.n, date: d.date, settings: d.settings, sales: ownerSalesOf(d.n), appSales: d.appDay.sales,
+    days: DAYS.map(d => ({ n: d.n, date: d.date, settings: d.settings, sales: salesOf(d.n, d.n), appSales: d.appDay.sales,
         shifts: Object.fromEntries(Object.entries(d.shifts).map(([k, v]) => [k, { ...expectedShift(d.n, k), counted: v.counted, offBy: v.offBy, app: (d.appDay.shifts || []).find(s => s.id === v.id) }])),
         pnl: d.appPnl })),
     orders: Object.values(ORD).map(o => ({ key: o.key, day: o.day, channel: o.channel, by: o.by, cust: o.cust, status: o.status, total: o.calc.total,

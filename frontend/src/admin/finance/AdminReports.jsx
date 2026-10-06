@@ -82,7 +82,7 @@ const PnlTab = () => {
                         <Line label="Gross sales" cur={c.grossSales} prev={p.grossSales} strong />
                         <Line label="GST collected (paid to government)" cur={c.taxes} prev={p.taxes} neg />
                         <Line label="Net sales" cur={c.netSales} prev={p.netSales} strong
-                            why="Net sales = what customers paid − GST collected − round-off. Cancelled orders are not counted." />
+                            why="Net sales = what customers paid − GST collected − round-off. A bill cancelled the same day is not counted; a bill of an earlier day cancelled in this period counts as a return." />
                         <Line label="Cost of goods sold" cur={c.cogs} prev={p.cogs} neg
                             why={<>Each order line stores its cost when sold: recipe ingredients × their average purchase cost, or the item's cost price.
                                 {c.linesWithoutCost > 0 && <> <strong>{c.linesWithoutCost} lines had no cost</strong> (no recipe or cost price) — add them in <Link to="/admin/recipes">Recipes &amp; Costing</Link>.</>}</>} />
@@ -104,6 +104,10 @@ const PnlTab = () => {
                     </tbody>
                 </table>
             </div>
+            {c.returns?.count > 0 && (
+                <p className="muted small">Sales include {c.returns.count} return{c.returns.count > 1 ? 's' : ''} of bills from earlier days
+                    (−{inr(c.returns.value)}), counted on the day of the return.</p>
+            )}
         </div>
     );
 };
@@ -226,6 +230,21 @@ const GstTab = () => {
                         {g.byRate.length === 0 && <tr><td colSpan={5} className="muted">No sales in this period.</td></tr>}</tbody>
                 </table>
             </div>
+            {g.creditNotes?.length > 0 && (
+                <>
+                    <h2 className="section-title">Credit notes (bills of earlier days cancelled in this period)</h2>
+                    <div className="table-scroll">
+                        <table className="staff-table">
+                            <thead><tr><th>Date</th><th>Bill</th><th>Bill date</th><th className="num">Taxable</th><th className="num">GST</th><th className="num">Total</th></tr></thead>
+                            <tbody>{g.creditNotes.map(c => (
+                                <tr key={c.orderNumber + c.date}><td>{c.date}</td><td>{c.orderNumber}</td><td>{c.orderDate}</td>
+                                    <td className="num">−{inr(c.taxable)}</td><td className="num">−{inr(c.tax)}</td><td className="num">−{inr(c.total)}</td></tr>
+                            ))}</tbody>
+                        </table>
+                    </div>
+                    <p className="muted small">Already taken off the sales by rate above.</p>
+                </>
+            )}
         </div>
     );
 };

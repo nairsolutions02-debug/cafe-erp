@@ -98,8 +98,9 @@ const AdminDashboard = () => {
                 <div className="stat-card">
                     <div className="stat-icon revenue"><FiDollarSign /></div>
                     <div className="stat-content">
-                        <span className="stat-label">Today's Revenue</span>
+                        <span className="stat-label">Today's Sales</span>
                         <span className="stat-value">₹{stats?.today?.revenue?.toFixed(2) || 0}</span>
+                        {stats?.today?.collected != null && <span className="stat-label">Collected ₹{Number(stats.today.collected).toFixed(2)}</span>}
                     </div>
                 </div>
                 <div className="stat-card">
@@ -112,7 +113,7 @@ const AdminDashboard = () => {
                 <div className="stat-card">
                     <div className="stat-icon month"><FiTrendingUp /></div>
                     <div className="stat-content">
-                        <span className="stat-label">This Month</span>
+                        <span className="stat-label">This Month's Sales</span>
                         <span className="stat-value">₹{stats?.month?.revenue?.toFixed(2) || 0}</span>
                     </div>
                 </div>

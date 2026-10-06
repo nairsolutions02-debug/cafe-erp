@@ -60,9 +60,9 @@ await page.goto(`${BASE}/admin`); await settle();
 await shot('01-dashboard-day3');
 {
     const t = await text();
-    const m = t.match(/Today's Revenue\s*₹([\d.,]+)/i);
+    const m = t.match(/Today's Sales\s*₹([\d.,]+)/i);
     const o = t.match(/Today's Orders\s*(\d+)/i);
-    checks.push({ screen: 'Dashboard', label: "Today's Revenue (on screen) vs Finance day-3 sales", expected: inr(d3.sales.gross), onScreen: m ? `₹${m[1]}` : '?', match: m && Number(m[1].replace(/,/g, '')) === d3.sales.gross });
+    checks.push({ screen: 'Dashboard', label: "Today's Sales (on screen) vs Finance day-3 sales", expected: inr(d3.sales.gross), onScreen: m ? `₹${m[1]}` : '?', match: m && Number(m[1].replace(/,/g, '')) === d3.sales.gross });
     checks.push({ screen: 'Dashboard', label: "Today's Orders (on screen) vs Finance day-3 orders", expected: String(d3.sales.orders), onScreen: o ? o[1] : '?', match: o && Number(o[1]) === d3.sales.orders });
 }
 
