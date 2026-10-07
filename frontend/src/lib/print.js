@@ -100,3 +100,36 @@ export function printBill(order) {
       <div class="c">${esc(r.footer || 'Thank you! Visit again.')}</div>`;
     open(page('Bill', body));
 }
+
+// Refund slip (credit note) for items given back from a paid bill
+export function printRefundSlip(order, refund) {
+    const r = order.restaurantInfo || {};
+    const brand = mergeBrand(readBrandCache());
+    const how = { cash: 'Cash', upi: 'UPI', card: 'Card', khata: 'Taken off khata' }[refund.method] || refund.method;
+    const rows = (refund.lines || []).map(l => `<tr><td>${esc(l.name)}</td><td class="r">${esc(l.quantity)}</td><td class="r">${money(l.amount)}</td></tr>`).join('');
+    const taxes = (refund.taxDetails || []).map(t => `<tr><td>${esc(t.name)} ${esc(t.rate)}%</td><td></td><td class="r">${money(t.amount)}</td></tr>`).join('');
+    const body = `
+      <h1>${esc(r.name || brand.name)}</h1>
+      ${r.gstNumber ? `<div class="c">GSTIN: ${esc(r.gstNumber)}</div>` : ''}
+      <div class="c b">REFUND SLIP (CREDIT NOTE)</div>
+      <hr>
+      <div>Bill: ${esc(order.orderNumber)} · refund ${esc(refund.number || '')}</div>
+      <div>Bill date: ${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN')}</div>
+      <div>Refund date: ${new Date(refund.at || Date.now()).toLocaleString('en-IN')}</div>
+      ${order.user?.name ? `<div>Customer: ${esc(order.user.name)}</div>` : ''}
+      <hr>
+      <table><tr class="b"><td>Item returned</td><td class="r">Qty</td><td class="r">Amt</td></tr>${rows}</table>
+      <hr>
+      <table>
+        <tr><td>Taxable value</td><td></td><td class="r">${money(Number(refund.taxable ?? 0) || (refund.lines || []).reduce((s, l) => s + Number(l.net || 0), 0) + Number(refund.serviceCharge || 0))}</td></tr>
+        ${taxes}
+        ${Number(refund.serviceCharge) > 0 ? `<tr><td>Service charge + GST</td><td></td><td class="r">${money(Number(refund.serviceCharge) + Number(refund.serviceChargeTax || 0))}</td></tr>` : ''}
+        ${Number(refund.roundOff) ? `<tr><td>Round off</td><td></td><td class="r">${money(refund.roundOff)}</td></tr>` : ''}
+        <tr class="b"><td>REFUNDED</td><td></td><td class="r big">${money(refund.amount)}</td></tr>
+        <tr><td>By</td><td></td><td class="r">${esc(how)}</td></tr>
+      </table>
+      ${refund.reason ? `<div>Reason: ${esc(refund.reason)}</div>` : ''}
+      <hr>
+      <div class="c">Customer signature ______________</div>`;
+    open(page('Refund', body));
+}

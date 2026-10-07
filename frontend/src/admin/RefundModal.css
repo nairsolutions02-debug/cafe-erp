@@ -1,0 +1,39 @@
+/* Refund some items (admin desktop dialog; a bottom sheet on phones through the admin modal rules) */
+.refund-modal .refund-lines { list-style: none; margin: 8px 0 12px; padding: 0; display: grid; gap: 6px; }
+.refund-line {
+    display: grid; grid-template-columns: 1fr auto 84px; grid-template-areas: 'name step amt' 'stock stock stock';
+    align-items: center; gap: 4px 10px; padding: 8px 10px; border: 1px solid #E5E5E5; border-radius: var(--radius-sm, 6px);
+}
+.refund-line.on { border-color: var(--primary); }
+.refund-line.gone { opacity: .55; }
+.refund-line-name { grid-area: name; display: flex; flex-direction: column; min-width: 0; }
+.refund-line-name b { overflow-wrap: anywhere; }
+.refund-step { grid-area: step; display: inline-flex; align-items: center; gap: 4px; }
+.refund-step button {
+    width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+    border: 1px solid #D4D4D4; border-radius: var(--radius-sm, 6px); background: #FFFFFF; cursor: pointer;
+}
+.refund-step button:disabled { opacity: .4; cursor: default; }
+.refund-step .qty { min-width: 22px; text-align: center; font-weight: 600; }
+.refund-line-amt { grid-area: amt; text-align: right; font-weight: 600; }
+.refund-restock { grid-area: stock; display: inline-flex; align-items: center; gap: 6px; }
+.refund-total {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; padding: 10px 12px; margin-bottom: 12px;
+    background: #FFF4E5; border-radius: var(--radius-sm, 6px);
+}
+.refund-total strong { font-size: 1.3rem; }
+.refund-total .small { flex-basis: 100%; }
+.refund-methods { display: flex; flex-wrap: wrap; gap: 6px; }
+.refund-methods button {
+    flex: 1 1 70px; min-height: 38px; padding: 6px 10px; border: 1px solid #D4D4D4; border-radius: var(--radius-sm, 6px);
+    background: #FFFFFF; cursor: pointer; font-weight: 500;
+}
+.refund-methods button.active { border-color: var(--primary); background: var(--primary); color: #FFFFFF; }
+.refund-done-lines { margin: 6px 0 10px 18px; }
+.cancel-or-refund { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 12px; margin-bottom: 12px; border: 1px dashed #D4D4D4; border-radius: var(--radius-sm, 6px); }
+.cancel-or-refund span { flex: 1 1 200px; }
+.hist-refunded { display: block; color: var(--error, #DC2626); font-size: .8rem; font-weight: 600; }
+@media (max-width: 600px) {
+    .refund-line { grid-template-columns: 1fr auto; grid-template-areas: 'name amt' 'step stock'; }
+    .refund-restock { justify-self: end; }
+}

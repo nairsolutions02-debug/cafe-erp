@@ -1,4 +1,4 @@
-# Pending setup — ALL DONE (2026-10-07)
+# Pending setup
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -104,3 +104,6 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 
 ## 24. Money fixes from the dry run (2026-10-06)
 - [x] 24.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-11-money-fixes.sql` → Run → Success (run 23.1 first)
+
+## 25. Partial refunds, points at the counter, sales trends (2026-10-07)
+- [ ] 25.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-11-refunds-points.sql` → Run → Success (until this runs, the counter, refunds and reports show errors on the live site)

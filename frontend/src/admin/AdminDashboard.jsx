@@ -101,6 +101,7 @@ const AdminDashboard = () => {
                         <span className="stat-label">Today's Sales</span>
                         <span className="stat-value">₹{stats?.today?.revenue?.toFixed(2) || 0}</span>
                         {stats?.today?.collected != null && <span className="stat-label">Collected ₹{Number(stats.today.collected).toFixed(2)}</span>}
+                        {Number(stats?.today?.refunds) > 0 && <span className="stat-label">Refunds today −₹{Number(stats.today.refunds).toFixed(2)} (already taken off)</span>}
                     </div>
                 </div>
                 <div className="stat-card">

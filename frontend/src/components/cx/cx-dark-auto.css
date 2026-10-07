@@ -43,6 +43,25 @@
         border-right: 2px solid var(--d-line);
     }
 
+    /* pages/OrderDetails.css */
+    .cx-dark .refund-card {
+        background: hsl(0 45% 17%);
+        border: 1px solid var(--d-line);
+        color: hsl(0 70% 72%);
+    }
+
+    .cx-dark .refund-card-row {
+        color: hsl(215 28% 72%);
+    }
+
+    .cx-dark .refund-card-row .muted {
+        color: var(--d-ink-2);
+    }
+
+    .cx-dark .refund-card .bill-row.total {
+        color: hsl(215 28% 72%);
+    }
+
     /* pages/club/Club.css */
     .cx-dark .cl-bar i {
         background: var(--d-surface);

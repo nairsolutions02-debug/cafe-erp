@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiSearch, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiDownload, FiCalendar, FiX } from 'react-icons/fi';
+import { FiSearch, FiFileText, FiClock, FiCheckCircle, FiXCircle, FiDownload, FiCalendar, FiX, FiCornerUpLeft } from 'react-icons/fi';
 import { getAllOrders } from '../utils/api';
 import { exportToCSV, orderExportColumns, getFilenameDate } from '../utils/exportUtils';
 import OrderBill from '../components/OrderBill';
@@ -12,10 +12,11 @@ import './AdminHistory.css';
 const AdminHistory = () => {
     const { hasPerm } = useAuth();
     const [orders, setOrders] = useState([]);
-    // Cancel or refund a bill from today (a manager PIN is asked for when the person cannot void bills)
+    // Cancel a bill or refund some of its items, on any day (a manager PIN is asked for when the person cannot void bills).
+    // A refund on a later day counts on the day it is given, not on the day of the bill.
     const [cancelling, setCancelling] = useState(null);
-    const canRefund = (o) => hasPerm('orders.create') && o.status === 'paid'
-        && new Date(o.paidAt || o.createdAt).toDateString() === new Date().toDateString();
+    const canRefund = (o) => hasPerm('orders.create') && o.status === 'paid';
+    const itemsLeft = (o) => (o.items || []).some(i => Number(i.quantity) > Number(i.refundedQty || 0));
     const [loading, setLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [searchParams] = useSearchParams();
@@ -159,7 +160,9 @@ const AdminHistory = () => {
                                             ))}
                                         </ul>
                                     </td>
-                                    <td className="font-bold text-primary">₹{order.total.toFixed(2)}</td>
+                                    <td className="font-bold text-primary">₹{order.total.toFixed(2)}
+                                        {Number(order.refunded) > 0 && order.status !== 'cancelled' && <span className="hist-refunded">Refunded ₹{Number(order.refunded).toFixed(2)}</span>}
+                                    </td>
                                     <td>
                                         <span className={`status-pill ${order.status}`}>
                                             {getStatusIcon(order.status)} {order.status}
@@ -183,9 +186,14 @@ const AdminHistory = () => {
                                         >
                                             <FiFileText /> Bill
                                         </button>
+                                        {canRefund(order) && itemsLeft(order) && (
+                                            <button className="btn-view-bill refund" onClick={() => setCancelling({ order, startWith: 'refund' })} title="Give back the money for some items">
+                                                <FiCornerUpLeft /> Refund items
+                                            </button>
+                                        )}
                                         {canRefund(order) && (
-                                            <button className="btn-view-bill refund" onClick={() => setCancelling(order)} title="Cancel this bill and refund the money">
-                                                <FiXCircle /> Cancel / refund
+                                            <button className="btn-view-bill refund" onClick={() => setCancelling({ order, startWith: 'cancel' })} title="Cancel this bill and refund the money">
+                                                <FiXCircle /> Cancel bill
                                             </button>
                                         )}
                                     </td>
@@ -204,7 +212,7 @@ const AdminHistory = () => {
             </div>
 
             {cancelling && (
-                <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)}
+                <CancelModal order={cancelling.order} startWith={cancelling.startWith} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)}
                     onDone={() => { setCancelling(null); fetchOrders(); }} />
             )}
 

@@ -108,6 +108,11 @@ const PnlTab = () => {
                 <p className="muted small">Sales include {c.returns.count} return{c.returns.count > 1 ? 's' : ''} of bills from earlier days
                     (−{inr(c.returns.value)}), counted on the day of the return.</p>
             )}
+            {c.refunds?.count > 0 && (
+                <p className="muted small">Sales include {c.refunds.count} refund{c.refunds.count > 1 ? 's' : ''} of some items
+                    (−{inr(c.refunds.value)} with GST, −{inr(c.refunds.net)} without), counted on the day of the refund.
+                    {c.refunds.costBack > 0 && ` Items put back in stock took ${inr(c.refunds.costBack)} off the cost of goods.`}</p>
+            )}
         </div>
     );
 };
@@ -232,12 +237,13 @@ const GstTab = () => {
             </div>
             {g.creditNotes?.length > 0 && (
                 <>
-                    <h2 className="section-title">Credit notes (bills of earlier days cancelled in this period)</h2>
+                    <h2 className="section-title">Credit notes (refunds, and bills of earlier days cancelled, in this period)</h2>
                     <div className="table-scroll">
                         <table className="staff-table">
-                            <thead><tr><th>Date</th><th>Bill</th><th>Bill date</th><th className="num">Taxable</th><th className="num">GST</th><th className="num">Total</th></tr></thead>
-                            <tbody>{g.creditNotes.map(c => (
-                                <tr key={c.orderNumber + c.date}><td>{c.date}</td><td>{c.orderNumber}</td><td>{c.orderDate}</td>
+                            <thead><tr><th>Date</th><th>Bill</th><th>Bill date</th><th>What</th><th className="num">Taxable</th><th className="num">GST</th><th className="num">Total</th></tr></thead>
+                            <tbody>{g.creditNotes.map((c, i) => (
+                                <tr key={`${c.orderNumber}-${c.date}-${i}`}><td>{c.date}</td><td>{c.orderNumber}</td><td>{c.orderDate}</td>
+                                    <td className="small">{c.kind === 'refund' ? `Refund: ${c.items || ''}` : 'Whole bill cancelled'}</td>
                                     <td className="num">−{inr(c.taxable)}</td><td className="num">−{inr(c.tax)}</td><td className="num">−{inr(c.total)}</td></tr>
                             ))}</tbody>
                         </table>

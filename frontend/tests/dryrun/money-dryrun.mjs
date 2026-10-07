@@ -186,6 +186,7 @@ const CUST = {
     kavya: { name: 'Kavya', phone: ph(33), points: 250, qr: true },
     sanjay: { name: 'Sanjay', phone: ph(41), points: 0, limit: 1000 },
     raju: { name: 'Raju', phone: ph(42), points: 0, limit: 500 },
+    neha: { name: 'Neha', phone: ph(43), points: 1200 }, // part 2: uses her points at the counter
 };
 for (const c of Object.values(CUST)) {
     if (c.qr) {
@@ -361,7 +362,7 @@ async function sale(key, { by, channel, items, pay, coupon, manual, approve, use
     const payload = items.map(it => it.combo
         ? { combo: COMBO.id, quantity: it.qty, picks: it.picks.map(p => ({ menuItem: MENU[p.k].id, size: p.size, choices: p.choices })) }
         : { menuItem: MENU[it.k].id, quantity: it.qty, size: it.size, choices: it.choices, unitId: it.unit ? MENU[it.k].units[it.unit].id : undefined });
-    const rec = { key, day: D.n, by, channel, calc, cust, status: 'open', payments: [], pointsExpected: 0 };
+    const rec = { key, day: D.n, by, channel, calc, cust, items, status: 'open', payments: [], pointsExpected: 0 };
     ORD[key] = rec; D.orders.push(rec);
     applyStock(calc.lines, 1);
     if (c && calc.pointsUsed) c.points -= calc.pointsUsed;
@@ -375,7 +376,10 @@ async function sale(key, { by, channel, items, pay, coupon, manual, approve, use
         const p = { clientId: `${key}-${run}`, channel, items: payload, couponCode: coupon || undefined,
                     customerId: c ? c.id : undefined, drawer: drawerAcc(drawer), deviceCode: by === 'kiosk' ? 'K1' : 'C1' };
         if (manual) { p.manualDiscount = manual; p.discountReason = 'Regular customer'; if (approve) Object.assign(p, MGR); }
+        if (useOffer) p.loyaltyOfferId = OFFER.id; // counter rewards (part 2): a loyalty deal or points as cash
+        if (pointsCash) p.pointsCash = true;
         res = await rpc(who, 'create_staff_order', { p });
+        rec.pointsRedeemedApp = Number(res.pointsRedeemed || 0);
     }
     rec.id = res.id; rec.server = { total: Number(res.total), tax: Number(res.tax), discount: Number(res.discount), status: res.status };
     if (Math.abs(rec.server.total - calc.total) > 0.001) PROBLEMS.push(`${key}: server total ${rec.server.total} vs expected ${calc.total}`);
@@ -448,6 +452,65 @@ async function cancel(key, by, reason) {
     }
     applyStock(rec.calc.lines, -1);
     rec.status = 'cancelled'; rec.cancelledOn = D.n;
+}
+// Refund some items (part 2). picks: [{ k: menu key, qty, restock }]. Every amount is worked out here from the bill lines:
+// the running share of each line (net, GST, discount), the service charge share, and the round-off on the last refund.
+const REFUNDS = [];
+async function refundItems(key, by, picks, method, reason) {
+    const rec = ORD[key];
+    const who = by === 'owner' ? owner : by === 'kiosk' ? kiosk : cashier;
+    const drawer = by === 'kiosk' ? 'kiosk' : 'counter';
+    const L = rec.calc.lines;
+    rec.refunded = rec.refunded || L.map(() => ({ q: 0, net: 0, tax: 0, disc: 0 }));
+    const prevNetAll = sum(rec.refunded, x => x.net);
+    const prevAmount = sum(REFUNDS.filter(r => r.key === key), r => r.amount);
+    const prevSc = sum(REFUNDS.filter(r => r.key === key), r => r.sc);
+    const prevSct = sum(REFUNDS.filter(r => r.key === key), r => r.sct);
+    let sNet = 0, sTax = 0, sDisc = 0, cost = 0;
+    const out = [];
+    const items = await must(service.from('order_items').select('id, menu_item_id, combo_id').eq('order_id', rec.id));
+    for (const pk of picks) {
+        const i = rec.items.findIndex(it => (pk.combo ? it.combo : it.k === pk.k));
+        const l = L[i]; const pr = rec.refunded[i];
+        const cum = pr.q + pk.qty;
+        const net = r2(r2(l.net * cum / l.qty) - pr.net);
+        const tax = r2(r2(l.tax * cum / l.qty) - pr.tax);
+        const disc = r2(r2(l.disc * cum / l.qty) - pr.disc);
+        pr.q = cum; pr.net = r2(pr.net + net); pr.tax = r2(pr.tax + tax); pr.disc = r2(pr.disc + disc);
+        sNet = r2(sNet + net); sTax = r2(sTax + tax); sDisc = r2(sDisc + disc);
+        if (pk.restock) {
+            cost = r2(cost + l.unitCost * pk.qty);
+            for (const [stk, q] of l.uses) STOCK[stk].qty = r2(STOCK[stk].qty + q * pk.qty / l.qty);
+        }
+        const row = items.find(x => (pk.combo ? x.combo_id === COMBO.id : x.menu_item_id === MENU[pk.k].id));
+        out.push({ id: row.id, name: l.name, qty: pk.qty, net, tax, rate: l.rate, hsn: l.hsn, restock: !!pk.restock });
+    }
+    const linesNet = sum(L, l => l.net);
+    let sc = 0, sct = 0, ro = 0;
+    if (rec.calc.sc) {
+        sc = r2(r2(rec.calc.sc * (prevNetAll + sNet) / linesNet) - prevSc);
+        sct = r2(r2(rec.calc.scTax * (prevNetAll + sNet) / linesNet) - prevSct);
+    }
+    let amount = r2(sNet + sTax + sc + sct);
+    if (rec.refunded.every((x, i) => x.q === L[i].qty)) { ro = r2(rec.calc.total - prevAmount - amount); amount = r2(rec.calc.total - prevAmount); }
+    const res = await rpc(who, 'refund_items', { p_order_id: rec.id, p_lines: out.map(o => ({ orderItemId: o.id, quantity: o.qty, restock: o.restock })),
+        p_method: method, p_reason: reason, p_drawer: drawerAcc(drawer), ...(by === 'owner' ? {} : { p_approver_phone: MGR.approverPhone, p_approver_pin: MGR.approverPin }) });
+    post(method === 'cash' ? drawerAcc(drawer) : method === 'khata' ? 'khata' : method, -amount, 'refund', method, drawer, { order: key, customer: rec.cust });
+    // points earned by these items come back in proportion (held khata points first; balance never below 0)
+    let take = 0;
+    if (rec.cust && rec.status === 'paid') {
+        const E = rec.pointsExpected + (rec.clubExtra || 0);
+        const baseTotal = L.filter(l => !l.restricted).reduce((t, l) => t + l.t - l.disc, 0);
+        const baseBack = L.reduce((t, l, i) => t + (l.restricted ? 0 : (l.t - l.disc) * rec.refunded[i].q / l.qty), 0);
+        take = Math.max(floor(E * Math.min(baseBack / baseTotal, 1)) - (rec.pointsReversed || 0), 0);
+        const fromHeld = Math.min(take, rec.held ? rec.held.held : 0);
+        if (rec.held) { rec.held.held -= fromHeld; rec.held.total -= fromHeld; }
+        CUST[rec.cust].points = Math.max(CUST[rec.cust].points - (take - fromHeld), 0);
+        rec.pointsReversed = (rec.pointsReversed || 0) + take;
+    }
+    REFUNDS.push({ key, day: D.n, o: rec, method, amount, net: r2(sNet + sc), tax: r2(sTax + sct), disc: sDisc, sc, sct, ro, cost, lines: out,
+                   app: Number(res.refund.amount), appPoints: res.refund.pointsReversed, points: take });
+    return res;
 }
 async function cashMove(drawer, kind, amount, note, category) {
     const who = drawer === 'kiosk' ? kiosk : cashier;
@@ -653,6 +716,10 @@ await sale('d2-k3', { by: 'kiosk', channel: 'kiosk', cust: 'raju', items: [C('go
 await sale('d2-k4', { by: 'kiosk', channel: 'kiosk', items: [C('coke', 1), C('mint', 2)], pay: 'cash' });
 await sale('d2-k5', { by: 'kiosk', channel: 'kiosk', items: [C('gold', 2, { unit: 'pack' })], pay: 'cash' });
 await settleKhata('raju', 200, 'cash', 'kiosk');
+// part 2: a day-1 bill partly refunded today by UPI: one latte (thrown away) and one croissant (back on the shelf)
+await refundItems('d1-07', 'cashier', [{ k: 'latte', qty: 1, restock: false }, { k: 'croissant', qty: 1, restock: true }], 'upi', 'Latte too sweet, croissant not opened');
+// part 2: a same-day partial refund in cash, food not put back
+await refundItems('d2-12', 'cashier', [{ k: 'capp', qty: 1, restock: false }], 'cash', 'One cappuccino spilt');
 // money out
 const dairy = await must(owner.from('vendors').insert({ name: 'Nandini Dairy & Beans', gstin: '29ABCDE1234F1Z5', payment_terms_days: 7 }).select().single());
 const bill = await rpc(owner, 'record_purchase', { p: { vendorId: dairy.id, billNumber: 'ND-77', paidAmount: 500, paymentMode: 'drawer',
@@ -694,6 +761,12 @@ await sale('d3-10', { channel: 'qr', cust: 'arjun', items: [C('dosa', 1), C('cap
 await sale('d3-11', { by: 'cashier', channel: 'dine_in', items: [C('capp', 1), C('latte', 1)], pay: 'upi' });
 await sale('d3-12', { by: 'cashier', channel: 'takeaway', items: [C('croissant', 4), C('water', 4)], pay: 'cash' });
 await settleKhata('sanjay', sum(LEDGER.filter(x => x.account === 'khata' && x.customer === 'sanjay'), x => x.amount), 'cash', 'counter'); // pays off the day-2 khata in full
+// part 2: rewards at the counter (customer attached by phone): a loyalty deal, then points as cash
+await sale('d3-13', { by: 'cashier', channel: 'takeaway', cust: 'neha', items: [C('latte', 2), C('croissant', 1)], useOffer: true, pay: 'card' });
+await sale('d3-14', { by: 'cashier', channel: 'takeaway', cust: 'neha', items: [C('capp', 2), C('dosa', 1)], pointsCash: true, pay: 'cash' });
+// part 2: same-day refund in cash: a water goes back on the shelf, a croissant does not; and Neha's dosa by UPI (its points are taken back)
+await refundItems('d3-12', 'cashier', [{ k: 'water', qty: 1, restock: true }, { k: 'croissant', qty: 1, restock: false }], 'cash', 'Wrong items packed');
+await refundItems('d3-14', 'cashier', [{ k: 'dosa', qty: 1, restock: false }], 'upi', 'Dosa burnt');
 // kiosk
 await sale('d3-k1', { by: 'kiosk', channel: 'kiosk', items: [C('gold', 1, { unit: 'pack' }), C('mint', 1)], pay: 'cash' });
 await sale('d3-k2', { by: 'kiosk', channel: 'kiosk', items: [C('gold', 6)], pay: 'upi' });
@@ -743,6 +816,15 @@ for (const o of Object.values(ORD)) {
     cmp(`Day ${o.day}`, 'Order', `${o.key} status`, o.status === 'open' ? 'pending' : o.status, srv.status === 'bill_requested' ? 'pending' : srv.status);
 }
 
+for (const r of REFUNDS) {
+    cmp(`Day ${r.day}`, 'Refund', `${r.key} refund ${r.lines.map(l => `${l.qty}×${l.name}${l.restock ? ' (restock)' : ''}`).join(' + ')} by ${r.method}`, r.amount, r.app);
+    if (r.o.cust) cmp(`Day ${r.day}`, 'Refund', `${r.key} points taken back`, r.points, r.appPoints);
+}
+for (const o of Object.values(ORD).filter(x => x.channel !== 'qr' && x.calc.pointsUsed)) {
+    cmp(`Day ${o.day}`, 'Counter rewards', `${o.key} points redeemed at the counter`, o.calc.pointsUsed, o.pointsRedeemedApp);
+    cmp(`Day ${o.day}`, 'Counter rewards', `${o.key} reward off the bill`, o.calc.offerDisc, num(o.final.discount) - o.calc.couponDisc - o.calc.manual);
+}
+
 // The sales book from my own records: a bill counts on the day it was made; a bill cancelled on a later day
 // counts again, negative, on the day it was cancelled (a return / credit note); a same-day cancel never counts.
 const eventsFor = (from, to) => {
@@ -773,16 +855,32 @@ const salesOf = (from, to) => {
         }
         if (o.calc.sc) { rate[5] = rate[5] || { taxable: 0, tax: 0 }; rate[5].taxable = r2(rate[5].taxable + sign * o.calc.sc); rate[5].tax = r2(rate[5].tax + sign * o.calc.scTax); }
     }
+    // partial refunds (part 2): negative on the day they are given (a bill cancelled the same day it was made is left out)
+    const refs = REFUNDS.filter(r => r.day >= from && r.day <= to && !(r.o.status === 'cancelled' && r.o.cancelledOn === r.o.day));
+    for (const r of refs) {
+        const ch = r.o.channel;
+        byCh[ch] = byCh[ch] || { orders: 0, total: 0 };
+        byCh[ch].total = r2(byCh[ch].total - r.amount);
+        for (const l of r.lines) {
+            rate[l.rate] = rate[l.rate] || { taxable: 0, tax: 0 };
+            rate[l.rate].taxable = r2(rate[l.rate].taxable - l.net); rate[l.rate].tax = r2(rate[l.rate].tax - l.tax);
+        }
+        if (r.sc) { rate[5] = rate[5] || { taxable: 0, tax: 0 }; rate[5].taxable = r2(rate[5].taxable - r.sc); rate[5].tax = r2(rate[5].tax - r.sct); }
+    }
+    const R = (f) => r2(refs.reduce((t, r) => t + f(r), 0));
     const sameDay = Object.values(ORD).filter(o => o.status === 'cancelled' && o.cancelledOn === o.day && o.day >= from && o.day <= to);
     return {
-        orders: plus.length, gross: S(o => o.calc.total), tax: S(o => o.calc.tax + o.calc.scTax), discounts: S(o => o.calc.discount),
+        orders: plus.length, gross: r2(S(o => o.calc.total) - R(r => r.amount)), tax: r2(S(o => o.calc.tax + o.calc.scTax) - R(r => r.tax)),
+        discounts: r2(S(o => o.calc.discount) - R(r => r.disc)),
+        refunds: refs.length, refundsValue: R(r => r.amount), refundsNet: R(r => r.net),
+        lineNet: r2(S(o => sum(o.calc.lines, l => l.net)) - R(r => sum(r.lines, l => l.net))),
         disc: { coupon: S(o => o.calc.couponDisc), manual: S(o => o.calc.manual), points: S(o => o.calc.offerDisc) },
-        serviceCharge: S(o => o.calc.sc), roundOff: S(o => o.calc.ro),
+        serviceCharge: r2(S(o => o.calc.sc) - R(r => r.sc)), roundOff: r2(S(o => o.calc.ro) - R(r => r.ro)),
         unpaid: sum(plus.filter(o => o.status !== 'paid' && o.status !== 'cancelled'), o => o.calc.total),
         cancelled: sameDay.length, cancelledValue: sum(sameDay, o => o.calc.total),
         returns: ret.length, returnsValue: sum(ret, o => o.calc.total),
-        netSalesLines: S(o => sum(o.calc.lines, l => l.net) + o.calc.sc),
-        cogs: S(o => sum(o.calc.lines, l => l.unitCost * l.qty)),
+        netSalesLines: r2(S(o => sum(o.calc.lines, l => l.net) + o.calc.sc) - R(r => r.net)),
+        cogs: r2(S(o => sum(o.calc.lines, l => l.unitCost * l.qty)) - R(r => r.cost)),
         // paid bills of the day, as they stood that day (a bill refunded on a later day was paid on its day)
         collected: sum(plus.filter(o => o.status === 'paid' || (o.status === 'cancelled' && o.payments.length)), o => o.calc.total),
         byCh, rate,
@@ -814,6 +912,7 @@ for (const d of DAYS) {
     cmp(S, 'Sales', 'Cancelled orders', exOwner.cancelled, num(ds.sales.cancelled), note);
     cmp(S, 'Sales', 'Cancelled value', exOwner.cancelledValue, num(ds.sales.cancelledValue), note);
     cmp(S, 'Sales', 'Returns of earlier days (count / value)', `${exOwner.returns} / ${exOwner.returnsValue}`, `${num(ds.sales.returns)} / ${r2(num(ds.sales.returnsValue))}`);
+    cmp(S, 'Sales', 'Items refunded (count / value)', `${exOwner.refunds} / ${exOwner.refundsValue}`, `${num(ds.sales.refunds)} / ${r2(num(ds.sales.refundsValue))}`);
     cmp(S, 'Sales', 'Average bill (bills made this day)', exOwner.orders ? r2(sum(eventsFor(d.n, d.n).filter(e => e.sign > 0), e => e.o.calc.total) / exOwner.orders) : 0, num(ds.sales.avgBill));
     const manualList = dayOrders(d.n).filter(o => o.calc.manual > 0).map(o => o.calc.manual).sort((a, b) => a - b);
     cmp(S, 'Sales', 'Manual discounts listed', manualList, (ds.discounts || []).map(x => num(x.amount)).sort((a, b) => a - b));
@@ -874,6 +973,15 @@ for (const d of DAYS) {
     cmp(S, 'P&L', 'Expenses', expTotal, num(p.expensesTotal));
     cmp(S, 'P&L', 'Staff cost (estimate 31000/31 per day)', r2(staffPerDay), num(p.staffCost));
     cmp(S, 'P&L', 'Net profit', r2(exOwner.netSalesLines - exOwner.cogs - expTotal - staffPerDay), num(p.netProfit), note);
+    // Sales trends (Analytics) = Finance = P&L, day by day (part 2)
+    const tr = await rpc(owner, 'revenue_series', { p_from: d.date, p_to: d.date });
+    const tday = tr.find(x => x._id === d.date) || { revenue: 0, gross: 0, orders: 0 };
+    cmp(S, 'Trends', 'Analytics net sales = expected net sales', exOwner.netSalesLines, num(tday.revenue));
+    cmp(S, 'Trends', 'Analytics net sales = P&L net sales', num(p.netSales), num(tday.revenue), 'app vs app');
+    cmp(S, 'Trends', 'Analytics sales with GST = Finance day sales', num(ds.sales.gross), num(tday.gross), 'app vs app');
+    cmp(S, 'Trends', 'Analytics bills = Finance bills', num(ds.sales.orders), num(tday.orders), 'app vs app');
+    const cs = await rpc(owner, 'category_sales', { p_from: d.date, p_to: d.date });
+    cmp(S, 'Trends', 'Sales by category (sum) = line net amounts', exOwner.lineNet, sum(cs, x => num(x.total)));
     // ledger rows of the day
     const led = await rpc(owner, 'list_ledger', { p: { from: d.date, to: d.date, limit: 2000 } });
     for (const [k, v] of Object.entries(d.live.points)) cmp(S, 'Loyalty (end of day)', `${CUST[k].name} points`, v.exp, v.app, k === 'sanjay' && d.n === 2 ? 'khata bill points held until paid' : '');
@@ -913,6 +1021,26 @@ for (const d of DAYS) {
     cmp(S, 'P&L', 'Cash paid out of a drawer without a category (Other / uncategorised)', 50,
         num((p.expenses || []).find(e => e.category === 'Other / uncategorised')?.amount), 'kiosk “Tea for staff” payout');
     cmp(S, 'P&L', 'Returns of earlier days in the period (count / value)', `${ex.returns} / ${ex.returnsValue}`, `${num(p.returns?.count)} / ${r2(num(p.returns?.value))}`);
+    cmp(S, 'P&L', 'Items refunded in the period (count / value / without GST)', `${ex.refunds} / ${ex.refundsValue} / ${ex.refundsNet}`,
+        `${num(p.refunds?.count)} / ${r2(num(p.refunds?.value))} / ${r2(num(p.refunds?.net))}`);
+    // Sales trends = Finance for the whole range (part 2)
+    const tr = await rpc(owner, 'revenue_series', { p_from: from, p_to: to });
+    cmp(S, 'Trends', 'Sum of the daily trend = P&L net sales', num(p.netSales), sum(tr, x => num(x.revenue)), 'app vs app');
+    cmp(S, 'Trends', 'Sum of the daily trend = expected net sales', ex.netSalesLines, sum(tr, x => num(x.revenue)));
+    cmp(S, 'Trends', 'Sum of the daily trend with GST = P&L gross sales', num(p.grossSales), sum(tr, x => num(x.gross)), 'app vs app');
+    const wk = await rpc(owner, 'revenue_series', { p_period: 'week' });
+    cmp(S, 'Trends', 'Analytics "week" (only these 3 days have sales) = 3-day net sales', ex.netSalesLines, sum(wk, x => num(x.revenue)));
+    const cs = await rpc(owner, 'category_sales', { p_from: from, p_to: to });
+    cmp(S, 'Trends', 'Sales by category (sum) = line net amounts', ex.lineNet, sum(cs, x => num(x.total)));
+    const eco = await rpc(owner, 'item_economics', { p_from: from, p_to: to });
+    cmp(S, 'Trends', 'Item economics revenue (sum) = line net amounts', ex.lineNet, sum(eco, x => num(x.revenue)));
+    cmp(S, 'Trends', 'Item economics cost (sum) = P&L COGS', ex.cogs, sum(eco, x => num(x.cost)));
+    const top = await rpc(owner, 'top_items', { p_from: from, p_to: to });
+    const qtyBy = {};
+    for (const o of all.filter(live)) o.calc.lines.forEach((l, i) => { const k = o.items[i].combo ? COMBO.name : MENU[o.items[i].k].name; qtyBy[k] = (qtyBy[k] || 0) + l.qty; });
+    for (const r of REFUNDS) r.lines.forEach(l => { const k = l.name; qtyBy[k] = (qtyBy[k] || 0) - l.qty; });
+    const topExp = Object.entries(qtyBy).sort((a, b) => b[1] - a[1])[0];
+    cmp(S, 'Trends', 'Top item by quantity (net of refunds)', `${topExp[0]} ${topExp[1]}`, `${top[0]?.name} ${top[0]?.totalQuantity}`);
     for (const ch of ['takeaway', 'dine_in', 'qr', 'kiosk']) {
         const e = ex.byCh[ch] || { orders: 0, total: 0 };
         const a = (p.channels || []).find(x => x.channel === ch) || { orders: 0, gross: 0 };
@@ -928,6 +1056,7 @@ for (const d of DAYS) {
     cmp(S, 'GST pack', 'Purchase bills with GSTIN', purchaseBook.length, (g.purchases || []).length);
     const hsnExp = {};
     for (const o of all.filter(live)) for (const l of o.calc.lines) { hsnExp[l.hsn] = r2((hsnExp[l.hsn] || 0) + l.tax); }
+    for (const r of REFUNDS) for (const l of r.lines) { hsnExp[l.hsn] = r2((hsnExp[l.hsn] || 0) - l.tax); }
     const hsnApp = {}; for (const h of g.hsn || []) hsnApp[h.code] = r2((hsnApp[h.code] || 0) + num(h.tax));
     cmp(S, 'GST pack', 'Tax by HSN/SAC', hsnExp, hsnApp, 'combos: HSN of the first pick; service charge not in HSN');
     // cash flow and balances
@@ -1005,6 +1134,7 @@ const result = {
         pnl: d.appPnl })),
     orders: Object.values(ORD).map(o => ({ key: o.key, day: o.day, channel: o.channel, by: o.by, cust: o.cust, status: o.status, total: o.calc.total,
         tax: o.calc.tax, discount: o.calc.discount, sc: o.calc.sc, ro: o.calc.ro, payments: o.payments, app: { total: num(o.final.total), status: o.final.status, pointsAwarded: o.final.pointsAwarded } })),
+    refunds: REFUNDS.map(r => ({ key: r.key, day: r.day, method: r.method, amount: r.amount, app: r.app, lines: r.lines })),
     ledger: LEDGER, expenses: EXPENSES, purchases: purchaseBook, stock: STOCK, customers: Object.fromEntries(Object.entries(CUST).map(([k, c]) => [k, { name: c.name, points: c.points, start: c.startPoints }])),
     range: { from: DAYS.range.from, to: DAYS.range.to },
     rows,

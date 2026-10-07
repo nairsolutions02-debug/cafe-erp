@@ -77,6 +77,7 @@ for (const d of R.days) {
     await has(S, 'Discounts', d.sales.discounts);
     await has(S, 'Not paid yet', d.sales.unpaid);
     await has(S, `Orders count "(${d.sales.orders} orders)"`, `(${d.sales.orders} orders)`, false);
+    if (d.sales.refunds > 0) await has(S, `Items refunded tile (${d.sales.refunds})`, d.sales.refundsValue); // part 2
     for (const k of ['counter', 'kiosk']) {
         await has(S, `${k} shift expected cash`, d.shifts[k].expectedCash);
         await has(S, `${k} shift counted cash`, d.shifts[k].counted);
@@ -124,6 +125,15 @@ for (const d of R.days) {
 await page.goto(`${BASE}/admin/reports?tab=cash`); await settle();
 await period(R.range.from, R.range.to);
 await shot('06-reports-cashflow-3days');
+
+// Analytics (part 2): "week" net sales = the 3 days of net sales in P&L (only these days have sales)
+await page.goto(`${BASE}/admin/analytics`); await settle();
+await page.getByRole('button', { name: 'Week' }).click(); await settle();
+await shot('11-analytics-week');
+{
+    const net = R.days.reduce((t, d) => t + d.sales.netSalesLines, 0);
+    await has('Analytics week', 'Net sales (without GST) = 3-day P&L net sales', `₹${net.toFixed(2)}`, false);
+}
 
 // Khata, Kiosk, Finance ledger + payables
 await page.goto(`${BASE}/admin/khata`); await settle();

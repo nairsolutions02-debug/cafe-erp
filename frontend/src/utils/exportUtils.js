@@ -112,6 +112,8 @@ export const orderExportColumns = [
 export const revenueExportColumns = [
     { label: 'Date', accessor: (r) => r.date || formatDate(r._id) },
     { label: 'Orders', accessor: (r) => r.orders || 0 },
-    { label: 'Revenue (₹)', accessor: (r) => r.revenue?.toFixed(2) || 0 },
-    { label: 'Profit (₹)', accessor: (r) => r.profit?.toFixed(2) || 0 }
+    { label: 'Net sales without GST (₹)', accessor: (r) => Number(r.revenue || 0).toFixed(2) },
+    { label: 'Sales with GST (₹)', accessor: (r) => Number(r.gross || 0).toFixed(2) },
+    { label: 'Refunds (₹)', accessor: (r) => Number(r.refunds || 0).toFixed(2) },
+    { label: 'Profit (₹)', accessor: (r) => (r.profit == null ? '' : Number(r.profit).toFixed(2)) }
 ];

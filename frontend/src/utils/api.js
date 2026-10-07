@@ -414,7 +414,7 @@ export const deleteHoliday = async (id) => {
 export const getDashboardStats = async () => ok(await rpc('dashboard_stats'));
 export const getRevenueData = async (period) => ok(await rpc('revenue_series', { p_period: period || 'week' }));
 export const getCategorySales = async (period) => ok(await rpc('category_sales', { p_period: period || 'month' }));
-export const getTopItems = async () => ok(await rpc('top_items'));
+export const getTopItems = async (period) => ok(await rpc('top_items', { p_period: period || 'month' }));
 export const getUserAnalytics = async (period) => ok(await rpc('user_analytics', { p_period: period || 'month' }));
 
 // ---------------------------------------------------------------------------
@@ -732,6 +732,14 @@ export const settleOrder = async (orderId, payments, drawer = 'cash_counter', cl
     ok(await rpc('settle_order', { p_order_id: orderId, p_payments: payments, p_drawer: drawer, p_client_id: clientId }));
 export const cancelOrder = async (orderId, reason, approverPhone = null, approverPin = null) =>
     ok(await rpc('cancel_order', { p_order_id: orderId, p_reason: reason, p_approver_phone: approverPhone, p_approver_pin: approverPin }));
+// Refund some items of a paid bill. lines: [{ orderItemId, quantity, restock }]; preview prices it without saving
+export const previewRefund = async (orderId, lines, method = 'cash') =>
+    ok(await rpc('refund_items', { p_order_id: orderId, p_lines: lines, p_method: method, p_preview: true }));
+export const refundItems = async (orderId, { lines, method, reason, drawer = null, approverPhone = null, approverPin = null, clientId = null }) =>
+    ok(await rpc('refund_items', { p_order_id: orderId, p_lines: lines, p_method: method, p_reason: reason, p_drawer: drawer,
+        p_approver_phone: approverPhone, p_approver_pin: approverPin, p_client_id: clientId }));
+// Points and deals the attached customer can use at the counter
+export const getCounterRewards = async (customerId) => ok(await rpc('counter_rewards', { p_customer: customerId }));
 export const removeServiceCharge = async (orderId, remove = true) => ok(await rpc('remove_service_charge', { p_order_id: orderId, p_remove: remove }));
 export const requestPayment = async (orderId, mode) => ok(await rpc('request_payment', { p_order_id: orderId, p_mode: mode }));
 export const findCustomers = async (q) => ok(await rpc('find_customers', { p_query: q }));

@@ -59,6 +59,11 @@ const W = {
     table: T('Table Number', 'टेबल नंबर', 'Table number'),
     time: T('Order Time', 'ऑर्डर का समय', 'Order ka time'),
     method: T('Payment Method', 'पेमेंट का तरीका', 'Payment ka tarika'),
+    refunded: T('Refunded {amount}', '{amount} वापस किए गए', '{amount} wapas kiye gaye'),
+    refundHow: T('{amount} back by {how} on {date}', '{date} को {how} से {amount} वापस', '{date} ko {how} se {amount} wapas'),
+    refundKhata: T('{amount} taken off your khata on {date}', '{date} को आपके खाते से {amount} कम किए गए', '{date} ko aapke khata se {amount} kam kiye'),
+    refundPoints: T('{n} points earned on these items were taken back.', 'इन चीज़ों पर मिले {n} पॉइंट वापस ले लिए गए।', 'In items pe mile {n} points wapas le liye gaye.'),
+    youPaidNet: T('You paid in the end', 'आख़िर में आपने दिए', 'Aakhir mein aapne diye'),
 };
 const METHODS = { cash: T('Cash', 'नकद', 'Cash'), card: T('Card', 'कार्ड', 'Card'), upi: T('UPI', 'UPI', 'UPI'), online: T('Online', 'ऑनलाइन', 'Online'), split: T('Split', 'बँटा हुआ', 'Split') };
 
@@ -257,7 +262,7 @@ const OrderDetails = () => {
                         </div>
                         {order.discount > 0 && (
                             <div className="bill-row discount">
-                                <span>{t(W.discount, { code: order.couponCode })}</span>
+                                <span>{t(W.discount, { code: order.couponCode || '' }).replace(/\s*\(\)/, '')}</span>
                                 <span>-₹{order.discount.toFixed(2)}</span>
                             </div>
                         )}
@@ -284,6 +289,22 @@ const OrderDetails = () => {
                             <span>₹{order.total.toFixed(2)}</span>
                         </div>
                     </div>
+
+                    {Number(order.refunded) > 0 && (order.refunds || []).length > 0 && (
+                        <div className="refund-card" role="status">
+                            <strong>{t(W.refunded, { amount: `₹${Number(order.refunded).toFixed(2)}` })}</strong>
+                            {order.refunds.map(r => (
+                                <div key={r.id} className="refund-card-row">
+                                    <span>{(r.lines || []).map(l => `${l.quantity} × ${l.name}`).join(', ')}</span>
+                                    <span className="muted">{t(r.method === 'khata' ? W.refundKhata : W.refundHow, {
+                                        amount: `₹${Number(r.amount).toFixed(2)}`, how: t(METHODS[r.method] || METHODS.cash),
+                                        date: new Date(r.at).toLocaleDateString(lang === 'en' ? 'en-IN' : 'hi-IN', { day: 'numeric', month: 'short' }) })}</span>
+                                    {r.pointsReversed > 0 && <span className="muted small">{t(W.refundPoints, { n: r.pointsReversed })}</span>}
+                                </div>
+                            ))}
+                            <div className="bill-row total"><span>{t(W.youPaidNet)}</span><span>₹{(order.total - Number(order.refunded)).toFixed(2)}</span></div>
+                        </div>
+                    )}
 
                     {order.status === 'paid' ? (
                         <div className="paid-badge">

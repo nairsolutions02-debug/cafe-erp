@@ -46,6 +46,7 @@ const TodayTab = () => {
                 <div className="stat-tile"><span>Not paid yet</span><strong className={d.sales.unpaid > 0 ? 'neg' : ''}>{inr(d.sales.unpaid)}</strong></div>
                 <div className="stat-tile"><span>Cancelled ({d.sales.cancelled})</span><strong className={d.sales.voidsAfterKitchen ? 'neg' : ''}>{inr(d.sales.cancelledValue)}</strong></div>
                 {d.sales.returns > 0 && <div className="stat-tile"><span>Returns of earlier days ({d.sales.returns})</span><strong className="neg">−{inr(d.sales.returnsValue)}</strong></div>}
+                {d.sales.refunds > 0 && <div className="stat-tile"><span>Items refunded ({d.sales.refunds})</span><strong className="neg">−{inr(d.sales.refundsValue)}</strong></div>}
             </div>
             <div className="finance-grid">
                 <section className="panel">
@@ -72,13 +73,16 @@ const TodayTab = () => {
                             {d.shifts.length === 0 && <tr><td colSpan={5} className="muted">No shifts.</td></tr>}</tbody></table>
                 </section>
                 <section className="panel">
-                    <h2>Voids and discounts</h2>
+                    <h2>Voids, refunds and discounts</h2>
                     {d.voids.map(v => <p key={v.orderNumber} className="small"><strong>{v.orderNumber}</strong> {inr(v.total)} · {v.reason}
                         {v.earlierDay && <span className="pill warn">return · sold {fmtD(v.orderDate)}</span>}
                         {v.afterKitchen && <span className="pill warn">after kitchen</span>}</p>)}
                     {d.discounts.map(x => <p key={x.orderNumber} className="small"><strong>{x.orderNumber}</strong> −{inr(x.amount)} · {x.reason} · {x.by}
                         {x.approvedBy && ` (approved by ${x.approvedBy})`}</p>)}
-                    {d.voids.length === 0 && d.discounts.length === 0 && <p className="muted">None.</p>}
+                    {(d.refundList || []).map((r, i) => <p key={`r${i}`} className="small"><strong>{r.orderNumber}</strong> refund −{inr(r.amount)} ({r.method === 'khata' ? 'off khata' : r.method.toUpperCase()}) · {r.items} · {r.reason} · {r.by}
+                        {r.approvedBy && ` (approved by ${r.approvedBy})`}
+                        {r.earlierDay && <span className="pill warn">sold {fmtD(r.orderDate)}</span>}</p>)}
+                    {d.voids.length === 0 && d.discounts.length === 0 && !(d.refundList || []).length && <p className="muted">None.</p>}
                 </section>
             </div>
         </div>

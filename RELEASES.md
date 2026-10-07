@@ -4,6 +4,30 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Partial refunds, points at the counter, sales trends = Finance (2026-10-07)
+
+Asked by the owner ("baaki cheez fix karo") after the money dry run. The dry run now checks 478 numbers (all match) and 79 numbers on the owner screens (all match).
+
+| Area | Change |
+| --- | --- |
+| Partial refunds | Orders / Order history → order → **Refund some items**: pick dishes and quantities, the exact amount the customer paid for them (discount, GST, service charge share), give back by cash / UPI / card (or reduce khata on a khata bill), reason, manager PIN when needed, "put back in stock" per line. Money leaves the right drawer and shift; points earned on those items are taken back; a refund slip can be printed. Unpaid bills cannot be refunded (change or cancel the bill instead) |
+| Reports | Refunds count minus on the day they happen in Finance, P&L, GST pack (credit note), Dashboard and shift close; restocked items lower the cost of goods on that day |
+| Customer | The order page shows "Refunded ₹…" with the items |
+| Counter points | With a customer attached, the counter shows their points and deals and can apply one: a points deal, or points as cash (when switched on). Same rules as the customer app. Turned off while the counter is offline. Not on the kiosk till |
+| Sales trends | Analytics, item and category sales now use the same book as Finance and P&L. Revenue there is net sales without GST (the figure with GST shows next to it); combos show as their own category |
+
+**Deploy**
+1. Supabase → SQL Editor → paste `supabase/upgrades/2026-11-refunds-points.sql` → Run → Success
+2. Vercel redeploys from `main`
+
+**Test checklist**
+- [ ] Paid order with 2 dishes → Refund some items → 1 dish, cash → drawer expected cash goes down by that amount; Finance shows the refund today
+- [ ] Refund yesterday's order partly → yesterday unchanged; today shows it minus
+- [ ] Counter: attach a customer with points → apply a deal → bill shows "Points deal" and the points go down
+- [ ] Analytics net sales for a week = Reports → P&L net sales for the same week
+
+---
+
 ## Money fixes from the 3-day dry run (2026-10-06)
 
 A 3-day dry run (55 orders: counter, kiosk and QR; cash, UPI, card and split; refunds, khata, expenses, vendor bills, points, combos) checked every number against the app. 366 of 408 matched before; after these fixes all 432 checks and all 76 numbers on the owner screens match.

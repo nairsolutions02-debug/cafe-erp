@@ -46,7 +46,7 @@ const AdminAnalytics = () => {
                 getDashboardStats(),
                 getRevenueData(period),
                 getCategorySales(period),
-                getTopItems(),
+                getTopItems(period),
                 getUserAnalytics(period),
                 getAllSettings()
             ]);
@@ -85,8 +85,11 @@ const AdminAnalytics = () => {
 
     if (loading) return <Skeleton label="Crunching the numbers..." />;
 
-    const totalRevenue = revenueData.reduce((sum, d) => sum + d.revenue, 0);
-    const totalProfit = revenueData.reduce((sum, d) => sum + d.profit, 0);
+    // Same book as Finance and P&L: each bill on its day, refunds negative on the day they are given, unpaid bills counted
+    const totalRevenue = revenueData.reduce((sum, d) => sum + Number(d.revenue || 0), 0);
+    const totalGross = revenueData.reduce((sum, d) => sum + Number(d.gross || 0), 0);
+    const totalRefunds = revenueData.reduce((sum, d) => sum + Number(d.refunds || 0), 0);
+    const totalProfit = revenueData.reduce((sum, d) => sum + Number(d.profit || 0), 0);
     const totalOrders = revenueData.reduce((sum, d) => sum + d.orders, 0);
 
     return (
@@ -114,9 +117,9 @@ const AdminAnalytics = () => {
             {/* Revenue Summary Cards */}
             <div className="summary-grid">
                 <div className="summary-card revenue">
-                    <h3>Total Revenue</h3>
+                    <h3>Net sales (without GST)</h3>
                     <p className="value">₹{totalRevenue.toFixed(2)}</p>
-                    <span className="label">This {period}</span>
+                    <span className="label">With GST ₹{totalGross.toFixed(2)}{totalRefunds > 0 ? ` · refunds ₹${totalRefunds.toFixed(2)}` : ''} · same as Finance</span>
                 </div>
                 <div className="summary-card profit">
                     <div className="card-header-with-action">
@@ -149,7 +152,7 @@ const AdminAnalytics = () => {
                 <div className="summary-card orders">
                     <h3>Total Orders</h3>
                     <p className="value">{totalOrders}</p>
-                    <span className="label">Completed orders</span>
+                    <span className="label">Bills made (paid and open)</span>
                 </div>
                 <div className="summary-card avg">
                     <h3>Avg Order Value</h3>
@@ -245,7 +248,7 @@ const AdminAnalytics = () => {
                                 contentStyle={{ background: '#fff', border: '1px solid #E5E5E5', borderRadius: '8px' }}
                             />
                             <Legend />
-                            <Line type="monotone" dataKey="revenue" stroke={brandColors()[0]} strokeWidth={3} dot={{ fill: brandColors()[0] }} name="Revenue" />
+                            <Line type="monotone" dataKey="revenue" stroke={brandColors()[0]} strokeWidth={3} dot={{ fill: brandColors()[0] }} name="Net sales" />
                             <Line type="monotone" dataKey="profit" stroke="#22C55E" strokeWidth={3} dot={{ fill: '#22C55E' }} name="Profit" />
                         </LineChart>
                     </ResponsiveContainer>
@@ -255,7 +258,7 @@ const AdminAnalytics = () => {
             <div className="charts-row">
                 {/* Category Sales */}
                 <div className="chart-card">
-                    <h2>Sales by Category</h2>
+                    <h2>Sales by Category <span className="muted small">(without GST)</span></h2>
                     <div className="chart-container">
                         <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
@@ -306,7 +309,9 @@ const AdminAnalytics = () => {
                             <tr>
                                 <th>Date</th>
                                 <th>Orders</th>
-                                <th>Revenue</th>
+                                <th>Net sales</th>
+                                <th>With GST</th>
+                                <th>Refunds</th>
                                 <th>Profit</th>
                             </tr>
                         </thead>
@@ -315,8 +320,10 @@ const AdminAnalytics = () => {
                                 <tr key={index}>
                                     <td>{day.date}</td>
                                     <td>{day.orders}</td>
-                                    <td>₹{day.revenue.toFixed(2)}</td>
-                                    <td className="profit-cell">₹{day.profit.toFixed(2)}</td>
+                                    <td>₹{Number(day.revenue).toFixed(2)}</td>
+                                    <td>₹{Number(day.gross || 0).toFixed(2)}</td>
+                                    <td>{Number(day.refunds) > 0 ? `−₹${Number(day.refunds).toFixed(2)}` : '–'}</td>
+                                    <td className="profit-cell">{day.profit == null ? '–' : `₹${Number(day.profit).toFixed(2)}`}</td>
                                 </tr>
                             ))}
                         </tbody>

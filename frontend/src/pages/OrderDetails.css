@@ -257,3 +257,12 @@
 .order-item-picks .order-item-own::before { content: ''; }
 .order-info-section .info-total span:last-child { font-weight: 800; color: var(--cx-tx); }
 .held-note svg { flex-shrink: 0; color: var(--cx-pr2); font-size: 1.1rem; }
+
+/* Items given back (partial refund) */
+.refund-card {
+    display: flex; flex-direction: column; gap: 6px; margin: 12px 0; padding: 12px 14px;
+    background: #FEF2F2; border: 1px solid #FECACA; border-radius: 12px; color: #991B1B;
+}
+.refund-card-row { display: flex; flex-direction: column; gap: 2px; font-size: .9rem; color: #1F2937; }
+.refund-card-row .muted { color: #6B7280; }
+.refund-card .bill-row.total { margin-top: 4px; padding-top: 10px; font-size: 1rem; color: #1F2937; }

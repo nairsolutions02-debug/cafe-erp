@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FiMinus, FiPlus, FiTrash2, FiPrinter, FiWifi, FiWifiOff, FiUser, FiX, FiSearch } from 'react-icons/fi';
-import { getPosCatalogue, quoteStaffOrder, findCustomers, getCurrentShifts } from '../../utils/api';
+import { getPosCatalogue, quoteStaffOrder, findCustomers, getCurrentShifts, getCounterRewards } from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
 import { useOutbox, runOrQueue, newClientId, retryFailed, dismissFailed } from '../../lib/outbox';
 import { ensureDevice, getDevice, nextOrderNumber, cacheGet, cacheSet } from '../../lib/device';
@@ -118,6 +118,9 @@ const AdminPOS = () => {
     const [customer, setCustomer] = useState(null);
     // A reward coupon of this customer (e.g. their birthday gift), applied with one tap
     const [giftCode, setGiftCode] = useState('');
+    // Points and deals of the attached customer: one reward per bill, a loyalty deal or points as cash (needs the internet)
+    const [rewards, setRewards] = useState(null);
+    const [reward, setReward] = useState(null);
     const [custQuery, setCustQuery] = useState('');
     const [custResults, setCustResults] = useState([]);
     const [note, setNote] = useState('');
@@ -229,7 +232,16 @@ const AdminPOS = () => {
         manualDiscount: discountAmount || 0,
         customerId: customer?.id || undefined,
         couponCode: customer?.id && giftCode ? giftCode : undefined,
+        loyaltyOfferId: online && customer?.id && reward?.type === 'offer' ? reward.id : undefined,
+        pointsCash: online && customer?.id && reward?.type === 'cash' ? true : undefined,
     });
+
+    useEffect(() => {
+        setReward(null);
+        if (!customer?.id || !online) { setRewards(null); return; }
+        getCounterRewards(customer.id).then(r => setRewards(r.data)).catch(() => setRewards(null));
+    }, [customer?.id, online]);
+    const toggleReward = (r) => setReward(cur => (cur && cur.type === r.type && cur.id === r.id ? null : r));
 
     // Exact bill from the database while online
     useEffect(() => {
@@ -247,7 +259,7 @@ const AdminPOS = () => {
         }, 250);
         return () => clearTimeout(t);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [cart, discountAmount, customer, giftCode, online]);
+    }, [cart, discountAmount, customer, giftCode, online, reward]);
 
     // Customer search by phone digits or name
     useEffect(() => {
@@ -263,6 +275,8 @@ const AdminPOS = () => {
         setCart([]);
         setCustomer(null);
         setGiftCode('');
+        setReward(null);
+        setRewards(null);
         setCustQuery('');
         setNote('');
         setTableId('');
@@ -418,6 +432,33 @@ const AdminPOS = () => {
                         )}
                     </div>
 
+                    {customer?.id && (
+                        <div className="pos-rewards" aria-label="Points and deals">
+                            {!online ? (
+                                <p className="muted small">Points and deals need the internet. Offline bills are sold at full price.</p>
+                            ) : rewards ? (
+                                <>
+                                    <span className="pos-rewards-pts"><b>{rewards.points}</b> points</span>
+                                    {rewards.offers.map(o => (
+                                        <button key={o.id} type="button" disabled={!o.eligible} aria-pressed={reward?.id === o.id}
+                                            className={`pos-reward${reward?.id === o.id ? ' on' : ''}`} onClick={() => toggleReward({ type: 'offer', id: o.id })}
+                                            title={o.eligible ? `${o.pointsRequired} points for ${inr(o.discount)} off${o.minOrder > 0 ? `, bill of ${inr(o.minOrder)} or more` : ''}` : `Needs ${o.pointsRequired} points`}>
+                                            {o.name} · {o.pointsRequired} pts{reward?.id === o.id ? ' ✓' : ''}
+                                        </button>
+                                    ))}
+                                    {rewards.pointsCash.on && (
+                                        <button type="button" disabled={!rewards.pointsCash.canUse} aria-pressed={reward?.type === 'cash'}
+                                            className={`pos-reward${reward?.type === 'cash' ? ' on' : ''}`} onClick={() => toggleReward({ type: 'cash' })}
+                                            title={rewards.pointsCash.canUse ? `Up to ${rewards.pointsCash.maxPct}% of the bill` : `Needs ${rewards.pointsCash.minPoints} points`}>
+                                            Points as cash · up to {inr(rewards.pointsCash.worth)}{reward?.type === 'cash' ? ' ✓' : ''}
+                                        </button>
+                                    )}
+                                    {!rewards.offers.length && !rewards.pointsCash.on && <span className="muted small">No deals to use right now</span>}
+                                </>
+                            ) : null}
+                        </div>
+                    )}
+
                     <div className="lines">
                         {cart.map(l => (
                             <div key={l.key} className="line">
@@ -462,7 +503,8 @@ const AdminPOS = () => {
                         {quote ? (
                             <>
                                 <div><span>Subtotal</span><span>{inr(quote.subtotal)}</span></div>
-                                {quote.discount - (quote.clubDiscount || 0) > 0.001 && <div><span>Discount</span><span>-{inr(quote.discount - (quote.clubDiscount || 0))}</span></div>}
+                                {quote.discount - (quote.clubDiscount || 0) - (quote.offerDiscount || 0) > 0.001 && <div><span>Discount</span><span>-{inr(quote.discount - (quote.clubDiscount || 0) - (quote.offerDiscount || 0))}</span></div>}
+                                {quote.offerDiscount > 0 && <div><span>{quote.pointsCash ? 'Points as cash' : 'Points deal'} ({quote.pointsUsed} pts)</span><span>-{inr(quote.offerDiscount)}</span></div>}
                                 {quote.clubDiscount > 0 && <div><span>{[quote.club?.tierAmount > 0 && `${quote.club.tier} ${quote.club.tierPct}%`, quote.club?.memberAmount > 0 && `${quote.club.member} ${quote.club.memberPct}%`].filter(Boolean).join(' + ')}</span><span>-{inr(quote.clubDiscount)}</span></div>}
                                 {(quote.taxDetails || []).map(t => <div key={`${t.name}${t.rate}`}><span>{t.name} {t.rate}%</span><span>{inr(t.amount)}</span></div>)}
                             </>

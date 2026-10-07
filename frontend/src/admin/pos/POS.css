@@ -1727,3 +1727,14 @@ html.kds-display .admin-content { padding: 12px 16px !important; }
         grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     }
 }
+
+/* Points and deals of the attached customer (one per bill) */
+.pos-rewards { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 6px 0 8px; }
+.pos-rewards .muted { margin: 0; }
+.pos-rewards-pts { font-size: .85rem; margin-right: 2px; }
+.pos-reward {
+    min-height: 32px; padding: 4px 10px; border: 1px solid #D4D4D4; border-radius: 99px; background: #FFFFFF;
+    font-size: .8rem; font-weight: 600; cursor: pointer; color: #1F2937;
+}
+.pos-reward.on { border-color: var(--primary); background: var(--primary); color: #FFFFFF; }
+.pos-reward:disabled { opacity: .45; cursor: default; }

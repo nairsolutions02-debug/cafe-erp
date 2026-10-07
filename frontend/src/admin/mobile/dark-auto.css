@@ -536,6 +536,29 @@
         background: hsl(36 45% 17%);
     }
 
+    /* admin/RefundModal.css */
+    .theme-dark .refund-line {
+        border: 1px solid var(--d-line);
+    }
+
+    .theme-dark .refund-step button {
+        border: 1px solid var(--d-line);
+        background: var(--d-surface);
+    }
+
+    .theme-dark .refund-total {
+        background: hsl(35 45% 17%);
+    }
+
+    .theme-dark .refund-methods button {
+        border: 1px solid var(--d-line);
+        background: var(--d-surface);
+    }
+
+    .theme-dark .cancel-or-refund {
+        border: 1px dashed var(--d-line);
+    }
+
     /* admin/alerts/OrderAlert.css */
     .theme-dark .oa-queue button {
         border: 1px solid var(--d-line);
@@ -1307,6 +1330,12 @@
     .theme-dark .cp-qty button {
         border: 1px solid var(--d-line);
         background: hsl(43 45% 17%);
+    }
+
+    .theme-dark .pos-reward {
+        border: 1px solid var(--d-line);
+        background: var(--d-surface);
+        color: hsl(215 28% 72%);
     }
 
     /* admin/pos/PickupScreen.css */
