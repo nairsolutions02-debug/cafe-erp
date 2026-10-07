@@ -1,4 +1,4 @@
-# Pending setup
+# Pending setup — ALL DONE (2026-10-07)
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -100,7 +100,7 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 - [x] 22.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-cx-redesign.sql` → Run → Success (until this runs, the live menu, dish page and counter show errors)
 
 ## 23. Customer app fixes (2026-10-06)
-- [ ] 23.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-cx-fixes.sql` → Run → Success (until this runs, saving a menu item shows an error)
+- [x] 23.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-10-cx-fixes.sql` → Run → Success (until this runs, saving a menu item shows an error)
 
 ## 24. Money fixes from the dry run (2026-10-06)
-- [ ] 24.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-11-money-fixes.sql` → Run → Success (run 23.1 first)
+- [x] 24.1 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-11-money-fixes.sql` → Run → Success (run 23.1 first)
