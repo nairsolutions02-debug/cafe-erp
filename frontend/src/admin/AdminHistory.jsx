@@ -146,7 +146,10 @@ const AdminHistory = () => {
                         <tbody>
                             {orders.filter(o => !orderQuery || o.orderNumber.toLowerCase().includes(orderQuery)).map(order => (
                                 <tr key={order._id}>
-                                    <td className="font-bold">{order.orderNumber}</td>
+                                    <td className="font-bold">{order.orderNumber}
+                                        {order.printCount > 1 && <span className="hist-refunded" title={`Last printed by ${order.lastPrintBy}`}>Printed {order.printCount}× · {order.lastPrintBy}</span>}
+                                        {order.shiftNote && <span className="hist-refunded">{order.shiftNote}</span>}
+                                    </td>
                                     <td>
                                         <div className="cust-info">
                                             <span>{order.user?.name || 'Walk-in'}</span>

@@ -4,6 +4,39 @@ Newest first. Each release lists what changed, how to deploy it, and a checklist
 
 ---
 
+## Shift close must balance, owner day close (2026-10-07)
+
+Asked by the owner: the drawer was "only visual" (a shift could close showing ₹3,000 collected while ₹5,000 of bills were made). Now bills and money must match at every shift close, and the owner gets one view of both drawers.
+
+| Area | Change |
+| --- | --- |
+| Every bill has a shift | A counter or kiosk bill belongs to the open shift of its drawer; with no open shift the counter and kiosk refuse to make bills or take money ("Open a shift on this drawer first"). A QR order joins the shift of the drawer that accepts or collects it. Khata collected, refunds in cash and pay-outs also need the open shift of that drawer |
+| Close: bills first | Close shift → step 1 lists the bills still open with one tap each: Paid cash / UPI / card, Khata, Cancel, Hand over. The shift cannot close while any bill is open |
+| Hand over | An unpaid bill can go to the next shift of the same drawer with a reason and the manager PIN. It shows when the next shift opens, in that shift's balance sheet and in the day close |
+| Balance sheet (Z-report) | Bills made (and received) = paid cash + UPI + card + khata + cancelled + refunded + handed over, checked by the server; if it ever does not add up the close is refused and the owner is alerted. Then money not from bills (khata collected, cash in/out, expenses, drops, refunds of older bills) and expected vs counted for cash, UPI and card. Printable (80 mm); every past shift has a Sheet button |
+| Counts | Cash is still a blind count. The UPI app total and the card machine total are required when the shift took UPI or card |
+| Differences | Each money has its own allowance (Settings: cash, and optional UPI / card). Above it: reason + the PIN of another person who may void bills (not the person closing; the owner may approve alone). Recorded on the shift; loud owner alert naming the money and amount |
+| Paid bills | Items and prices of a paid (or cancelled) bill cannot change any more (database guard); only Refund items or Cancel. Every bill print is counted; reprints show in Order history and the day close |
+| Day close | Cash & Shifts → Day close (owner, finance view): one day or several; both drawers and QR / online together with the same equation, money by kind (cash all drawers, UPI drawers + UPI online, card), total difference, cash to the office, every drawer and shift, exceptions (open and handed-over bills, differences with approver and reason, cancels after the kitchen, refunds, hand discounts, reprints, shifts still open). Green "Balanced" or red "Not balanced: …". **Close the day** (owner) locks the day: no bill, payment, expense, vendor bill or shift can be dated it. Owner can open it again with a reason (alerted) |
+| UPI online | A manager can mark a QR bill "Paid online" (customer paid the cafe UPI directly): account "UPI – Online (QR)", no drawer, checked in the day close |
+| Offline counter | Offline bills carry the shift they were made in; if it closed meanwhile they join the open shift of the drawer with a note. The close screen waits while this device still has unsent sales |
+
+**Deploy**
+1. Supabase → SQL Editor → paste `supabase/upgrades/2026-11-shift-balance.sql` → Run → Success (until this runs, the shift screens show errors on the live site)
+2. Vercel redeploys from `main`
+3. Note: bills still open in a shift that is open during the upgrade now belong to it: settle or hand them over before closing
+
+**Test checklist**
+- [ ] Counter with no open shift: Pay is blocked and the bar says to open a shift
+- [ ] Make a dine-in bill, don't pay → Close shift: it is listed; the shift will not close until it is paid, khata, cancelled or handed over
+- [ ] Hand over a bill as the cashier → needs the manager mobile + PIN → open the next shift: the bill is listed there
+- [ ] Take one UPI payment → Close: the UPI app total is required
+- [ ] Count ₹300 short → reason + another person's PIN → owner gets "cash short by ₹300"
+- [ ] Cash & Shifts → Day close: counter + kiosk + QR add up; Close the day; then try to add an expense dated that day → refused
+- [ ] Print a bill twice → Order history shows "Printed 2×"; the day close lists the reprint
+
+---
+
 ## Partial refunds, points at the counter, sales trends = Finance (2026-10-07)
 
 Asked by the owner ("baaki cheez fix karo") after the money dry run. The dry run now checks 478 numbers (all match) and 79 numbers on the owner screens (all match).

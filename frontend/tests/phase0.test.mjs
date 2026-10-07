@@ -76,6 +76,8 @@ const cig = await must(ownerA.from('menu_items').insert({
 await must(ownerA.from('coupons').insert({ code: 'HALF', discount_type: 'percentage', discount_value: 50,
     valid_from: new Date(Date.now() - 864e5).toISOString(), valid_until: new Date(Date.now() + 864e5).toISOString() }));
 const tableA = await must(ownerA.from('dining_tables').insert({ table_number: '1' }).select().single());
+// Shift balance: money is taken only inside an open shift of the drawer
+await rpc(ownerA, 'open_shift', { p_drawer: 'cash_counter', p_denoms: {} });
 await must(ownerA.from('loyalty_settings').update({ min_order_for_points: 0 }).eq('tenant_id', tenantA));
 
 test('superadmin sees both cafes; others cannot use superadmin functions', async () => {

@@ -165,8 +165,19 @@ test('payout and drop move cash; closing short needs a reason and alerts the own
     await rpc(cashier, 'cash_movement', { p_drawer: 'cash_counter', p_kind: 'drop', p_amount: 1000, p_note: 'To safe' });
     const s = (await rpc(cashier, 'current_shifts')).open[0];
     assert.equal(s.expectedCash, 610);
-    await assert.rejects(rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: { 500: 1 } }), /off by ₹-110/);
-    const closed = await rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: { 500: 1 }, p_upi_reported: 115, p_reason: 'Gave extra change' });
+    // Shift balance: bills still open in the shift stop the close; the cashier settles them first (here: cancels them)
+    await assert.rejects(rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: { 500: 1 }, p_upi_reported: 115 }), /Bills still open in this shift/);
+    for (const b of s.openBills) {
+        await rpc(cashier, 'cancel_order', { p_order_id: b.id, p_reason: 'Test bill', p_approver_phone: ph(11), p_approver_pin: '1212' });
+    }
+    await assert.rejects(rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: { 500: 1 }, p_upi_reported: 115 }), /cash short by ₹110\). Write the reason/);
+    // Shift balance: a difference above the tolerance also needs another person with the manager PIN
+    await assert.rejects(rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: { 500: 1 }, p_upi_reported: 115, p_reason: 'Gave extra change' }),
+        /manager or the owner must check/);
+    const closed = await rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: { 500: 1 }, p_upi_reported: 115, p_reason: 'Gave extra change',
+        p_approver_phone: ph(11), p_approver_pin: '1212' });
+    assert.equal(closed.varianceApprovedBy, 'Manager Mona');
+    await rpc(cashier, 'open_shift', { p_drawer: 'cash_counter', p_denoms: { 500: 1 } }); // the next shift, for the tests below
     assert.equal(closed.difference, -110);
     assert.equal(closed.status, 'closed');
     const notes = await rpc(owner, 'my_notifications', {});

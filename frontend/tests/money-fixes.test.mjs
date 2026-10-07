@@ -227,7 +227,10 @@ test('B5: the close alert names the money that is off and respects the tolerance
     const counted = Math.round(s.expectedCash) - 40; // cash short by about 40: inside the 50 tolerance
     let left = counted; const denoms = {};
     for (const d of [500, 100, 10, 1]) { const n = Math.floor(left / d); if (n) { denoms[d] = n; left -= n * d; } }
-    await rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: denoms, p_upi_reported: s.upiExpected - 300, p_card_reported: s.cardExpected });
+    // Shift balance: open bills of the shift are settled first, and a difference above the tolerance needs a reason and a manager
+    for (const b of s.openBills) await rpc(cashier, 'cancel_order', { p_order_id: b.id, p_reason: 'Test bill', ...approve });
+    await rpc(cashier, 'close_shift', { p_shift_id: s.id, p_denoms: denoms, p_upi_reported: s.upiExpected - 300, p_card_reported: s.cardExpected,
+                                        p_reason: 'UPI app not refreshed', ...approve });
     const n = (await rpc(owner, 'my_notifications', { p_limit: 50 })).filter(x => x.kind === 'shift_mismatch');
     assert.equal(n.length, 1);
     assert.match(n[0].title, /UPI short by ₹300/);

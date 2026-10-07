@@ -79,8 +79,11 @@ const cigStock = await rpc(owner, 'track_menu_item_stock', { p_menu_item: cig.id
 const locs = await must(owner.from('stock_locations').select());
 const kioskLoc = locs.find(l => l.default_for_kiosk).id;
 await rpc(owner, 'record_purchase', { p: { locationId: kioskLoc, lines: [{ itemId: cigStock, quantity: 100, rate: 15 }] } });
+// Shift balance: a sale needs an open shift of its drawer (the owner opens one for this first sale and closes it)
+const s0 = await rpc(owner, 'open_shift', { p_drawer: 'cash_kiosk', p_denoms: {} });
 const raju = await rpc(owner, 'create_staff_order', { p: { channel: 'kiosk', customerPhone: ph(70), customerName: 'Raju',
     items: [{ menuItem: mint.id, quantity: 1 }], payFullBy: 'cash', drawer: 'cash_kiosk' } });
+await rpc(owner, 'close_shift', { p_shift_id: s0.id, p_denoms: { 5: 1 } });
 const rajuId = raju.user._id;
 
 test('kiosk sale: pack of 10 at the pack price + loose pieces, stock from the kiosk, cash into the kiosk drawer', async () => {

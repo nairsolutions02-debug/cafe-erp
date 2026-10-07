@@ -1,5 +1,8 @@
 // MONEY DRY RUN: three realistic cafe days on a fresh tenant, every number computed independently in JS
 // and compared with what the app reports (day_summary, dashboard, P&L, GST pack, ledger, shifts, khata, stock, points).
+// Shift balance (part 3): each day both drawers close through the new rules (a bill handed over to the next shift with the
+// manager PIN, a big variance approved by the manager), the owner runs the day close, and the day-close numbers are checked
+// against the two drawers + QR and against the book kept here; closed days are locked.
 //
 // Run:  cd frontend && node tests/dryrun/money-dryrun.mjs
 // Needs the local Supabase stack (API on :54321) and `docker` access to the DB container (to move days back in time).
@@ -80,6 +83,7 @@ await rpc(owner, 'create_staff', { p_name: 'Manager Mona', p_phone: ph(11), p_ro
 await rpc(owner, 'create_staff', { p_name: 'Kiosk Kiran', p_phone: ph(12), p_role_id: role('Kiosk operator'), p_pin: '1313' });
 const cashier = await staffLogin(slug, ph(10), '1010');
 const kiosk = await staffLogin(slug, ph(12), '1313');
+const manager = await staffLogin(slug, ph(11), '1212');
 const MGR = { approverPhone: ph(11), approverPin: '1212' };
 const setSetting = (key, value) => must(owner.from('settings').upsert({ key, value }));
 await setSetting('qr_accept_all', false);
@@ -401,13 +405,20 @@ async function settle(key, pay, { by, tender, via } = {}) {
     if (tender && parts.length === 1 && parts[0].method === 'cash') sent = [{ method: 'cash', amount: tender }];
     let res;
     if (via === 'record_payment') res = await rpc(who, 'record_payment', { p_order_id: rec.id, p_method: parts[0].method, p_amount: parts[0].amount });
+    else if (via === 'online') res = await rpc(manager, 'settle_order', { p_order_id: rec.id, p_payments: sent, p_drawer: 'online' });
     else res = await rpc(who, 'settle_order', { p_order_id: rec.id, p_payments: sent, p_drawer: drawerAcc(drawer) });
     for (const p of parts) {
+        if (via === 'online') { // UPI straight to the cafe account: no drawer, no shift (part 3)
+            post('upi_online', p.amount, 'sale', 'upi', null, { order: key });
+            rec.payments.push({ ...p, drawer: null, online: true });
+            continue;
+        }
         if (p.method === 'khata') post('khata', p.amount, 'khata_sale', 'khata', drawer, { customer: rec.cust, order: key });
         else post(p.method === 'cash' ? drawerAcc(drawer) : p.method, p.amount, 'sale', p.method, drawer, { order: key });
         rec.payments.push({ ...p, drawer });
     }
     rec.status = 'paid';
+    rec.paidOn = D.n; // part 3: a bill handed over is paid on a later day
     if (rec.cust) {
         const c = CUST[rec.cust];
         const pts = pointsFor(rec.calc);
@@ -552,7 +563,7 @@ function expectedShift(day, drawer) {
         orders: new Set(mine.filter(e => e.kind === 'sale').map(e => e.order)).size,
     };
 }
-async function closeShift(drawer, offBy, reason) {
+async function closeShift(drawer, offBy, reason, approved = false) {
     const who = drawer === 'kiosk' ? kiosk : cashier;
     const exp = expectedShift(D.n, drawer);
     const counted = r2(exp.expectedCash + offBy);
@@ -560,8 +571,24 @@ async function closeShift(drawer, offBy, reason) {
     let left = Math.round(counted); const denoms = {};
     for (const d of [500, 100, 50, 20, 10, 1]) { const n = Math.floor(left / d); if (n) { denoms[d] = n; left -= n * d; } }
     const closed = await rpc(who, 'close_shift', { p_shift_id: D.shifts[drawer].id, p_denoms: denoms, p_upi_reported: exp.upiExpected,
-                                                   p_card_reported: exp.cardExpected, p_reason: reason || '' });
+                                                   p_card_reported: exp.cardExpected, p_reason: reason || '',
+                                                   ...(approved ? { p_approver_phone: MGR.approverPhone, p_approver_pin: MGR.approverPin } : {}) });
     Object.assign(D.shifts[drawer], { counted, offBy, expected: exp, app: closed });
+}
+// Part 3: a bill still open at close goes to the next shift of the drawer (manager PIN); the next shift receives it
+const HANDOVERS = []; // { key, day, due, drawer }
+async function handover(key, by, reason) {
+    const rec = ORD[key];
+    const who = by === 'kiosk' ? kiosk : cashier;
+    try { await rpc(who, 'handover_bill', { p_order_id: rec.id, p_reason: reason }); D.handoverWithoutPin = 'allowed'; } catch (e) { D.handoverWithoutPin = /manager must approve/.test(e.message) ? 'refused' : e.message; }
+    try { await rpc(who, 'close_shift', { p_shift_id: D.shifts.counter.id, p_denoms: {} }); D.closeWithOpenBill = 'allowed'; } catch (e) { D.closeWithOpenBill = /Bills still open in this shift/.test(e.message) ? 'refused' : e.message; }
+    const res = await rpc(who, 'handover_bill', { p_order_id: rec.id, p_reason: reason, p_approver_phone: MGR.approverPhone, p_approver_pin: MGR.approverPin });
+    HANDOVERS.push({ key, day: D.n, due: rec.calc.total, drawer: by === 'kiosk' ? 'kiosk' : 'counter', approvedBy: res.approvedBy });
+}
+// Part 3: the owner day close at the end of each day (closes the day when it is balanced)
+async function ownerDayClose(today) {
+    D.dayCloseLive = await rpc(owner, 'day_close_report', { p_from: today, p_to: today });
+    if (D.dayCloseLive.status.balanced) D.dayClosed = await rpc(owner, 'close_day', { p_day: today, p_note: `Dry run day ${D.n}` });
 }
 async function settleKhata(custKey, amount, method, drawer) {
     const who = drawer === 'kiosk' ? kiosk : cashier;
@@ -595,6 +622,7 @@ async function liveSnapshot() {
     }
 }
 
+const dayBefore = (iso) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
 // Move every dated row of this tenant back by one day (the app always stamps now(); this makes yesterday out of today).
 // Triggers (ledger_immutable, stock_moves_immutable, shifts close guard, audit, order triggers) are off for this
 // transaction only, via session_replication_role = replica.
@@ -677,10 +705,14 @@ await sale('d1-k6', { by: 'kiosk', channel: 'kiosk', items: [C('gold', 5), C('mi
 await cashMove('counter', 'payout', 300, 'Milk from the dairy boy', 'Consumables');
 await cashMove('counter', 'drop', 1500, 'To the owner');
 await cashMove('kiosk', 'payout', 50, 'Tea for staff');
+// part 3: table 5 is still eating when the counter closes: the bill goes to the next shift (manager PIN)
+await sale('d1-16', { by: 'cashier', channel: 'dine_in', items: [C('dosa', 2)] });
+await handover('d1-16', 'cashier', 'Table 5 still eating');
 await closeShift('counter', 0);
 await closeShift('kiosk', 0);
 D.date = today0;
 await liveSnapshot();
+await ownerDayClose(today0);
 log('day 1 done', D.live.day.sales);
 shiftTenantBackOneDay();
 
@@ -691,6 +723,12 @@ D = { n: 2, orders: [], shifts: {}, settings: { roundOff: true, scPct: 0 } }; DA
 await setSetting('round_off', true); Object.assign(SET, { roundOff: true, scPct: 0 });
 await openShift('counter', { 500: 2, 100: 10 });
 await openShift('kiosk', { 100: 10 });
+// part 3: yesterday is closed: nothing can be dated it any more
+D.lockCheck = await rpc(owner, 'record_expense', { p: { categoryId: expCat('Gas'), amount: 10, accountCode: 'bank', date: dayBefore(today0), note: 'late bill' } })
+    .then(() => 'allowed', (e) => (/closed the accounts/.test(e.message) ? 'refused' : e.message));
+// part 3: the bill handed over last night is in this shift; it is paid now
+D.receivedOnOpen = (await rpc(cashier, 'current_shifts')).open.find(x => x.drawer === 'cash_counter').receivedBills.map(b => b.orderNumber);
+await settle('d1-16', 'cash', { by: 'cashier' });
 await cancel('d1-10', 'cashier', 'Cold coffee yesterday, refunded'); // a day-1 sale refunded in cash today
 await sale('d2-01', { by: 'cashier', channel: 'takeaway', items: [C('capp', 1), C('croissant', 1)], pay: 'cash', tender: 500 });
 await sale('d2-02', { by: 'cashier', channel: 'dine_in', items: [C('dosa', 2), C('capp', 2)], pay: [{ method: 'cash', amount: 200 }, { method: 'upi' }] });
@@ -730,10 +768,15 @@ post('cash_counter', -500, 'purchase_payment', 'drawer', 'counter');
 await expense('Gas', 900, 'cash_office', 'Cylinder');
 await cashMove('counter', 'payout', 120, 'Lemons and chillies', 'Consumables');
 await cashMove('counter', 'drop', 2000, 'To the owner');
-await closeShift('counter', -50, 'Gave wrong change to a table');
+// part 3: the counter is ₹250 short: more than the ₹50 allowed, so the manager checks and approves with her PIN
+D.bigVarianceAlone = await rpc(cashier, 'close_shift', { p_shift_id: D.shifts.counter.id, p_denoms: {}, p_reason: 'x',
+    p_upi_reported: expectedShift(D.n, 'counter').upiExpected, p_card_reported: expectedShift(D.n, 'counter').cardExpected })
+    .then(() => 'allowed', (e) => (/manager or the owner must check|Bills still open/.test(e.message) ? 'refused' : e.message));
+await closeShift('counter', -250, 'Gave wrong change to a table', true);
 await closeShift('kiosk', 20, 'Extra in drawer');
 D.date = today0;
 await liveSnapshot();
+await ownerDayClose(today0);
 log('day 2 done', D.live.day.sales);
 shiftTenantBackOneDay();
 
@@ -758,6 +801,9 @@ await settle('d3-08', 'upi', { by: 'cashier', via: 'record_payment' });
 await sale('d3-09', { channel: 'qr', cust: 'arjun', items: [C('sandwich', 1), C('capp', 1)] });
 await cancel('d3-09', 'owner', 'Kitchen out of bread'); // cancelled before paying
 await sale('d3-10', { channel: 'qr', cust: 'arjun', items: [C('dosa', 1), C('capp', 2)] }); // still unpaid tonight
+// part 3: Kavya paid her table bill straight to the cafe UPI; the manager checks the statement and marks it paid online
+await sale('d3-15', { channel: 'qr', cust: 'kavya', items: [C('capp', 1), C('croissant', 1)] });
+await settle('d3-15', 'upi', { via: 'online' });
 await sale('d3-11', { by: 'cashier', channel: 'dine_in', items: [C('capp', 1), C('latte', 1)], pay: 'upi' });
 await sale('d3-12', { by: 'cashier', channel: 'takeaway', items: [C('croissant', 4), C('water', 4)], pay: 'cash' });
 await settleKhata('sanjay', sum(LEDGER.filter(x => x.account === 'khata' && x.customer === 'sanjay'), x => x.amount), 'cash', 'counter'); // pays off the day-2 khata in full
@@ -784,6 +830,7 @@ await closeShift('counter', 20, 'Customer left extra');
 await closeShift('kiosk', -30, 'Short, will check CCTV');
 D.date = today0;
 await liveSnapshot();
+await ownerDayClose(today0); // d3-10 is still open: not balanced, the day stays open
 log('day 3 done', D.live.day.sales);
 
 // dates after the moves
@@ -882,7 +929,7 @@ const salesOf = (from, to) => {
         netSalesLines: r2(S(o => sum(o.calc.lines, l => l.net) + o.calc.sc) - R(r => r.net)),
         cogs: r2(S(o => sum(o.calc.lines, l => l.unitCost * l.qty)) - R(r => r.cost)),
         // paid bills of the day, as they stood that day (a bill refunded on a later day was paid on its day)
-        collected: sum(plus.filter(o => o.status === 'paid' || (o.status === 'cancelled' && o.payments.length)), o => o.calc.total),
+        collected: sum(plus.filter(o => (o.status === 'paid' && (o.paidOn ?? o.day) <= to) || (o.status === 'cancelled' && o.payments.length)), o => o.calc.total),
         byCh, rate,
     };
 };
@@ -923,7 +970,7 @@ for (const d of DAYS) {
     }
     // money by account for the day
     const em = moneyOf(e => e.day === d.n);
-    for (const code of ['cash_counter', 'cash_kiosk', 'cash_office', 'upi', 'card', 'bank', 'khata']) {
+    for (const code of ['cash_counter', 'cash_kiosk', 'cash_office', 'upi', 'upi_online', 'card', 'bank', 'khata']) {
         const e = em[code] || { in: 0, out: 0 };
         const a = (ds.money || []).find(x => x.code === code) || { in: 0, out: 0 };
         cmp(S, 'Money by account', `${code} in / out`, `${r2(e.in)} / ${r2(e.out)}`, `${r2(num(a.in))} / ${r2(num(a.out))}`);
@@ -996,6 +1043,78 @@ for (const d of DAYS) {
     cmp(S, 'Dashboard (live that day)', "Today's collected (paid bills)", exOwner.collected, num(d.live.dash.today.collected));
     cmp(S, 'Dashboard (live that day)', "Today's revenue = Finance day sales", num(d.live.day.sales.gross), num(d.live.dash.today.revenue), 'app vs app');
     cmp(S, 'Dashboard (live that day)', "Today's orders = Finance day orders", num(d.live.day.sales.orders), num(d.live.dash.today.orders), 'app vs app');
+
+    // ---- Part 3: shift balance and the owner day close ----
+    const dc = await rpc(owner, 'day_close_report', { p_from: d.date, p_to: d.date });
+    d.appDayClose = dc;
+    const DC = 'Day close';
+    const received = HANDOVERS.filter(h => h.day === d.n - 1);
+    const set = new Set([...dayOrders(d.n).map(o => o.key), ...received.map(h => h.key)]);
+    const paidBy = (m) => sum(LEDGER.filter(e => e.day === d.n && set.has(e.order) && ['sale', 'refund'].includes(e.kind) && e.account !== 'khata'
+        && e.account !== 'upi_online' && e.method === m), e => e.amount);
+    const exp = {
+        madeCount: dayOrders(d.n).length,
+        madeTotal: sum(dayOrders(d.n), o => o.calc.total),
+        receivedBefore: sum(received, h => h.due),
+        paidCash: paidBy('cash'), paidUpi: paidBy('upi'), paidCard: paidBy('card'),
+        upiOnline: sum(LEDGER.filter(e => e.day === d.n && set.has(e.order) && e.account === 'upi_online'), e => e.amount),
+        khata: sum(LEDGER.filter(e => e.day === d.n && set.has(e.order) && e.account === 'khata' && ['khata_sale', 'refund'].includes(e.kind)), e => e.amount),
+        cancelled: sum(dayOrders(d.n).filter(o => o.status === 'cancelled' && o.cancelledOn === d.n), o => o.calc.total),
+        refunded: sum(REFUNDS.filter(r => r.day === d.n && set.has(r.key)), r => r.amount),
+        handedOver: sum(HANDOVERS.filter(h => h.day === d.n), h => h.due),
+        open: sum(dayOrders(d.n).filter(o => o.status === 'open' && !HANDOVERS.some(h => h.key === o.key)), o => o.calc.total),
+    };
+    for (const [k, v] of Object.entries(exp)) cmp(S, DC, `All bills: ${k}`, v, num(dc.combined[k]));
+    cmp(S, DC, 'Bills made = paid + khata + cancelled + refunded + handed over + open (difference)', 0, num(dc.combined.difference));
+    // the day = the two drawers + QR, line by line (app vs app)
+    const drawerSum = (k) => sum(dc.drawers, x => num(x.bills[k]));
+    cmp(S, DC, 'Bills made = counter + kiosk + QR', r2(drawerSum('madeTotal') + num(dc.qr.madeTotal)), num(dc.combined.madeTotal), 'app vs app');
+    cmp(S, DC, 'Bill count = counter + kiosk + QR', drawerSum('madeCount') + num(dc.qr.madeCount), num(dc.combined.madeCount), 'app vs app');
+    cmp(S, DC, 'Paid cash = counter + kiosk', r2(drawerSum('paidCash') + drawerSum('otherCash')), num(dc.combined.paidCash), 'app vs app');
+    cmp(S, DC, 'Paid UPI = counter + kiosk', r2(drawerSum('paidUpi') + drawerSum('otherUpi')), num(dc.combined.paidUpi), 'app vs app');
+    cmp(S, DC, 'UPI online = drawers + QR', r2(drawerSum('online') + num(dc.qr.online)), num(dc.combined.upiOnline), 'app vs app');
+    cmp(S, DC, 'Paid card = counter + kiosk', r2(drawerSum('paidCard') + drawerSum('otherCard')), num(dc.combined.paidCard), 'app vs app');
+    cmp(S, DC, 'Khata = drawers + QR', r2(drawerSum('khata') + num(dc.qr.khata)), num(dc.combined.khata), 'app vs app');
+    cmp(S, DC, 'Cancelled = drawers + QR', r2(drawerSum('cancelled') + num(dc.qr.cancelled)), num(dc.combined.cancelled), 'app vs app');
+    // each drawer and QR against the book kept here (a QR bill collected at the counter belongs to the counter)
+    const counterBills = dayOrders(d.n).filter(o => o.by === 'cashier' || (o.channel === 'qr' && o.payments.some(p => !p.online)));
+    const kioskBills = dayOrders(d.n).filter(o => o.by === 'kiosk');
+    const qrBills = dayOrders(d.n).filter(o => o.channel === 'qr' && !o.payments.some(p => !p.online));
+    cmp(S, DC, 'Counter drawer: bills made', sum(counterBills, o => o.calc.total), num(dc.drawers.find(x => x.code === 'cash_counter').bills.madeTotal));
+    cmp(S, DC, 'Kiosk drawer: bills made', sum(kioskBills, o => o.calc.total), num(dc.drawers.find(x => x.code === 'cash_kiosk').bills.madeTotal));
+    cmp(S, DC, 'QR / online (no drawer): bills made', sum(qrBills, o => o.calc.total), num(dc.qr.madeTotal));
+    // money by kind
+    const ec = expectedShift(d.n, 'counter'); const ek = expectedShift(d.n, 'kiosk');
+    cmp(S, DC, 'Cash expected (both drawers)', r2(ec.expectedCash + ek.expectedCash), num(dc.modes.cash.expected));
+    cmp(S, DC, 'Cash counted (both drawers)', r2(d.shifts.counter.counted + d.shifts.kiosk.counted), num(dc.modes.cash.counted));
+    cmp(S, DC, 'UPI expected at drawers', r2(ec.upiExpected + ek.upiExpected), num(dc.modes.upi.expected));
+    cmp(S, DC, 'UPI online', sum(LEDGER.filter(e => e.day === d.n && e.account === 'upi_online'), e => e.amount), num(dc.modes.upi.online));
+    cmp(S, DC, 'Card expected', r2(ec.cardExpected + ek.cardExpected), num(dc.modes.card.expected));
+    cmp(S, DC, 'Total variance (all drawers, all money)', r2(d.shifts.counter.offBy + d.shifts.kiosk.offBy), num(dc.money.totalVariance));
+    cmp(S, DC, 'Cash sent to the office / safe', r2(ec.drops + ek.drops), num(dc.money.cashToOffice));
+    // each shift: its own balance sheet adds up and was approved when needed
+    for (const drawer of ['counter', 'kiosk']) {
+        const app = dc.shifts.find(x => x.id === d.shifts[drawer].id);
+        cmp(S, DC, `${drawer} shift: balance sheet adds up`, true, !!app?.balance?.balanced);
+        cmp(S, DC, `${drawer} shift: approved by`, Math.abs(d.shifts[drawer].offBy) > 50 ? 'Manager Mona' : '', app?.varianceApprovedBy ?? '?');
+    }
+    // the owner close: balanced days are closed, day 3 has an open QR bill
+    const willBalance = d.n !== 3;
+    cmp(S, DC, 'Status', willBalance ? 'Balanced' : 'Not balanced: 1 bill still open', dc.status.balanced ? 'Balanced' : `Not balanced: ${dc.status.reasons.join('; ').replace(/ \(₹[^)]*\)/, '')}`);
+    cmp(S, DC, 'Closed by the owner', willBalance ? 'Pravin Owner' : 'not closed', dc.closed?.status === 'closed' ? dc.closed.by : 'not closed');
+    if (d.n === 1) {
+        const h = dc.exceptions.handedOver.find(x => x.orderNumber === ORD['d1-16'].final.orderNumber);
+        cmp(S, DC, 'Handed-over bill listed (approved by)', 'Manager Mona', h?.approvedBy ?? 'missing');
+        cmp(S, DC, 'Hand-over without the manager PIN', 'refused', d.handoverWithoutPin);
+        cmp(S, DC, 'Close with an open bill', 'refused', d.closeWithOpenBill);
+    }
+    if (d.n === 2) {
+        cmp(S, DC, 'Bill handed over yesterday shows on the next shift opening', [ORD['d1-16'].final.orderNumber], d.receivedOnOpen);
+        cmp(S, DC, 'Big variance closed by the cashier alone', 'refused', d.bigVarianceAlone);
+        const v = dc.exceptions.variances.find(x => num(x.cash) === -250);
+        cmp(S, DC, 'Variance listed with approver and reason', 'Manager Mona · Gave wrong change to a table', v ? `${v.approvedBy} · ${v.reason}` : 'missing');
+        cmp(S, DC, 'Expense dated the closed day 1', 'refused', d.lockCheck);
+    }
 }
 
 // ---------- 3-day range ----------
@@ -1063,7 +1182,7 @@ for (const d of DAYS) {
     const cf = await rpc(owner, 'cash_flow', { p_from: from, p_to: to });
     const em = moneyOf(() => true);
     const bal = await rpc(owner, 'account_balances');
-    for (const code of ['cash_counter', 'cash_kiosk', 'cash_office', 'upi', 'card', 'bank', 'khata']) {
+    for (const code of ['cash_counter', 'cash_kiosk', 'cash_office', 'upi', 'upi_online', 'card', 'bank', 'khata']) {
         const e = em[code] || { in: 0, out: 0 };
         const a = cf.find(x => x.code === code) || {};
         cmp(S, 'Cash flow', `${code} in / out / closing`, `${r2(e.in)} / ${r2(e.out)} / ${r2(e.in - e.out)}`, `${r2(num(a.in))} / ${r2(num(a.out))} / ${r2(num(a.closing))}`);
@@ -1113,8 +1232,8 @@ for (const d of DAYS) {
     cmp('Day 3', 'Dashboard (now)', "This month's sales (3 days) = P&L gross sales", ex.gross, num(dash.month.revenue));
     const notes = await rpc(owner, 'my_notifications', { p_limit: 100 });
     const mism = notes.filter(n => n.kind === 'shift_mismatch').map(n => n.title).sort();
-    cmp(S, 'Alerts', 'Shift mismatch alerts (only real cash variances above ₹50 tolerance: none expected)', [], mism,
-        'cash variances were 0, -50, +20 (counter) and 0, +20, -30 (kiosk); UPI reported = true UPI');
+    cmp(S, 'Alerts', 'Shift mismatch alerts (only variances above the ₹50 tolerance)', ['Cash – Counter closed: cash short by ₹250'], mism,
+        'cash variances were 0, -250 (approved by the manager), +20 (counter) and 0, +20, -30 (kiosk); UPI reported = true UPI');
     // the range result for screens.mjs
     DAYS.range = { from, to, pnl: p, gst: g };
 }
@@ -1131,7 +1250,9 @@ const result = {
     slug, tenantId, ownerPhone: ph(1), ownerPin: '1111', dates: DAYS.map(d => d.date), problems: PROBLEMS,
     days: DAYS.map(d => ({ n: d.n, date: d.date, settings: d.settings, sales: salesOf(d.n, d.n), appSales: d.appDay.sales,
         shifts: Object.fromEntries(Object.entries(d.shifts).map(([k, v]) => [k, { ...expectedShift(d.n, k), counted: v.counted, offBy: v.offBy, app: (d.appDay.shifts || []).find(s => s.id === v.id) }])),
-        pnl: d.appPnl })),
+        pnl: d.appPnl,
+        dayClose: d.appDayClose && { combined: d.appDayClose.combined, status: d.appDayClose.status, modes: d.appDayClose.modes,
+                                     money: d.appDayClose.money, closed: d.appDayClose.closed, qr: d.appDayClose.qr } })),
     orders: Object.values(ORD).map(o => ({ key: o.key, day: o.day, channel: o.channel, by: o.by, cust: o.cust, status: o.status, total: o.calc.total,
         tax: o.calc.tax, discount: o.calc.discount, sc: o.calc.sc, ro: o.calc.ro, payments: o.payments, app: { total: num(o.final.total), status: o.final.status, pointsAwarded: o.final.pointsAwarded } })),
     refunds: REFUNDS.map(r => ({ key: r.key, day: r.day, method: r.method, amount: r.amount, app: r.app, lines: r.lines })),

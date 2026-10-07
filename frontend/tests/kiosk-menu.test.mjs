@@ -47,6 +47,9 @@ await rpc(sa, 'sa_create_tenant', {
     p_name: `KioskMenu A ${run}`, p_slug: slugA, p_plan_id: plans.find(p => p.name === 'Custom').id, p_paid_until: '2099-01-01',
     p_owner_name: 'Owner A', p_owner_phone: ph(1), p_owner_pin: '1111' });
 const owner = await staffLogin(slugA, ph(1), '1111');
+// Shift balance: money is taken only inside an open shift of the drawer
+await rpc(owner, 'open_shift', { p_drawer: 'cash_counter', p_denoms: {} });
+await rpc(owner, 'open_shift', { p_drawer: 'cash_kiosk', p_denoms: {} });
 const cat = await must(owner.from('categories').insert({ name: 'Mixed' }).select().single());
 const mk = (name, extra = {}) => must(owner.from('menu_items').insert({ name, price: 50, category_id: cat.id, ...extra }).select().single());
 const both = await mk('Water bottle');

@@ -20,7 +20,7 @@ const CancelModal = ({ order, canVoid, onClose, onDone, startWith = 'cancel', dr
     const refunded = Number(order.refunded || 0);
     const submit = async () => {
         try {
-            onDone((await cancelOrder(order._id, reason, phone || null, pin || null)).data);
+            onDone((await cancelOrder(order._id, reason, phone || null, pin || null, drawer)).data);
         } catch (err) {
             setError(errText(err));
         }

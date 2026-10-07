@@ -253,3 +253,10 @@
 .devices-list li small { color: var(--text-secondary); }
 .devices-list li.off { opacity: .6; }
 .theme-dark .devices-list li { border-color: #3A3027; }
+
+/* Two small inputs side by side (UPI and card difference allowed) */
+.form-row-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}

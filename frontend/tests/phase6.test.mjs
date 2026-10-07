@@ -56,6 +56,8 @@ await rpc(sa, 'sa_create_tenant', {
     p_name: `Rewards B ${run}`, p_slug: slugB, p_plan_id: plans.find(p => p.name === 'Starter').id, p_paid_until: '2099-01-01',
     p_owner_name: 'Owner B', p_owner_phone: ph(2), p_owner_pin: '2222' });
 const owner = await staffLogin(slugA, ph(1), '1111');
+// Shift balance: money is taken only inside an open shift of the drawer
+await rpc(owner, 'open_shift', { p_drawer: 'cash_counter', p_denoms: {} });
 const ownerB = await staffLogin(slugB, ph(2), '2222');
 // These checks predate the FiKA Club: neutral club rules so its tiers and monthly milestones don't add points here
 await rpc(owner, 'save_club_config', { p: { tiers: [{ name: 'Member', color: '#888888', orders: 0, multiplier: 1, pct: 0 }], levels: [],

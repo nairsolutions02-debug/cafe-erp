@@ -1383,6 +1383,95 @@
         color: hsl(143 64% 72%);
     }
 
+    /* admin/pos/ShiftBalance.css */
+    .theme-dark .sb-total {
+        border-top: 1px solid var(--d-line);
+    }
+
+    .theme-dark .sb-pill.ok {
+        background: hsl(145 45% 17%);
+        color: hsl(146 69% 72%);
+    }
+
+    .theme-dark .sb-pill.bad {
+        background: hsl(6 45% 17%);
+        color: hsl(4 76% 72%);
+    }
+
+    .theme-dark .sb-pill.warn {
+        background: hsl(41 45% 17%);
+        color: hsl(36 80% 72%);
+    }
+
+    .theme-dark .warn-txt {
+        color: hsl(36 80% 72%);
+    }
+
+    .theme-dark .sb-note,
+    .theme-dark .sb-warn {
+        background: hsl(41 45% 17%);
+    }
+
+    .theme-dark .sb-warn.bad {
+        background: hsl(6 45% 17%);
+        color: hsl(0 66% 72%);
+    }
+
+    .theme-dark .sb-open {
+        border: 1px solid var(--d-line);
+        background: hsl(7 45% 17%);
+    }
+
+    .theme-dark .sb-bill {
+        background: var(--d-surface);
+    }
+
+    .theme-dark .sb-steps li {
+        background: hsl(39 39% 17%);
+    }
+
+    .theme-dark .sb-steps li.done {
+        background: hsl(145 45% 17%);
+        color: hsl(146 69% 72%);
+    }
+
+    .theme-dark .sb-approve {
+        border: 1px solid var(--d-line);
+        background: hsl(7 45% 17%);
+    }
+
+    .theme-dark .dc-status.ok {
+        background: hsl(145 45% 17%);
+        color: hsl(150 69% 72%);
+    }
+
+    .theme-dark .dc-status.bad {
+        background: hsl(6 45% 17%);
+        color: hsl(0 66% 72%);
+    }
+
+    .theme-dark .dc-closed {
+        background: hsl(217 45% 17%);
+        color: hsl(216 51% 72%);
+    }
+
+    .theme-dark .dc-shifts li {
+        border-top: 1px dashed var(--d-line);
+    }
+
+    .theme-dark .sb-exc {
+        background: var(--d-surface);
+        border-left: 4px solid var(--d-line);
+    }
+
+    .theme-dark .sb-count {
+        background: hsl(39 39% 17%);
+    }
+
+    .theme-dark .dc-close {
+        background: var(--d-surface);
+    }
+
     /* admin/rewards/Rewards.css */
     .theme-dark .chip {
         background: var(--d-surface);

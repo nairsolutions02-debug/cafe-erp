@@ -92,6 +92,31 @@ for (const d of R.days) for (const k of ['counter', 'kiosk']) {
     await has('Cash & Shifts', `day ${d.n} ${k} UPI expected (true UPI)`, d.shifts[k].upiExpected);
 }
 
+// Cash & Shifts > Day close (part 3): one per day; the numbers on screen = the day close checked against the book
+for (const d of R.days) {
+    const dc = d.dayClose;
+    if (!dc) continue;
+    await page.goto(`${BASE}/admin/shifts?tab=day`); await settle();
+    await page.fill('input[aria-label="Day"]', d.date); await settle();
+    await shot(`12-day-close-day${d.n}-${d.date}`);
+    const S = `Day close day ${d.n}`;
+    await has(S, 'Bills made (counter + kiosk + QR)', dc.combined.madeTotal);
+    await has(S, 'Paid cash', dc.combined.paidCash);
+    await has(S, 'Paid UPI', dc.combined.paidUpi);
+    await has(S, 'Paid card', dc.combined.paidCard);
+    if (dc.combined.upiOnline) await has(S, 'UPI online', dc.combined.upiOnline);
+    if (dc.combined.handedOver) await has(S, 'Handed over, still open at the end', dc.combined.handedOver);
+    if (dc.combined.receivedBefore) await has(S, 'Received from an earlier day', dc.combined.receivedBefore);
+    await has(S, 'Cash expected (all drawers)', dc.modes.cash.expected);
+    await has(S, 'Cash counted (all drawers)', dc.modes.cash.counted);
+    await has(S, 'Total difference', dc.money.totalVariance);
+    await has(S, `Status "${dc.status.balanced ? 'Balanced' : 'Not balanced'}"`, dc.status.balanced ? '✓ Balanced' : '✗ Not balanced', false);
+    if (dc.closed?.status === 'closed') await has(S, 'Closed by the owner', `Day closed by ${dc.closed.by}`, false);
+    // the same numbers as the book kept by the dry run
+    const exp = R.rows.find(r => r.scope.startsWith(`Day ${d.n} `) && r.area === 'Day close' && r.item === 'All bills: madeTotal');
+    checks.push({ screen: S, label: 'Bills made on screen = dry-run book', expected: inr(exp.expected), onScreen: (await text()).includes(inr(exp.expected)) });
+}
+
 // Reports: P&L per day and for the 3 days, GST pack for the 3 days
 const period = async (from, to) => {
     await page.fill('input[aria-label="From"]', from); await settle();

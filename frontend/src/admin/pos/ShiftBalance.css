@@ -1,0 +1,425 @@
+/* Shift balance sheet (Z-report), close steps and the owner day close */
+.shifts-page .sb-tabs {
+    max-width: 360px;
+    margin: 0 0 16px;
+}
+
+.sb {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.sb-sec h3,
+.sb-open h3,
+.dc h3 {
+    font-size: 1rem;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sb-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sb-eq {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1.3fr);
+    align-items: start;
+    gap: 6px;
+}
+
+.sb-eq .kv {
+    margin: 4px 0;
+}
+
+.sb-eq-sign {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-align: center;
+    line-height: 1.2;
+}
+
+.sb-total {
+    border-top: 1px solid #eadfcb;
+    padding-top: 4px;
+}
+
+.shifts-page .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.sb-pill {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 99px;
+    white-space: nowrap;
+}
+
+.sb-pill.ok {
+    background: #e5f6ec;
+    color: #146c3a;
+}
+
+.sb-pill.bad {
+    background: #fdecea;
+    color: #b42318;
+}
+
+.sb-pill.warn {
+    background: #fff4dd;
+    color: #8a5300;
+}
+
+.sb-chip-row {
+    margin: 6px 0;
+}
+
+.warn-txt {
+    color: #8a5300;
+}
+
+.sb-formula {
+    line-height: 1.6;
+}
+
+.sb-modes td.num,
+.sb-modes th:not(:first-child) {
+    text-align: right;
+}
+
+.sb-note,
+.sb-warn {
+    background: #fff4dd;
+    border-left: 4px solid #e8a33a;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 0 0 12px;
+    font-size: 0.92rem;
+}
+
+.sb-note ul {
+    margin: 6px 0 0 18px;
+}
+
+.sb-warn.bad {
+    background: #fdecea;
+    border-left-color: #d64545;
+    color: #8f1d1d;
+}
+
+.sb-open {
+    border: 1px solid #f3c9c4;
+    background: #fff8f7;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+}
+
+.sb-bill {
+    background: white;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 8px;
+}
+
+.sb-bill-head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.sb-bill-head .muted {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sb-bill-acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.sb-steps {
+    display: flex;
+    gap: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 14px;
+}
+
+.sb-steps li {
+    flex: 1;
+    text-align: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    padding: 6px 4px;
+    border-radius: 99px;
+    background: #f4efe6;
+    color: var(--text-muted);
+}
+
+.sb-steps li.on {
+    background: var(--primary);
+    color: white;
+}
+
+.sb-steps li.done {
+    background: #e5f6ec;
+    color: #146c3a;
+}
+
+.sb-approve {
+    border: 1px solid #f3c9c4;
+    background: #fff8f7;
+    border-radius: 12px;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+/* Owner day close */
+.dc {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.dc-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.dc-bar .input {
+    width: auto;
+    flex: 0 0 auto;
+}
+
+.dc-bar .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dc-spacer {
+    flex: 1;
+}
+
+.dc-status {
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+}
+
+.dc-status strong {
+    font-size: 1.35rem;
+}
+
+.dc-status ul {
+    flex-basis: 100%;
+    margin: 4px 0 0 18px;
+}
+
+.dc-status.ok {
+    background: #e5f6ec;
+    color: #0f5130;
+    border: 2px solid #3aa86b;
+}
+
+.dc-status.bad {
+    background: #fdecea;
+    color: #8f1d1d;
+    border: 2px solid #d64545;
+}
+
+.dc-closed {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    background: #eef3fb;
+    color: #23406b;
+    border-radius: 10px;
+    padding: 10px 12px;
+}
+
+.dc-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: 16px;
+}
+
+.dc-drawers {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.dc-shifts {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0;
+}
+
+.dc-shifts li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    padding: 6px 0;
+    border-top: 1px dashed #eadfcb;
+    font-size: 0.86rem;
+}
+
+.dc-shifts li > span:first-child {
+    flex: 1 1 180px;
+}
+
+.dc-excs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 12px;
+}
+
+.sb-exc {
+    background: white;
+    border-radius: 12px;
+    padding: 12px 14px;
+    border-left: 4px solid #d9cdb8;
+}
+
+.sb-exc.bad {
+    border-left-color: #d64545;
+}
+
+.sb-exc.warn {
+    border-left-color: #e8a33a;
+}
+
+.sb-exc h4 {
+    margin: 0 0 6px;
+    font-size: 0.95rem;
+}
+
+.sb-exc ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.88rem;
+}
+
+.sb-exc li {
+    margin: 3px 0;
+}
+
+.sb-count {
+    display: inline-block;
+    min-width: 22px;
+    text-align: center;
+    font-size: 0.75rem;
+    background: #f4efe6;
+    border-radius: 99px;
+    padding: 1px 6px;
+    margin-left: 4px;
+}
+
+.dc-close {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    border-radius: 14px;
+    padding: 14px 16px;
+}
+
+@media (max-width: 900px) {
+    .dc-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Phones: the equation stacks, money tables scroll inside their card */
+@media (max-width: 600px) {
+    .sb-eq {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sb-eq-sign {
+        text-align: left;
+        font-size: 1.2rem;
+    }
+
+    .sb-bill-head {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .sb-bill-head .muted {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        white-space: normal;
+    }
+
+    .sb-bill-acts .btn {
+        flex: 1 1 30%;
+    }
+
+    .dc-excs,
+    .dc-drawers {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .dc-status strong {
+        font-size: 1.15rem;
+    }
+
+    .dc-close .btn {
+        width: 100%;
+    }
+
+    .shifts-page .sb-tabs {
+        max-width: none;
+    }
+
+    /* the money table fits a phone: tight cells, no notes under the names */
+    .sb-modes th,
+    .sb-modes td {
+        padding: 8px 4px;
+        font-size: 0.82rem;
+    }
+
+    .sb-modes th {
+        font-size: 0.66rem;
+        letter-spacing: 0;
+    }
+
+    .sb-modes td .muted.small {
+        display: none;
+    }
+
+    .sb-modes td .small {
+        font-size: 0.7rem;
+        white-space: normal;
+    }
+
+    .shifts-page .sb-modes .num {
+        white-space: normal;
+    }
+}

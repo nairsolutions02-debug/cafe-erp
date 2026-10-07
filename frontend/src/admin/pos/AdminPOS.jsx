@@ -131,7 +131,8 @@ const AdminPOS = () => {
     const [busy, setBusy] = useState(false);
     const [done, setDone] = useState(null);
     const [error, setError] = useState('');
-    const [shift, setShift] = useState(undefined);
+    // The open counter shift (kept on the device, so a sale made offline still says which shift it belongs to)
+    const [shift, setShift] = useState(() => cacheGet('shift-cash_counter') ?? undefined);
     const [unitPick, setUnitPick] = useState(null);
     // Dishes with sizes or choices open a picker; combos open a slot picker
     const [choicePick, setChoicePick] = useState(null);
@@ -172,7 +173,11 @@ const AdminPOS = () => {
         if (!online) return;
         loadCatalogue();
         ensureDevice('counter', 'Counter').then(setDevice).catch(() => {});
-        getCurrentShifts().then(r => setShift(r.data.open.find(s => s.drawer === 'cash_counter') || null)).catch(() => setShift(undefined));
+        getCurrentShifts().then(r => {
+            const mine = r.data.open.find(s => s.drawer === 'cash_counter') || null;
+            setShift(mine);
+            cacheSet('shift-cash_counter', mine ? { id: mine.id, drawer: mine.drawer, openedBy: mine.openedBy, openedAt: mine.openedAt, canSee: false } : null);
+        }).catch(() => setShift(undefined));
     }, [online, loadCatalogue]);
 
     const items = useMemo(() => (cat?.items || []).filter(i => i.is_available && i.sold_in_shop !== false), [cat]);
@@ -268,6 +273,8 @@ const AdminPOS = () => {
         return () => clearTimeout(t);
     }, [custQuery, online]);
 
+    // Every bill belongs to an open counter shift: no shift (while online) = no bill
+    const noShift = online && shift === null;
     const estimated = !quote;
     const total = quote ? quote.total : estimateTotal(cart, items, cat?.taxGroups || [], cat?.defaultTax || [], discountAmount);
 
@@ -303,7 +310,7 @@ const AdminPOS = () => {
             tokenNumber: orderType === 'dine_in' && tableId ? '' : token,
             customerPhone: !customer?.id ? customer?.phone : undefined, customerName: !customer?.id ? customer?.name : undefined,
             discountReason: disc.reason, approverPhone: disc.approverPhone || undefined, approverPin: disc.approverPin || undefined,
-            specialInstructions: note, drawer: 'cash_counter', ...(payment || {}),
+            specialInstructions: note, drawer: 'cash_counter', shiftId: shift?.id || undefined, ...(payment || {}),
         };
         const label = `${orderNumber} · ${cart.length} item${cart.length > 1 ? 's' : ''}${payment ? ' · paid' : ''}`;
         try {
@@ -517,8 +524,8 @@ const AdminPOS = () => {
                         <PayPanel total={total} estimated={estimated} online={online} busy={busy} onClose={() => setPaying(false)} onPay={submit} />
                     ) : (
                         <div className="pos-actions">
-                            <button className="btn btn-secondary btn-lg" disabled={!cart.length || busy} onClick={() => submit(null)}>Send to kitchen</button>
-                            <button className="btn btn-primary btn-lg" disabled={!cart.length || busy} onClick={() => setPaying(true)}>Pay {inr(total)}</button>
+                            <button className="btn btn-secondary btn-lg" disabled={!cart.length || busy || noShift} onClick={() => submit(null)}>Send to kitchen</button>
+                            <button className="btn btn-primary btn-lg" disabled={!cart.length || busy || noShift} onClick={() => setPaying(true)}>Pay {inr(total)}</button>
                         </div>
                     )}
                 </section>

@@ -75,7 +75,7 @@ const AdminSettings = () => {
             // Save basic settings
             // Name, address and phone are edited on Brand & look
             const basicKeys = ['gst_number', 'fssai_number', 'gst_rate',
-                'service_charge_pct', 'round_off', 'bill_footer', 'shift_tolerance'];
+                'service_charge_pct', 'round_off', 'bill_footer', 'shift_tolerance', 'shift_tolerance_upi', 'shift_tolerance_card'];
             for (const key of basicKeys) {
                 if (settings[key] !== undefined) {
                     await updateSetting(key, settings[key]);
@@ -164,7 +164,18 @@ const AdminSettings = () => {
                             value={settings.shift_tolerance ?? 50}
                             onChange={(e) => handleBasicChange('shift_tolerance', Number(e.target.value))}
                         />
-                        <small className="hint">A bigger difference needs a reason and alerts the owner.</small>
+                        <small className="hint">A bigger difference needs a reason and the PIN of another person (manager or owner), and alerts the owner.</small>
+                    </div>
+                    <div className="form-group">
+                        <label>UPI and card difference allowed (₹)<InfoTip k="shift_tolerance_modes" /></label>
+                        <div className="form-row-2">
+                            <input type="number" min="0" aria-label="UPI difference allowed" placeholder={`UPI: same as cash (${settings.shift_tolerance ?? 50})`}
+                                value={settings.shift_tolerance_upi ?? ''}
+                                onChange={(e) => handleBasicChange('shift_tolerance_upi', e.target.value === '' ? '' : Number(e.target.value))} />
+                            <input type="number" min="0" aria-label="Card difference allowed" placeholder={`Card: same as cash (${settings.shift_tolerance ?? 50})`}
+                                value={settings.shift_tolerance_card ?? ''}
+                                onChange={(e) => handleBasicChange('shift_tolerance_card', e.target.value === '' ? '' : Number(e.target.value))} />
+                        </div>
                     </div>
                 </div>
 

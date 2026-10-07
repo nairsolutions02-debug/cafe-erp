@@ -53,6 +53,8 @@ await rpc(sa, 'sa_create_tenant', {
     p_name: `Redesign ${run}`, p_slug: slug, p_plan_id: plans.find(p => p.name === 'Custom').id, p_paid_until: '2099-01-01',
     p_owner_name: 'Owner', p_owner_phone: ph(1), p_owner_pin: '1111' });
 const owner = await staffLogin(slug, ph(1), '1111');
+// Shift balance: money is taken only inside an open shift of the drawer
+await rpc(owner, 'open_shift', { p_drawer: 'cash_counter', p_denoms: {} });
 await must(owner.from('settings').upsert({ key: 'qr_accept_all', value: false }));
 const tenantId = (await must(service.from('tenants').select('id').eq('slug', slug).single())).id;
 const cat = await must(owner.from('categories').insert({ name: 'Food' }).select().single());

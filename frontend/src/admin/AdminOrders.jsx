@@ -59,8 +59,9 @@ const OrderNo = ({ n }) => {
     return <>{s.slice(0, i + 1)}<b>{s.slice(i + 1)}</b></>;
 };
 
-// Take payment: one method or split; cash shows change. Cash goes to the counter drawer.
-const SettleModal = ({ order, onClose, onDone }) => {
+// Take payment: one method or split; cash shows change. Money goes into the open shift of the counter drawer.
+// A manager can also mark a QR bill "paid online" (UPI straight to the cafe account, no drawer) after checking the statement.
+const SettleModal = ({ order, canOnline, onClose, onDone }) => {
     const due = Math.round((order.total - (order.amountPaid || 0)) * 100) / 100;
     const [amounts, setAmounts] = useState({ cash: '', upi: '', card: '' });
     const [method, setMethod] = useState('cash');
@@ -75,8 +76,9 @@ const SettleModal = ({ order, onClose, onDone }) => {
         try {
             const payments = split
                 ? Object.entries(amounts).filter(([, v]) => Number(v) > 0).map(([m, v]) => ({ method: m, amount: Number(v) }))
-                : [{ method, amount: method === 'cash' && Number(tendered) > due ? Number(tendered) : due }];
-            const res = await settleOrder(order._id, payments);
+                : method === 'online' ? [{ method: 'upi', amount: due }]
+                    : [{ method, amount: method === 'cash' && Number(tendered) > due ? Number(tendered) : due }];
+            const res = await settleOrder(order._id, payments, method === 'online' ? 'online' : 'cash_counter');
             onDone(res.data);
         } catch (err) {
             setError(errText(err));
@@ -100,8 +102,9 @@ const SettleModal = ({ order, onClose, onDone }) => {
                         <button className="link-btn" onClick={dropSc}>{order.serviceChargeRemoved ? 'Add it back' : 'Customer asked to remove it'}</button></p>
                 )}
                 <div className="pay-methods">
-                    {['cash', 'upi', 'card', 'split'].map(m => <button key={m} className={method === m ? 'active' : ''} onClick={() => setMethod(m)}>{m === 'upi' ? 'UPI' : m[0].toUpperCase() + m.slice(1)}</button>)}
+                    {['cash', 'upi', 'card', 'split', ...(canOnline && order.channel === 'qr' ? ['online'] : [])].map(m => <button key={m} className={method === m ? 'active' : ''} onClick={() => setMethod(m)}>{m === 'upi' ? 'UPI' : m === 'online' ? 'Paid online' : m[0].toUpperCase() + m.slice(1)}</button>)}
                 </div>
+                {method === 'online' && <p className="muted small">Only when the customer paid the cafe UPI account directly and you saw it in the statement. It is not counted in any drawer; the owner checks it in the day close.</p>}
                 {method === 'cash' && (
                     <div className="input-group" style={{ marginTop: 10 }}><label>Cash received</label>
                         <input className="input" type="number" value={tendered} placeholder={String(due)} onChange={e => setTendered(e.target.value)} autoFocus />
@@ -333,9 +336,9 @@ const AdminOrders = () => {
 
     const modals = (
         <>
-            {settling && <SettleModal order={settling} onClose={() => setSettling(null)} onDone={afterChange} />}
+            {settling && <SettleModal order={settling} canOnline={hasPerm('finance.edit') || hasPerm('sensitive.void_bill')} onClose={() => setSettling(null)} onDone={afterChange} />}
             {moving && <MoveModal order={moving} onClose={() => setMoving(null)} onDone={(o) => { setMoving(null); afterChange(o); fetchOrders(); }} />}
-            {cancelling && <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} onClose={() => setCancelling(null)} onDone={afterChange} />}
+            {cancelling && <CancelModal order={cancelling} canVoid={hasPerm('sensitive.void_bill')} drawer="cash_counter" onClose={() => setCancelling(null)} onDone={afterChange} />}
 
             {showBill && selectedOrdersForBill.length > 0 && (
                 <OrderBill

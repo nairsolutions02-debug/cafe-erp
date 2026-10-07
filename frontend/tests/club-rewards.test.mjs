@@ -55,6 +55,8 @@ await rpc(sa, 'sa_create_tenant', {
     p_owner_name: 'Owner', p_owner_phone: ph(1), p_owner_pin: '1111' });
 const tenantId = (await must(service.from('tenants').select('id').eq('slug', slug).single())).id;
 const owner = await staffLogin(slug, ph(1), '1111');
+// Shift balance: money is taken only inside an open shift of the drawer
+await rpc(owner, 'open_shift', { p_drawer: 'cash_counter', p_denoms: {} });
 const roles = await must(owner.from('roles').select('id, name'));
 await rpc(owner, 'create_staff', { p_name: 'Cashier', p_phone: ph(2), p_role_id: roles.find(r => r.name === 'Cashier').id, p_pin: '2222' });
 const cashier = await staffLogin(slug, ph(2), '2222');

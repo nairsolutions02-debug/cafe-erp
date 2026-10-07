@@ -79,11 +79,14 @@ const AdminKiosk = () => {
     const [busy, setBusy] = useState(false);
     const [toast, setToast] = useState(null);
     const [error, setError] = useState('');
-    const [shift, setShift] = useState(undefined);
+    // The open kiosk shift (kept on the device, so a sale made offline still says which shift it belongs to)
+    const [shift, setShift] = useState(() => cacheGet('shift-cash_kiosk') ?? undefined);
     const [idReminder, setIdReminder] = useState(true);
     const press = useRef(null);
+    const noShift = online && shift === null;
 
     const tab = tabs[Math.min(active, tabs.length - 1)];
+    // Every sale belongs to an open kiosk shift: no shift (while online) = no sale
     useEffect(() => {
         if (!toast) return undefined;
         const t = setTimeout(() => setToast(null), 5000);
@@ -107,7 +110,9 @@ const AdminKiosk = () => {
             cacheSet('pos-catalogue', c);
             setTax(c);
             const s = (await getCurrentShifts()).data;
-            setShift(s.open.find(x => x.drawer === 'cash_kiosk') || null);
+            const mine = s.open.find(x => x.drawer === 'cash_kiosk') || null;
+            setShift(mine);
+            cacheSet('shift-cash_kiosk', mine ? { id: mine.id, drawer: mine.drawer, openedBy: mine.openedBy, openedAt: mine.openedAt } : null);
             const st = (await getSettings()).data;
             setIdReminder(st.restricted_id_reminder !== false);
         } catch { /* offline: cached copy */ }
@@ -198,6 +203,7 @@ const AdminKiosk = () => {
             customerId: tab.customer?.id, customerPhone: tab.customer?.id ? undefined : tab.customer?.phone, customerName: tab.customer?.id ? undefined : tab.customer?.name,
             items: tab.lines.map(l => ({ menuItem: l.menuItemId, quantity: l.qty, unitId: l.unitId || undefined, size: l.size, choices: l.choices })),
             payFullBy: method, drawer: 'cash_kiosk', approverPhone: approver?.phone, approverPin: approver?.pin,
+            shiftId: shift?.id || undefined,
         };
         try {
             const res = await runOrQueue('create_staff_order', { p }, `${orderNumber} · kiosk · ${method}`);
@@ -321,9 +327,9 @@ const AdminKiosk = () => {
             )}
                 <div className="kiosk-pay">
                     <div className="kiosk-total">{inr(total)}</div>
-                    <button className="kpay cash" disabled={busy || !tab.lines.length} onClick={() => pay('cash')}>Cash</button>
-                    <button className="kpay upi" disabled={busy || !tab.lines.length} onClick={() => pay('upi')}>UPI</button>
-                    <button className="kpay khata" disabled={busy || !tab.lines.length || !tab.customer} onClick={() => pay('khata')}
+                    <button className="kpay cash" disabled={busy || noShift || !tab.lines.length} onClick={() => pay('cash')}>Cash</button>
+                    <button className="kpay upi" disabled={busy || noShift || !tab.lines.length} onClick={() => pay('upi')}>UPI</button>
+                    <button className="kpay khata" disabled={busy || noShift || !tab.lines.length || !tab.customer} onClick={() => pay('khata')}
                         title={tab.customer ? '' : 'Pick the customer first'}>Khata</button>
                 </div>
             </div>

@@ -730,8 +730,13 @@ export const quoteStaffOrder = async (p) => ok(await rpc('quote_staff_order', { 
 export const createStaffOrder = async (p) => ok(await rpc('create_staff_order', { p }));
 export const settleOrder = async (orderId, payments, drawer = 'cash_counter', clientId = null) =>
     ok(await rpc('settle_order', { p_order_id: orderId, p_payments: payments, p_drawer: drawer, p_client_id: clientId }));
-export const cancelOrder = async (orderId, reason, approverPhone = null, approverPin = null) =>
-    ok(await rpc('cancel_order', { p_order_id: orderId, p_reason: reason, p_approver_phone: approverPhone, p_approver_pin: approverPin }));
+export const cancelOrder = async (orderId, reason, approverPhone = null, approverPin = null, drawer = null) =>
+    ok(await rpc('cancel_order', { p_order_id: orderId, p_reason: reason, p_approver_phone: approverPhone, p_approver_pin: approverPin, p_drawer: drawer }));
+// Hand an open bill over to the next shift of its drawer (manager PIN unless the person may void bills)
+export const handoverBill = async (orderId, reason, approverPhone = null, approverPin = null) =>
+    ok(await rpc('handover_bill', { p_order_id: orderId, p_reason: reason, p_approver_phone: approverPhone, p_approver_pin: approverPin }));
+// Every print of a bill is logged (a second print is a reprint)
+export const logBillPrint = async (orderId) => ok(await rpc('log_bill_print', { p_order: orderId }));
 // Refund some items of a paid bill. lines: [{ orderItemId, quantity, restock }]; preview prices it without saving
 export const previewRefund = async (orderId, lines, method = 'cash') =>
     ok(await rpc('refund_items', { p_order_id: orderId, p_lines: lines, p_method: method, p_preview: true }));
@@ -758,8 +763,13 @@ export const setKitchenStatus = async (orderId, itemId, status) =>
 
 export const getCurrentShifts = async () => ok(await rpc('current_shifts'));
 export const openShift = async (drawer, denoms, note = '') => ok(await rpc('open_shift', { p_drawer: drawer, p_denoms: denoms, p_note: note }));
-export const closeShift = async (id, denoms, upiReported, cardReported, reason, note = '') =>
-    ok(await rpc('close_shift', { p_shift_id: id, p_denoms: denoms, p_upi_reported: upiReported, p_card_reported: cardReported, p_reason: reason, p_note: note }));
+export const closeShift = async (id, denoms, upiReported, cardReported, reason, note = '', approverPhone = null, approverPin = null) =>
+    ok(await rpc('close_shift', { p_shift_id: id, p_denoms: denoms, p_upi_reported: upiReported, p_card_reported: cardReported, p_reason: reason, p_note: note,
+        p_approver_phone: approverPhone || null, p_approver_pin: approverPin || null }));
+// Owner day close: both drawers and QR / online together; closing locks the day
+export const getDayClose = async (from, to = null) => ok(await rpc('day_close_report', { p_from: from || null, p_to: to || from || null }));
+export const closeDay = async (day, note = '') => ok(await rpc('close_day', { p_day: day, p_note: note }));
+export const reopenDay = async (day, reason) => ok(await rpc('reopen_day', { p_day: day, p_reason: reason }));
 export const cashMovement = async (drawer, kind, amount, note, categoryId = null, clientId = null) =>
     ok(await rpc('cash_movement_view', { p_drawer: drawer, p_kind: kind, p_amount: Number(amount), p_note: note, p_category_id: categoryId, p_client_id: clientId }));
 export const getShifts = async (from, to) => ok(await rpc('list_shifts', { p_from: from || null, p_to: to || null }));
@@ -914,7 +924,7 @@ export const getTableCodes = async () =>
     ok(Object.fromEntries(unwrap(await supabase.from('table_codes').select('table_id, code')).map(r => [r.table_id, r.code])));
 export const reissueTableCode = async (tableId) => ok(await rpc('reissue_table_code', { p_table_id: tableId }));
 export const getTableGroups = async () => ok(await rpc('table_groups'));
-export const confirmTableOrder = async (orderId) => ok(await rpc('confirm_table_order', { p_order_id: orderId }));
+export const confirmTableOrder = async (orderId, drawer = null) => ok(await rpc('confirm_table_order', { p_order_id: orderId, p_drawer: drawer }));
 export const moveOrderTable = async (orderId, tableId, wholeGroup = true) =>
     ok(await rpc('move_order_table', { p_order_id: orderId, p_table_id: tableId, p_whole_group: wholeGroup }));
 export const savePortalBanners = async (banners) => ok(await rpc('save_portal_banners', { p_banners: banners }));
