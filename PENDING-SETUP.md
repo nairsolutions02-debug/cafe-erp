@@ -1,4 +1,4 @@
-# Pending setup
+# Pending setup — ALL DONE (2026-10-08)
 
 Owner: Pravin. Started 2026-10-03 (combined Phase 2–7 SQL already run on FiKA).
 Tick each box (`[x]`) as you finish it and push, or tell Claude "done: <step>".
@@ -111,4 +111,4 @@ Full click-by-click steps: `RELEASES.md` → Phase 5 (sections 1–2) and the Ph
 ## 26. Shift close must balance, owner day close (2026-10-07)
 - [x] 26.1 Before running the SQL in 26.2: settle or note the bills still open in the open shifts (after the upgrade they must be paid, cancelled or handed over before that shift can close)
 - [x] 26.2 Supabase → SQL Editor → New query → paste `supabase/upgrades/2026-11-shift-balance.sql` → Run → Success (until this runs, Cash & Shifts and the counter show errors on the live site)
-- [ ] 26.3 (optional) Settings → Cafe settings → **UPI and card difference allowed** (empty = same as cash)
+- [x] 26.3 (optional) Settings → Cafe settings → **UPI and card difference allowed** (empty = same as cash)
